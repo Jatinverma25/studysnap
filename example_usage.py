@@ -22,19 +22,18 @@ def main():
     print(f"Prompt: {prompt}\n")
 
     # Call with automatic retry and fallback logic:
-    # 1. Tries primary model 'gemini-3.8-flash'
+    # 1. Tries primary model 'gemini-3.1-flash-lite' (high Requests Per Day quota)
     # 2. Retries up to 4 attempts on 503 or transient errors with 3s sleep
     # 3. If any model returns 404 NOT_FOUND, automatically skips to next model
     # 4. Shows 'Gemini is busy right now, please try again in a minute.' if all fail
     result = call_gemini_with_retry(
         client=client,
         prompt=prompt,
-        primary_model="gemini-3.8-flash",
+        primary_model="gemini-3.1-flash-lite",
         fallback_models=[
-            "gemini-3.8-flash-latest",
-            "gemini-flash-latest",
-            "gemini-3-pro",
             "gemini-3.5-flash-lite",
+            "gemini-flash-latest",
+            "gemini-3.8-flash",
         ],
         max_attempts=4,
         retry_delay_seconds=3.0,

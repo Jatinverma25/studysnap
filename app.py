@@ -128,12 +128,11 @@ def summarize():
             config=types.GenerateContentConfig(
                 response_mime_type="application/json"
             ),
-            primary_model="gemini-3.8-flash",
+            primary_model="gemini-3.1-flash-lite",
             fallback_models=[
-                "gemini-3.8-flash-latest",
-                "gemini-flash-latest",
-                "gemini-3-pro",
                 "gemini-3.5-flash-lite",
+                "gemini-flash-latest",
+                "gemini-3.8-flash",
             ],
             max_attempts=4,
             retry_delay_seconds=3.0,
@@ -261,12 +260,11 @@ def generate_quiz():
             config=types.GenerateContentConfig(
                 response_mime_type="application/json"
             ),
-            primary_model="gemini-3.8-flash",
+            primary_model="gemini-3.1-flash-lite",
             fallback_models=[
-                "gemini-3.8-flash-latest",
-                "gemini-flash-latest",
-                "gemini-3-pro",
                 "gemini-3.5-flash-lite",
+                "gemini-flash-latest",
+                "gemini-3.8-flash",
             ],
             max_attempts=4,
             retry_delay_seconds=3.0,

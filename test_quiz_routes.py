@@ -39,7 +39,7 @@ class TestQuizRoutes(unittest.TestCase):
         mock_call_gemini.return_value = {
             "success": True,
             "text": json.dumps(sample_questions),
-            "model_used": "gemini-3.8-flash",
+            "model_used": "gemini-3.1-flash-lite",
             "attempts": 1,
             "error": None
         }
@@ -61,7 +61,7 @@ class TestQuizRoutes(unittest.TestCase):
         # Verify call_gemini_with_retry was used with the fallback chain
         mock_call_gemini.assert_called_once()
         kwargs = mock_call_gemini.call_args.kwargs
-        self.assertEqual(kwargs["primary_model"], "gemini-3.8-flash")
+        self.assertEqual(kwargs["primary_model"], "gemini-3.1-flash-lite")
         self.assertIn("gemini-3.5-flash-lite", kwargs["fallback_models"])
 
     def test_quiz_save_and_history(self):

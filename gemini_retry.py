@@ -6,11 +6,10 @@ Handles automatic retry logic for 503 and transient/temporary errors:
 - Retries up to 4 attempts per model on 503 / temporary errors
 - If any model returns 404 NOT_FOUND, automatically skips to the next fallback model
 - Fallback chain:
-    1. Primary: 'gemini-3.8-flash'
-    2. Fallback: 'gemini-3.8-flash-latest' (skips automatically on 404)
+    1. Primary: 'gemini-3.1-flash-lite' (high Requests Per Day quota)
+    2. Fallback: 'gemini-3.5-flash-lite'
     3. Fallback: 'gemini-flash-latest' (official latest flash endpoint)
-    4. Fallback: 'gemini-3-pro' (skips automatically on 404 / free tier restriction)
-    5. Fallback: 'gemini-3.5-flash-lite' (cost-effective verified free tier backup)
+    4. Fallback: 'gemini-3.8-flash'
 - Displays friendly message if all attempts fail:
   "Gemini is busy right now, please try again in a minute."
 """
@@ -35,12 +34,11 @@ TRANSIENT_STATUS_CODES = {
 
 FRIENDLY_BUSY_MESSAGE = "Gemini is busy right now, please try again in a minute."
 
-DEFAULT_PRIMARY_MODEL = "gemini-3.8-flash"
+DEFAULT_PRIMARY_MODEL = "gemini-3.1-flash-lite"
 DEFAULT_FALLBACK_MODELS = [
-    "gemini-3.8-flash-latest",
-    "gemini-flash-latest",
-    "gemini-3-pro",
     "gemini-3.5-flash-lite",
+    "gemini-flash-latest",
+    "gemini-3.8-flash",
 ]
 
 
@@ -152,7 +150,7 @@ def call_gemini_with_retry(
         prompt: Optional text prompt/input to send.
         contents: Optional multimodal contents or prompt list.
         config: Optional generation configuration.
-        primary_model: Primary Gemini model (default: 'gemini-3.8-flash').
+        primary_model: Primary Gemini model (default: 'gemini-3.1-flash-lite').
         fallback_models: Fallback model string or list of models.
         fallback_model: Backwards-compatible single fallback model string.
         max_attempts: Number of attempts per model on temporary errors (default: 4).
