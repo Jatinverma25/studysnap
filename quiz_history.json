@@ -43,5 +43,23 @@
     "percentage": 90.0,
     "performance_message": "Outstanding Scholar! - Phenomenal work!",
     "created_at": "2026-09-26 20:00:00"
+  },
+  {
+    "id": 6,
+    "pdf_name": "008 Sudy of construction & working of IM for (BT-104) BEEE  SEP. 2023.pdf",
+    "score": 6,
+    "total": 10,
+    "percentage": 60.0,
+    "performance_message": "\ud83d\udc4f Solid Understanding! - Great effort! You've got the primary foundations down, with just a couple of nuanced areas to polish.",
+    "created_at": "9/26/2026, 9:02:52 PM"
+  },
+  {
+    "id": 7,
+    "pdf_name": "quantum_physics.pdf",
+    "score": 9,
+    "total": 10,
+    "percentage": 90.0,
+    "performance_message": "Outstanding Scholar! - Phenomenal work!",
+    "created_at": "2026-09-26 20:00:00"
   }
 ]
