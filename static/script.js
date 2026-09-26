@@ -765,6 +765,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let vx = 0;
         let vy = 0;
         let currentAngle = 0;
+        let currentStretch = 0;
         let isHovering = false;
         let isClicking = false;
         let isSelecting = false;
@@ -840,45 +841,53 @@ document.addEventListener('DOMContentLoaded', () => {
             bouncyCursor.classList.add('visible');
         });
 
-        // Fluid Elastic Spring & Flexible Squash-Stretch Animation Loop
+        // Ultra-Flexible Elastic Spring & Fluid Squash-Stretch Animation Loop
         function animateCursor() {
             if (hasInitialized) {
-                // Organic spring physics: fluid lag with elastic rebound
+                // Organic spring physics: elastic trailing with bounce
                 const dx = mouseX - ballX;
                 const dy = mouseY - ballY;
 
-                vx += dx * 0.28;
-                vy += dy * 0.28;
-                vx *= 0.68; // friction creates fluid bounce and flexible trailing
-                vy *= 0.68;
+                vx += dx * 0.22;
+                vy += dy * 0.22;
+                vx *= 0.72; // friction creates fluid bounce and flexible trailing
+                vy *= 0.72;
 
                 ballX += vx;
                 ballY += vy;
 
-                // Speed and angle calculation
+                // Speed calculation
                 const speed = Math.hypot(vx, vy);
 
-                // High-flexibility squash & stretch: dynamically elongates along velocity vector
-                const maxStretch = 0.65;
-                const stretch = Math.min(speed * 0.046, maxStretch);
+                // Very flexible stretch: dynamically elongates dramatically along velocity vector
+                const maxStretch = 1.45;
+                const targetStretch = Math.min(speed * 0.068, maxStretch);
 
-                if (speed > 0.8) {
-                    currentAngle = Math.atan2(vy, vx);
+                // Elastic stretch smoothing creates realistic rubber jiggle/recoil
+                currentStretch += (targetStretch - currentStretch) * 0.28;
+
+                // Smooth fluid bending around curves and turns
+                if (speed > 0.4) {
+                    const targetAngle = Math.atan2(vy, vx);
+                    let diff = targetAngle - currentAngle;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    currentAngle += diff * 0.28;
                 }
 
                 // Volume-preserving flexible deformation
-                let scaleX = 1 + stretch;
-                let scaleY = 1 / Math.sqrt(1 + stretch * 0.90);
+                let scaleX = 1 + currentStretch;
+                let scaleY = 1 / Math.sqrt(1 + currentStretch * 1.15);
 
                 // Interactive state adjustments
                 if (isClicking) {
                     // Squish ball down on click
-                    scaleX *= 0.62;
-                    scaleY *= 0.62;
+                    scaleX *= 0.58;
+                    scaleY *= 0.58;
                 } else if (isHovering || isSelecting) {
                     // Expand and reveal subtle glossy shine in select/hover mode
-                    scaleX *= 1.75;
-                    scaleY *= 1.75;
+                    scaleX *= 1.70;
+                    scaleY *= 1.70;
                 }
 
                 // Render with GPU accelerated 3D transform
