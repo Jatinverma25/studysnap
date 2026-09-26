@@ -743,4 +743,142 @@ document.addEventListener('DOMContentLoaded', () => {
     if (uploadQuizBtn) uploadQuizBtn.addEventListener('click', startQuizFlow);
     if (resultsQuizBtn) resultsQuizBtn.addEventListener('click', startQuizFlow);
     if (summaryQuizCtaBtn) summaryQuizCtaBtn.addEventListener('click', startQuizFlow);
+
+    // ========================================================
+    // CIRCULAR FLEXIBLE BOUNCY BALL CURSOR CONTROLLER
+    // ========================================================
+    function initBouncyCursor() {
+        const bouncyCursor = document.getElementById('bouncyCursor');
+        const cursorBall = document.getElementById('cursorBall');
+        const cursorDot = document.getElementById('cursorDot');
+
+        if (!bouncyCursor || !cursorBall || !cursorDot) return;
+
+        // Only activate on devices with fine pointer (mouse / trackpad)
+        if (window.matchMedia && !window.matchMedia('(pointer: fine)').matches) {
+            return;
+        }
+
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+        let ballX = mouseX;
+        let ballY = mouseY;
+        let vx = 0;
+        let vy = 0;
+        let currentAngle = 0;
+        let isHovering = false;
+        let isClicking = false;
+        let hasInitialized = false;
+
+        // Interactive elements selector
+        const interactiveSelector = 'button, a, input, [role="button"], [role="tab"], .drop-zone, .option-card, .btn, .icon-btn, .copy-btn, .browse-link';
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+
+            // Direct tracking for precise aiming dot
+            cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+
+            if (!hasInitialized) {
+                // First mouse move: snap ball immediately without spring lag
+                ballX = mouseX;
+                ballY = mouseY;
+                hasInitialized = true;
+                bouncyCursor.classList.add('visible');
+            } else {
+                bouncyCursor.classList.add('visible');
+            }
+        });
+
+        // Hover effect for interactive elements
+        document.addEventListener('mouseover', (e) => {
+            const target = e.target.closest(interactiveSelector);
+            if (target) {
+                isHovering = true;
+                bouncyCursor.classList.add('hovering');
+            }
+        });
+
+        document.addEventListener('mouseout', (e) => {
+            const target = e.target.closest(interactiveSelector);
+            if (target) {
+                isHovering = false;
+                bouncyCursor.classList.remove('hovering');
+            }
+        });
+
+        // Click / Squish effect
+        document.addEventListener('mousedown', () => {
+            isClicking = true;
+            bouncyCursor.classList.add('clicking');
+        });
+
+        document.addEventListener('mouseup', () => {
+            isClicking = false;
+            bouncyCursor.classList.remove('clicking');
+        });
+
+        // Window leave / enter
+        document.addEventListener('mouseleave', () => {
+            bouncyCursor.classList.remove('visible');
+        });
+
+        document.addEventListener('mouseenter', () => {
+            bouncyCursor.classList.add('visible');
+        });
+
+        // Elastic Spring & Squash-Stretch Animation Loop
+        function animateCursor() {
+            if (hasInitialized) {
+                // Spring physics: accelerates towards mouse pointer with elastic damping
+                const dx = mouseX - ballX;
+                const dy = mouseY - ballY;
+
+                vx += dx * 0.22;
+                vy += dy * 0.22;
+                vx *= 0.72; // friction/damping creates natural bounce and overshoot
+                vy *= 0.72;
+
+                ballX += vx;
+                ballY += vy;
+
+                // Speed and angle calculation
+                const speed = Math.hypot(vx, vy);
+
+                // Squash and stretch: as speed increases, stretch along velocity vector
+                // and compress perpendicular to preserve circular volume (cartoon jelly ball physics)
+                const maxStretch = 0.52;
+                const stretch = Math.min(speed * 0.036, maxStretch);
+
+                if (speed > 1.0) {
+                    currentAngle = Math.atan2(vy, vx);
+                }
+
+                let scaleX = 1 + stretch;
+                let scaleY = 1 / (1 + stretch * 0.82);
+
+                // Interactive state adjustments
+                if (isClicking) {
+                    // Squish ball down like rubber
+                    scaleX *= 0.72;
+                    scaleY *= 0.72;
+                } else if (isHovering) {
+                    // Expand and breathe on clickable elements
+                    scaleX *= 1.42;
+                    scaleY *= 1.42;
+                }
+
+                // Render with GPU accelerated 3D transform
+                cursorBall.style.transform = `translate3d(${ballX.toFixed(2)}px, ${ballY.toFixed(2)}px, 0) rotate(${currentAngle.toFixed(4)}rad) scale(${scaleX.toFixed(3)}, ${scaleY.toFixed(3)})`;
+            }
+
+            requestAnimationFrame(animateCursor);
+        }
+
+        requestAnimationFrame(animateCursor);
+    }
+
+    // Initialize custom cursor
+    initBouncyCursor();
 });

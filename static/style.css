@@ -1360,3 +1360,119 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ========================================================
+   CIRCULAR FLEXIBLE BOUNCY BALL CURSOR
+   ======================================================== */
+.bouncy-cursor-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+    z-index: 999999;
+    opacity: 0;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bouncy-cursor-container.visible {
+    opacity: 1;
+}
+
+/* Outer Bouncy Flexible Jelly Ball */
+.cursor-ball {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 38px;
+    height: 38px;
+    margin-left: -19px;
+    margin-top: -19px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle at 35% 30%, rgba(192, 132, 252, 0.85), rgba(99, 102, 241, 0.55) 55%, rgba(6, 182, 212, 0.35) 90%);
+    box-shadow: 
+        0 0 20px rgba(129, 140, 248, 0.6),
+        0 0 38px rgba(168, 85, 247, 0.35),
+        inset 0 2px 5px rgba(255, 255, 255, 0.75),
+        inset 0 -3px 7px rgba(99, 102, 241, 0.45);
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    will-change: transform;
+    transform-origin: center center;
+    transition: border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+}
+
+/* 3D Glossy / Specular Highlight on the Ball */
+.cursor-specular {
+    position: absolute;
+    top: 18%;
+    left: 20%;
+    width: 32%;
+    height: 32%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.45) 45%, rgba(255, 255, 255, 0) 80%);
+    pointer-events: none;
+}
+
+/* Inner Depth Ring */
+.cursor-inner-ring {
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    pointer-events: none;
+}
+
+/* Center Precision Dot */
+.cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    margin-left: -3px;
+    margin-top: -3px;
+    border-radius: 50%;
+    pointer-events: none;
+    background: #ffffff;
+    box-shadow: 0 0 10px #a855f7, 0 0 3px #ffffff;
+    will-change: transform;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+/* Hovering over clickable items (buttons, links, options, inputs) */
+.bouncy-cursor-container.hovering .cursor-ball {
+    border-color: rgba(255, 255, 255, 0.9);
+    background: radial-gradient(circle at 35% 30%, rgba(244, 114, 182, 0.85), rgba(168, 85, 247, 0.6) 50%, rgba(99, 102, 241, 0.4) 90%);
+    box-shadow: 
+        0 0 28px rgba(244, 114, 182, 0.75),
+        0 0 50px rgba(168, 85, 247, 0.5),
+        inset 0 2px 6px rgba(255, 255, 255, 0.85),
+        inset 0 -3px 8px rgba(168, 85, 247, 0.6);
+}
+
+.bouncy-cursor-container.hovering .cursor-dot {
+    transform: scale(0.3);
+    opacity: 0.5;
+}
+
+/* Squished bouncy ball state when mouse button is held down */
+.bouncy-cursor-container.clicking .cursor-ball {
+    border-color: rgba(255, 255, 255, 0.95);
+    background: radial-gradient(circle at 35% 30%, rgba(56, 189, 248, 0.9), rgba(99, 102, 241, 0.65) 55%, rgba(168, 85, 247, 0.45) 90%);
+    box-shadow: 
+        0 0 35px rgba(56, 189, 248, 0.8),
+        0 0 55px rgba(99, 102, 241, 0.5),
+        inset 0 3px 8px rgba(255, 255, 255, 0.9);
+}
+
+/* Disable completely on mobile touch screens */
+@media (hover: none) and (pointer: coarse) {
+    .bouncy-cursor-container {
+        display: none !important;
+    }
+}
+
