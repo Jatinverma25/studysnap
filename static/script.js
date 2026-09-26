@@ -767,9 +767,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentAngle = 0;
         let isHovering = false;
         let isClicking = false;
+        let isSelecting = false;
         let hasInitialized = false;
 
-        // Interactive elements selector
+        // Interactive elements selector (select mode / clickable items)
         const interactiveSelector = 'button, a, input, select, textarea, [role="button"], [role="tab"], .drop-zone, .option-card, .btn, .icon-btn, .copy-btn, .browse-link';
 
         window.addEventListener('mousemove', (e) => {
@@ -787,12 +788,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Hover effect for interactive elements (expand into subtle target circle)
+        // Hover & Select mode effect for interactive elements (activates subtle shine & expansion)
         document.addEventListener('mouseover', (e) => {
             const target = e.target.closest(interactiveSelector);
             if (target) {
                 isHovering = true;
                 bouncyCursor.classList.add('hovering');
+                bouncyCursor.classList.add('select-mode');
             }
         });
 
@@ -801,6 +803,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (target) {
                 isHovering = false;
                 bouncyCursor.classList.remove('hovering');
+                if (!isSelecting) {
+                    bouncyCursor.classList.remove('select-mode');
+                }
+            }
+        });
+
+        // Text selection detection for select mode shine
+        document.addEventListener('selectionchange', () => {
+            const sel = window.getSelection();
+            isSelecting = Boolean(sel && sel.toString().trim().length > 0);
+            if (isSelecting) {
+                bouncyCursor.classList.add('select-mode');
+            } else if (!isHovering) {
+                bouncyCursor.classList.remove('select-mode');
             }
         });
 
@@ -824,17 +840,17 @@ document.addEventListener('DOMContentLoaded', () => {
             bouncyCursor.classList.add('visible');
         });
 
-        // Elastic Spring & Squash-Stretch Animation Loop
+        // Fluid Elastic Spring & Flexible Squash-Stretch Animation Loop
         function animateCursor() {
             if (hasInitialized) {
-                // Snappy spring physics for accurate cursor targeting
+                // Organic spring physics: fluid lag with elastic rebound
                 const dx = mouseX - ballX;
                 const dy = mouseY - ballY;
 
-                vx += dx * 0.36;
-                vy += dy * 0.36;
-                vx *= 0.62; // friction creates tight elasticity & micro-bounce
-                vy *= 0.62;
+                vx += dx * 0.28;
+                vy += dy * 0.28;
+                vx *= 0.68; // friction creates fluid bounce and flexible trailing
+                vy *= 0.68;
 
                 ballX += vx;
                 ballY += vy;
@@ -842,27 +858,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Speed and angle calculation
                 const speed = Math.hypot(vx, vy);
 
-                // Squash and stretch: as speed increases, stretch along velocity vector
-                // and compress perpendicular to preserve circular volume
-                const maxStretch = 0.42;
-                const stretch = Math.min(speed * 0.028, maxStretch);
+                // High-flexibility squash & stretch: dynamically elongates along velocity vector
+                const maxStretch = 0.65;
+                const stretch = Math.min(speed * 0.046, maxStretch);
 
                 if (speed > 0.8) {
                     currentAngle = Math.atan2(vy, vx);
                 }
 
+                // Volume-preserving flexible deformation
                 let scaleX = 1 + stretch;
-                let scaleY = 1 / (1 + stretch * 0.75);
+                let scaleY = 1 / Math.sqrt(1 + stretch * 0.90);
 
                 // Interactive state adjustments
                 if (isClicking) {
                     // Squish ball down on click
-                    scaleX *= 0.60;
-                    scaleY *= 0.60;
-                } else if (isHovering) {
-                    // Expand over clickable elements
-                    scaleX *= 1.85;
-                    scaleY *= 1.85;
+                    scaleX *= 0.62;
+                    scaleY *= 0.62;
+                } else if (isHovering || isSelecting) {
+                    // Expand and reveal subtle glossy shine in select/hover mode
+                    scaleX *= 1.75;
+                    scaleY *= 1.75;
                 }
 
                 // Render with GPU accelerated 3D transform
