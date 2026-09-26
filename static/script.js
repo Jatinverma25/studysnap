@@ -900,7 +900,38 @@ document.addEventListener('DOMContentLoaded', () => {
     if (summaryQuizCtaBtn) summaryQuizCtaBtn.addEventListener('click', openQuizConfigModal);
 
     // ========================================================
-    // SMALL CIRCULAR FLEXIBLE BLACK CURSOR CONTROLLER
+    // THEME SWITCHER (DARK / LIGHT MODE)
+    // ========================================================
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeToggleLabel = document.getElementById('themeToggleLabel');
+
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('studysnap-theme', theme);
+        if (themeToggleLabel) {
+            themeToggleLabel.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+        }
+        if (themeToggleBtn) {
+            const nextMode = theme === 'dark' ? 'light' : 'dark';
+            themeToggleBtn.setAttribute('aria-label', `Switch to ${nextMode} mode`);
+            themeToggleBtn.setAttribute('title', `Switch to ${nextMode} mode`);
+        }
+    }
+
+    // Initialize theme from saved preference or default to dark
+    const savedTheme = localStorage.getItem('studysnap-theme') || 'dark';
+    applyTheme(savedTheme);
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+    }
+
+    // ========================================================
+    // SMALL CIRCULAR FLEXIBLE BLACK CURSOR (UNIFORM & STABLE)
     // ========================================================
     function initBouncyCursor() {
         const bouncyCursor = document.getElementById('bouncyCursor');
@@ -921,13 +952,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let vy = 0;
         let currentAngle = 0;
         let currentStretch = 0;
-        let isHovering = false;
         let isClicking = false;
-        let isSelecting = false;
         let hasInitialized = false;
-
-        // Interactive elements selector (select mode / clickable items)
-        const interactiveSelector = 'button, a, input, select, textarea, [role="button"], [role="tab"], .drop-zone, .option-card, .btn, .icon-btn, .copy-btn, .browse-link';
 
         window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
@@ -944,47 +970,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Hover & Select mode effect for interactive elements (activates subtle shine & expansion)
-        document.addEventListener('mouseover', (e) => {
-            const target = e.target.closest(interactiveSelector);
-            if (target) {
-                isHovering = true;
-                bouncyCursor.classList.add('hovering');
-                bouncyCursor.classList.add('select-mode');
-            }
-        });
-
-        document.addEventListener('mouseout', (e) => {
-            const target = e.target.closest(interactiveSelector);
-            if (target) {
-                isHovering = false;
-                bouncyCursor.classList.remove('hovering');
-                if (!isSelecting) {
-                    bouncyCursor.classList.remove('select-mode');
-                }
-            }
-        });
-
-        // Text selection detection for select mode shine
-        document.addEventListener('selectionchange', () => {
-            const sel = window.getSelection();
-            isSelecting = Boolean(sel && sel.toString().trim().length > 0);
-            if (isSelecting) {
-                bouncyCursor.classList.add('select-mode');
-            } else if (!isHovering) {
-                bouncyCursor.classList.remove('select-mode');
-            }
-        });
-
-        // Click / Squish effect
+        // Click effect: subtle tactile response without altering circle identity
         document.addEventListener('mousedown', () => {
             isClicking = true;
-            bouncyCursor.classList.add('clicking');
         });
 
         document.addEventListener('mouseup', () => {
             isClicking = false;
-            bouncyCursor.classList.remove('clicking');
         });
 
         // Window leave / enter
@@ -996,7 +988,8 @@ document.addEventListener('DOMContentLoaded', () => {
             bouncyCursor.classList.add('visible');
         });
 
-        // Ultra-Flexible Elastic Spring & Fluid Squash-Stretch Animation Loop
+        // Ultra-Flexible Elastic Spring & Fluid Velocity Animation Loop
+        // Circle remains the same uniform circle at all times (no changes on hover or selection)
         function animateCursor() {
             if (hasInitialized) {
                 // Organic spring physics: elastic trailing with bounce
@@ -1014,11 +1007,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Speed calculation
                 const speed = Math.hypot(vx, vy);
 
-                // Very flexible stretch: dynamically elongates dramatically along velocity vector
-                const maxStretch = 1.45;
-                const targetStretch = Math.min(speed * 0.068, maxStretch);
+                // Very flexible stretch: dynamically elongates smoothly along velocity vector
+                const maxStretch = 1.35;
+                const targetStretch = Math.min(speed * 0.065, maxStretch);
 
-                // Elastic stretch smoothing creates realistic rubber jiggle/recoil
+                // Elastic stretch smoothing creates realistic rubber trailing/recoil
                 currentStretch += (targetStretch - currentStretch) * 0.28;
 
                 // Smooth fluid bending around curves and turns
@@ -1034,18 +1027,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 let scaleX = 1 + currentStretch;
                 let scaleY = 1 / Math.sqrt(1 + currentStretch * 1.15);
 
-                // Interactive state adjustments
                 if (isClicking) {
-                    // Squish ball down on click
-                    scaleX *= 0.58;
-                    scaleY *= 0.58;
-                } else if (isHovering || isSelecting) {
-                    // Expand and reveal subtle glossy shine in select/hover mode
-                    scaleX *= 1.70;
-                    scaleY *= 1.70;
+                    scaleX *= 0.85;
+                    scaleY *= 0.85;
                 }
 
-                // Render with GPU accelerated 3D transform
+                // Render with GPU accelerated 3D transform - circle remains identical in all states
                 cursorBall.style.transform = `translate3d(${ballX.toFixed(2)}px, ${ballY.toFixed(2)}px, 0) rotate(${currentAngle.toFixed(4)}rad) scale(${scaleX.toFixed(3)}, ${scaleY.toFixed(3)})`;
             }
 

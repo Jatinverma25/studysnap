@@ -26,16 +26,23 @@
     <div class="app-container">
         <!-- Header -->
         <header class="header">
-            <div class="brand">
-                <div class="logo-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
-                        <path d="M6 6h10"></path>
-                        <path d="M6 10h10"></path>
-                        <path d="m9 16 2 2 4-4"></path>
-                    </svg>
+            <div class="header-top">
+                <div class="brand">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                            <path d="M6 6h10"></path>
+                            <path d="M6 10h10"></path>
+                            <path d="m9 16 2 2 4-4"></path>
+                        </svg>
+                    </div>
+                    <h1 class="brand-title">Study<span class="gradient-text">Snap</span></h1>
                 </div>
-                <h1 class="brand-title">Study<span class="gradient-text">Snap</span></h1>
+                <button type="button" id="themeToggleBtn" class="theme-toggle-btn" aria-label="Switch theme mode" title="Toggle Light or Dark theme">
+                    <span class="theme-toggle-icon sun-icon" aria-hidden="true">☀️</span>
+                    <span class="theme-toggle-icon moon-icon" aria-hidden="true">🌙</span>
+                    <span id="themeToggleLabel" class="theme-toggle-text">Light Mode</span>
+                </button>
             </div>
             <p class="tagline">Transform any PDF document into quick study summaries and interactive quizzes.</p>
         </header>
