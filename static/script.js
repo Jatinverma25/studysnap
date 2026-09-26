@@ -745,14 +745,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (summaryQuizCtaBtn) summaryQuizCtaBtn.addEventListener('click', startQuizFlow);
 
     // ========================================================
-    // CIRCULAR FLEXIBLE BOUNCY BALL CURSOR CONTROLLER
+    // SMALL CIRCULAR FLEXIBLE BLACK CURSOR CONTROLLER
     // ========================================================
     function initBouncyCursor() {
         const bouncyCursor = document.getElementById('bouncyCursor');
         const cursorBall = document.getElementById('cursorBall');
-        const cursorDot = document.getElementById('cursorDot');
 
-        if (!bouncyCursor || !cursorBall || !cursorDot) return;
+        if (!bouncyCursor || !cursorBall) return;
 
         // Only activate on devices with fine pointer (mouse / trackpad)
         if (window.matchMedia && !window.matchMedia('(pointer: fine)').matches) {
@@ -771,17 +770,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let hasInitialized = false;
 
         // Interactive elements selector
-        const interactiveSelector = 'button, a, input, [role="button"], [role="tab"], .drop-zone, .option-card, .btn, .icon-btn, .copy-btn, .browse-link';
+        const interactiveSelector = 'button, a, input, select, textarea, [role="button"], [role="tab"], .drop-zone, .option-card, .btn, .icon-btn, .copy-btn, .browse-link';
 
         window.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
 
-            // Direct tracking for precise aiming dot
-            cursorDot.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
-
             if (!hasInitialized) {
-                // First mouse move: snap ball immediately without spring lag
+                // First mouse move: snap ball immediately without initial fly-in
                 ballX = mouseX;
                 ballY = mouseY;
                 hasInitialized = true;
@@ -791,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Hover effect for interactive elements
+        // Hover effect for interactive elements (expand into subtle target circle)
         document.addEventListener('mouseover', (e) => {
             const target = e.target.closest(interactiveSelector);
             if (target) {
@@ -831,14 +827,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Elastic Spring & Squash-Stretch Animation Loop
         function animateCursor() {
             if (hasInitialized) {
-                // Spring physics: accelerates towards mouse pointer with elastic damping
+                // Snappy spring physics for accurate cursor targeting
                 const dx = mouseX - ballX;
                 const dy = mouseY - ballY;
 
-                vx += dx * 0.22;
-                vy += dy * 0.22;
-                vx *= 0.72; // friction/damping creates natural bounce and overshoot
-                vy *= 0.72;
+                vx += dx * 0.36;
+                vy += dy * 0.36;
+                vx *= 0.62; // friction creates tight elasticity & micro-bounce
+                vy *= 0.62;
 
                 ballX += vx;
                 ballY += vy;
@@ -847,26 +843,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const speed = Math.hypot(vx, vy);
 
                 // Squash and stretch: as speed increases, stretch along velocity vector
-                // and compress perpendicular to preserve circular volume (cartoon jelly ball physics)
-                const maxStretch = 0.52;
-                const stretch = Math.min(speed * 0.036, maxStretch);
+                // and compress perpendicular to preserve circular volume
+                const maxStretch = 0.42;
+                const stretch = Math.min(speed * 0.028, maxStretch);
 
-                if (speed > 1.0) {
+                if (speed > 0.8) {
                     currentAngle = Math.atan2(vy, vx);
                 }
 
                 let scaleX = 1 + stretch;
-                let scaleY = 1 / (1 + stretch * 0.82);
+                let scaleY = 1 / (1 + stretch * 0.75);
 
                 // Interactive state adjustments
                 if (isClicking) {
-                    // Squish ball down like rubber
-                    scaleX *= 0.72;
-                    scaleY *= 0.72;
+                    // Squish ball down on click
+                    scaleX *= 0.60;
+                    scaleY *= 0.60;
                 } else if (isHovering) {
-                    // Expand and breathe on clickable elements
-                    scaleX *= 1.42;
-                    scaleY *= 1.42;
+                    // Expand over clickable elements
+                    scaleX *= 1.85;
+                    scaleY *= 1.85;
                 }
 
                 // Render with GPU accelerated 3D transform
