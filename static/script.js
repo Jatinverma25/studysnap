@@ -645,6 +645,9 @@ document.addEventListener('DOMContentLoaded', () => {
         isQuestionAnswered = true;
         stopTimer();
 
+        // Mark the chosen button as selected for highlighting glow
+        selectedBtn.classList.add('selected');
+
         // Disable all option buttons
         const allOptionBtns = quizOptionsContainer.querySelectorAll('.quiz-option-btn');
         allOptionBtns.forEach(btn => btn.classList.add('disabled'));
