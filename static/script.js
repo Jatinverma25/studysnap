@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Error helpers
     function showError(msg) {
-        const friendlyMessage = 'Gemini is busy right now, please try again in a minute.';
+        const friendlyMessage = 'The service is busy right now, please try again in a minute.';
         const msgStr = String(msg || '');
         const isTemporary = (
             msgStr.includes('503') ||
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Loading status cycling
     const summaryLoadingSteps = [
-        'Uploading PDF to Gemini AI...',
+        'Uploading and analyzing document...',
         'Analyzing document structure and concepts...',
         'Synthesizing Easy Mode for beginners...',
         'Extracting technical deep-dive insights...',
@@ -217,9 +217,9 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     const quizLoadingSteps = [
-        'Uploading PDF to Gemini AI...',
+        'Uploading and analyzing document...',
         'Reading document sections and core topics...',
-        'Crafting 10 challenging multiple-choice questions...',
+        'Crafting challenging multiple-choice questions...',
         'Verifying options, correct answers, and explanations...',
         'Finalizing your interactive quiz...'
     ];
@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok || !data.success) {
                 const errorMsg = data.error || 'Failed to summarize the document.';
                 if (response.status === 503 || errorMsg.includes('503') || errorMsg.toLowerCase().includes('busy')) {
-                    throw new Error('Gemini is busy right now, please try again in a minute.');
+                    throw new Error('The service is busy right now, please try again in a minute.');
                 }
                 throw new Error(errorMsg);
             }
@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingSection.classList.remove('hidden');
 
         const capDiff = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-        startLoadingAnimation(`Crafting ${numQuestions} ${capDiff} Questions with Gemini 3.1 Flash-Lite...`, quizLoadingSteps);
+        startLoadingAnimation(`Crafting ${numQuestions} ${capDiff} Questions...`, quizLoadingSteps);
 
         const formData = new FormData();
         formData.append('pdf', selectedFile);
@@ -496,13 +496,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok || !data.success) {
                 const errorMsg = data.error || 'Failed to generate quiz questions.';
                 if (response.status === 503 || errorMsg.includes('503') || errorMsg.toLowerCase().includes('busy')) {
-                    throw new Error('Gemini is busy right now, please try again in a minute.');
+                    throw new Error('The service is busy right now, please try again in a minute.');
                 }
                 throw new Error(errorMsg);
             }
 
             if (!Array.isArray(data.questions) || data.questions.length === 0) {
-                throw new Error('No quiz questions returned from Gemini.');
+                throw new Error('No quiz questions were returned. Please try again.');
             }
 
             quizQuestions = data.questions;
