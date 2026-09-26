@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudySnap — AI-Powered PDF Study Companion & Quiz</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Marked.js for rendering markdown summaries -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Canvas Confetti for celebratory animations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="background-glow top-left"></div>
+    <div class="background-glow bottom-right"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="brand">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                        <path d="M6 6h10"></path>
+                        <path d="M6 10h10"></path>
+                        <path d="m9 16 2 2 4-4"></path>
+                    </svg>
+                </div>
+                <h1 class="brand-title">Study<span class="gradient-text">Snap</span></h1>
+            </div>
+            <p class="tagline">Transform any PDF document into quick study summaries and interactive quizzes powered by Gemini.</p>
+        </header>
+
+        <!-- Main Card -->
+        <main class="main-card">
+            <!-- Upload Section -->
+            <section id="uploadSection" class="upload-section">
+                <div id="dropZone" class="drop-zone">
+                    <input type="file" id="fileInput" accept=".pdf,application/pdf" class="file-input" />
+                    
+                    <div class="upload-content">
+                        <div class="upload-icon-wrapper">
+                            <svg class="upload-icon" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                        </div>
+                        <h2 class="upload-heading">Drag and drop your PDF here</h2>
+                        <p class="upload-subtext">or <span class="browse-link">browse from your computer</span></p>
+                        <span class="file-limits">Supports PDF files up to 30 MB</span>
+                    </div>
+
+                    <!-- Selected File State -->
+                    <div id="fileInfo" class="file-info hidden">
+                        <div class="file-details">
+                            <div class="pdf-badge">PDF</div>
+                            <div class="file-meta">
+                                <span id="fileName" class="file-name">document.pdf</span>
+                                <span id="fileSize" class="file-size">1.2 MB</span>
+                            </div>
+                        </div>
+                        <button type="button" id="removeFileBtn" class="icon-btn" title="Remove file" aria-label="Remove selected file">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Buttons Row -->
+                <div class="upload-actions-row">
+                    <button type="button" id="submitBtn" class="btn btn-primary" disabled>
+                        <span class="btn-text">Generate Summaries</span>
+                        <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" id="uploadQuizBtn" class="btn btn-quiz" disabled title="Generate a 10-question multiple-choice quiz directly">
+                        <span class="btn-icon">🎯</span>
+                        <span class="btn-text">Quiz Me Directly</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Loading State -->
+            <section id="loadingSection" class="loading-section hidden">
+                <div class="loader-spinner">
+                    <div class="spinner-ring"></div>
+                </div>
+                <h3 id="loadingTitle" class="loading-title">Analyzing your document...</h3>
+                <p id="loadingStatus" class="loading-status">Uploading PDF to Gemini AI</p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </section>
+
+            <!-- Error State -->
+            <div id="errorMessage" class="error-banner hidden">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span id="errorText">An error occurred while processing the PDF.</span>
+                <button type="button" id="dismissErrorBtn" class="dismiss-btn">&times;</button>
+            </div>
+
+            <!-- Results Section (Summaries) -->
+            <section id="resultsSection" class="results-section hidden">
+                <!-- Header with File, Quiz Me, and Reset -->
+                <div class="results-header">
+                    <div class="results-file-badge">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <span id="resultDocName">document.pdf</span>
+                    </div>
+
+                    <div class="results-header-actions">
+                        <button type="button" id="resultsQuizBtn" class="btn btn-quiz">
+                            <span class="btn-icon">🎯</span>
+                            <span class="btn-text">Quiz Me (10 Questions)</span>
+                        </button>
+                        <button type="button" id="newUploadBtn" class="btn btn-secondary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            Upload Another
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mode Switcher Buttons -->
+                <div class="mode-tabs-wrapper">
+                    <div class="mode-tabs" role="tablist">
+                        <button type="button" class="mode-btn active" data-mode="easy" role="tab" aria-selected="true">
+                            <span class="mode-icon">🌱</span>
+                            <span class="mode-label">Easy Mode</span>
+                            <span class="mode-desc">Beginner-friendly</span>
+                        </button>
+                        <button type="button" class="mode-btn" data-mode="deep" role="tab" aria-selected="false">
+                            <span class="mode-icon">🔬</span>
+                            <span class="mode-label">Deep Mode</span>
+                            <span class="mode-desc">Detailed & technical</span>
+                        </button>
+                        <button type="button" class="mode-btn" data-mode="fun" role="tab" aria-selected="false">
+                            <span class="mode-icon">🚀</span>
+                            <span class="mode-label">Fun Mode</span>
+                            <span class="mode-desc">Analogies & emojis</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Summary Content Viewer -->
+                <div class="summary-card">
+                    <div class="summary-topbar">
+                        <div class="mode-indicator">
+                            <span id="activeModeBadge" class="mode-badge easy">Easy Mode</span>
+                        </div>
+                        <button type="button" id="copyBtn" class="copy-btn" title="Copy summary">
+                            <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span class="copy-text">Copy</span>
+                        </button>
+                    </div>
+
+                    <!-- Animated Summary Viewport -->
+                    <div class="summary-body">
+                        <div id="summaryContent" class="markdown-content">
+                            <!-- Injected by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz CTA Banner below summary -->
+                <div class="quiz-cta-banner">
+                    <div class="quiz-cta-content">
+                        <div class="quiz-cta-icon-box">🎯</div>
+                        <div class="quiz-cta-text">
+                            <h4>Ready to test what you learned?</h4>
+                            <p>Challenge yourself with 10 questions crafted strictly from this document with a 30s timer per question!</p>
+                        </div>
+                    </div>
+                    <button type="button" id="summaryQuizCtaBtn" class="btn btn-quiz">
+                        <span>Launch Quiz Mode</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Quiz Mode Section -->
+            <section id="quizSection" class="quiz-section hidden">
+                <!-- Quiz Top Bar -->
+                <div class="quiz-topbar">
+                    <div class="quiz-meta-left">
+                        <div class="results-file-badge">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <span id="quizDocName">document.pdf</span>
+                        </div>
+                        <span id="quizQuestionCounter" class="quiz-badge counter">Question 1 / 10</span>
+                        <span id="quizScoreCounter" class="quiz-badge score">Score: 0 / 10</span>
+                    </div>
+
+                    <div class="quiz-meta-right">
+                        <!-- 30-Second Countdown Circular Timer Widget -->
+                        <div id="quizTimerWrapper" class="timer-widget" title="Time remaining for this question">
+                            <svg class="timer-svg" viewBox="0 0 36 36">
+                                <path class="timer-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <path id="timerCircle" class="timer-progress" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="timer-inner">
+                                <span id="timerText" class="timer-text">30</span><span class="timer-unit">s</span>
+                            </div>
+                        </div>
+
+                        <button type="button" id="exitQuizBtn" class="btn-exit" title="Exit Quiz">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Linear Progress Bar -->
+                <div class="quiz-progress-track">
+                    <div id="quizProgressBarFill" class="quiz-progress-fill" style="width: 10%;"></div>
+                </div>
+
+                <!-- Active Question Container -->
+                <div id="quizActiveCard" class="quiz-active-card">
+                    <div class="quiz-question-header">
+                        <span class="q-tag" id="qTag">QUESTION 1</span>
+                        <h3 id="quizQuestionText" class="quiz-question-text">Loading question...</h3>
+                    </div>
+
+                    <!-- 4 Options Grid -->
+                    <div id="quizOptionsContainer" class="quiz-options-grid">
+                        <!-- Populated by JavaScript -->
+                    </div>
+
+                    <!-- Instant Explanation Feedback Box -->
+                    <div id="quizExplanationBox" class="quiz-explanation-box hidden">
+                        <div class="explanation-title-row">
+                            <span id="explanationIcon" class="explanation-icon">💡</span>
+                            <span id="explanationTitle" class="explanation-title">Explanation</span>
+                        </div>
+                        <p id="quizExplanationText" class="explanation-text"></p>
+                    </div>
+
+                    <!-- Card Footer: Next Question / Finish -->
+                    <div class="quiz-card-footer">
+                        <button type="button" id="nextQuestionBtn" class="btn btn-primary next-btn hidden">
+                            <span id="nextBtnText">Next Question</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quiz Completion & Results Screen -->
+                <div id="quizCompletedCard" class="quiz-completed-card hidden">
+                    <div class="results-celebration">
+                        <div id="resultsTrophyIcon" class="trophy-icon">🏆</div>
+                        <div class="score-display-ring">
+                            <span id="finalScoreVal" class="score-number">10</span>
+                            <span class="score-divider">/</span>
+                            <span class="score-total">10</span>
+                        </div>
+                        <h3 id="finalResultTitle" class="final-title">Absolute Perfection!</h3>
+                        <p id="finalResultMsg" class="final-message">You've mastered this material down to every single detail!</p>
+                    </div>
+
+                    <div class="quiz-summary-stats">
+                        <div class="stat-box">
+                            <span class="stat-label">Accuracy</span>
+                            <span id="statAccuracy" class="stat-value">100%</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Correct Answers</span>
+                            <span id="statCorrect" class="stat-value">10</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Total Questions</span>
+                            <span class="stat-value">10</span>
+                        </div>
+                    </div>
+
+                    <div id="saveStatusIndicator" class="save-status-badge">
+                        <span class="save-icon">💾</span> Result automatically saved to SQLite history
+                    </div>
+
+                    <div class="quiz-completed-actions">
+                        <button type="button" id="retakeQuizBtn" class="btn btn-primary">
+                            <span class="btn-icon">🔄</span> Retake Quiz
+                        </button>
+                        <button type="button" id="backToSummariesBtn" class="btn btn-secondary">
+                            <span class="btn-icon">📖</span> Back to Summaries
+                        </button>
+                        <button type="button" id="quizNewUploadBtn" class="btn btn-outline">
+                            <span class="btn-icon">📄</span> Upload New PDF
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>StudySnap &bull; Powered by Google Gemini 3.8 Flash</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,746 @@
+// StudySnap Frontend Logic & Quiz Mode
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM Elements - Upload & General
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadContent = dropZone.querySelector('.upload-content');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileNameSpan = document.getElementById('fileName');
+    const fileSizeSpan = document.getElementById('fileSize');
+    const removeFileBtn = document.getElementById('removeFileBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadQuizBtn = document.getElementById('uploadQuizBtn');
+
+    const uploadSection = document.getElementById('uploadSection');
+    const loadingSection = document.getElementById('loadingSection');
+    const loadingTitle = document.getElementById('loadingTitle');
+    const loadingStatus = document.getElementById('loadingStatus');
+    const errorMessage = document.getElementById('errorMessage');
+    const errorText = document.getElementById('errorText');
+    const dismissErrorBtn = document.getElementById('dismissErrorBtn');
+
+    // DOM Elements - Summaries Results
+    const resultsSection = document.getElementById('resultsSection');
+    const resultDocName = document.getElementById('resultDocName');
+    const newUploadBtn = document.getElementById('newUploadBtn');
+    const resultsQuizBtn = document.getElementById('resultsQuizBtn');
+    const summaryQuizCtaBtn = document.getElementById('summaryQuizCtaBtn');
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    const activeModeBadge = document.getElementById('activeModeBadge');
+    const summaryContent = document.getElementById('summaryContent');
+    const copyBtn = document.getElementById('copyBtn');
+
+    // DOM Elements - Quiz Mode
+    const quizSection = document.getElementById('quizSection');
+    const quizDocName = document.getElementById('quizDocName');
+    const quizQuestionCounter = document.getElementById('quizQuestionCounter');
+    const quizScoreCounter = document.getElementById('quizScoreCounter');
+    const timerCircle = document.getElementById('timerCircle');
+    const timerText = document.getElementById('timerText');
+    const quizTimerWrapper = document.getElementById('quizTimerWrapper');
+    const exitQuizBtn = document.getElementById('exitQuizBtn');
+    const quizProgressBarFill = document.getElementById('quizProgressBarFill');
+    const quizActiveCard = document.getElementById('quizActiveCard');
+    const qTag = document.getElementById('qTag');
+    const quizQuestionText = document.getElementById('quizQuestionText');
+    const quizOptionsContainer = document.getElementById('quizOptionsContainer');
+    const quizExplanationBox = document.getElementById('quizExplanationBox');
+    const explanationIcon = document.getElementById('explanationIcon');
+    const explanationTitle = document.getElementById('explanationTitle');
+    const quizExplanationText = document.getElementById('quizExplanationText');
+    const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+    const nextBtnText = document.getElementById('nextBtnText');
+
+    // DOM Elements - Quiz Completed Card
+    const quizCompletedCard = document.getElementById('quizCompletedCard');
+    const finalScoreVal = document.getElementById('finalScoreVal');
+    const finalResultTitle = document.getElementById('finalResultTitle');
+    const finalResultMsg = document.getElementById('finalResultMsg');
+    const statAccuracy = document.getElementById('statAccuracy');
+    const statCorrect = document.getElementById('statCorrect');
+    const retakeQuizBtn = document.getElementById('retakeQuizBtn');
+    const backToSummariesBtn = document.getElementById('backToSummariesBtn');
+    const quizNewUploadBtn = document.getElementById('quizNewUploadBtn');
+
+    // Application State
+    let selectedFile = null;
+    let summariesData = null;
+    let currentMode = 'easy';
+    let statusInterval = null;
+
+    // Quiz State
+    let quizQuestions = [];
+    let currentQuestionIndex = 0;
+    let quizScore = 0;
+    let timerSeconds = 30;
+    let timerInterval = null;
+    let isQuestionAnswered = false;
+
+    // Helper: format file size
+    function formatBytes(bytes, decimals = 1) {
+        if (!+bytes) return '0 Bytes';
+        const k = 1024;
+        const dm = decimals < 0 ? 0 : decimals;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+    }
+
+    // File selection handler
+    function handleFile(file) {
+        if (!file) return;
+
+        if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+            showError('Please select a valid PDF document (.pdf).');
+            return;
+        }
+
+        const maxSize = 30 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showError('File size exceeds the 30MB limit.');
+            return;
+        }
+
+        hideError();
+        selectedFile = file;
+        quizQuestions = []; // Reset cached quiz for new file
+        fileNameSpan.textContent = file.name;
+        fileSizeSpan.textContent = formatBytes(file.size);
+
+        uploadContent.classList.add('hidden');
+        fileInfo.classList.remove('hidden');
+        submitBtn.disabled = false;
+        if (uploadQuizBtn) uploadQuizBtn.disabled = false;
+    }
+
+    // Reset selected file
+    function resetFile() {
+        selectedFile = null;
+        summariesData = null;
+        quizQuestions = [];
+        fileInput.value = '';
+        uploadContent.classList.remove('hidden');
+        fileInfo.classList.add('hidden');
+        submitBtn.disabled = true;
+        if (uploadQuizBtn) uploadQuizBtn.disabled = true;
+    }
+
+    // Error helpers
+    function showError(msg) {
+        const friendlyMessage = 'Gemini is busy right now, please try again in a minute.';
+        const msgStr = String(msg || '');
+        const isTemporary = (
+            msgStr.includes('503') ||
+            msgStr.toLowerCase().includes('unavailable') ||
+            msgStr.toLowerCase().includes('busy') ||
+            msgStr.includes('429') ||
+            msgStr.toLowerCase().includes('resource_exhausted') ||
+            msgStr.toLowerCase().includes('overloaded') ||
+            msgStr.toLowerCase().includes('try again')
+        );
+
+        if (isTemporary) {
+            errorText.textContent = friendlyMessage;
+        } else {
+            errorText.textContent = msgStr;
+        }
+        errorMessage.classList.remove('hidden');
+    }
+
+    function hideError() {
+        errorMessage.classList.add('hidden');
+    }
+
+    dismissErrorBtn.addEventListener('click', hideError);
+
+    // Drag and drop events
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
+        });
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        if (dt.files && dt.files.length > 0) {
+            handleFile(dt.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    removeFileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        resetFile();
+    });
+
+    // Loading status cycling
+    const summaryLoadingSteps = [
+        'Uploading PDF to Gemini AI...',
+        'Analyzing document structure and concepts...',
+        'Synthesizing Easy Mode for beginners...',
+        'Extracting technical deep-dive insights...',
+        'Adding analogies and lively fun tone...',
+        'Finalizing summaries...'
+    ];
+
+    const quizLoadingSteps = [
+        'Uploading PDF to Gemini AI...',
+        'Reading document sections and core topics...',
+        'Crafting 10 challenging multiple-choice questions...',
+        'Verifying options, correct answers, and explanations...',
+        'Finalizing your interactive quiz...'
+    ];
+
+    function startLoadingAnimation(title, steps) {
+        if (loadingTitle) loadingTitle.textContent = title || 'Analyzing your document...';
+        let stepIdx = 0;
+        loadingStatus.textContent = steps[0];
+        statusInterval = setInterval(() => {
+            stepIdx = (stepIdx + 1) % steps.length;
+            loadingStatus.textContent = steps[stepIdx];
+        }, 2200);
+    }
+
+    function stopLoadingAnimation() {
+        if (statusInterval) {
+            clearInterval(statusInterval);
+            statusInterval = null;
+        }
+    }
+
+    // Switch summary modes with smooth animation
+    function switchMode(mode) {
+        if (!summariesData || !summariesData[mode]) return;
+        currentMode = mode;
+
+        modeButtons.forEach(btn => {
+            const isActive = btn.dataset.mode === mode;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        activeModeBadge.className = `mode-badge ${mode}`;
+        if (mode === 'easy') {
+            activeModeBadge.textContent = '🌱 Easy Mode (Beginner)';
+        } else if (mode === 'deep') {
+            activeModeBadge.textContent = '🔬 Deep Mode (Technical)';
+        } else if (mode === 'fun') {
+            activeModeBadge.textContent = '🚀 Fun Mode (Analogies & Emojis)';
+        }
+
+        summaryContent.classList.add('switching');
+        setTimeout(() => {
+            const markdownText = summariesData[mode] || 'No summary available for this mode.';
+            summaryContent.innerHTML = marked.parse(markdownText);
+            summaryContent.classList.remove('switching');
+            summaryContent.classList.add('active');
+        }, 200);
+    }
+
+    // Submit and Generate Summaries handler
+    submitBtn.addEventListener('click', async () => {
+        if (!selectedFile) return;
+
+        hideError();
+        uploadSection.classList.add('hidden');
+        quizSection.classList.add('hidden');
+        resultsSection.classList.add('hidden');
+        loadingSection.classList.remove('hidden');
+        startLoadingAnimation('Analyzing your document...', summaryLoadingSteps);
+
+        const formData = new FormData();
+        formData.append('pdf', selectedFile);
+
+        try {
+            const response = await fetch('/summarize', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                const errorMsg = data.error || 'Failed to summarize the document.';
+                if (response.status === 503 || errorMsg.includes('503') || errorMsg.toLowerCase().includes('busy')) {
+                    throw new Error('Gemini is busy right now, please try again in a minute.');
+                }
+                throw new Error(errorMsg);
+            }
+
+            summariesData = data.summaries;
+            resultDocName.textContent = data.filename || selectedFile.name;
+
+            stopLoadingAnimation();
+            loadingSection.classList.add('hidden');
+            resultsSection.classList.remove('hidden');
+            switchMode('easy');
+
+        } catch (err) {
+            console.error(err);
+            stopLoadingAnimation();
+            loadingSection.classList.add('hidden');
+            uploadSection.classList.remove('hidden');
+            showError(err.message || 'An error occurred while communicating with the server.');
+        }
+    });
+
+    // Mode tab buttons click
+    modeButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchMode(btn.dataset.mode);
+        });
+    });
+
+    // Copy to clipboard
+    copyBtn.addEventListener('click', () => {
+        if (!summariesData || !summariesData[currentMode]) return;
+        navigator.clipboard.writeText(summariesData[currentMode]).then(() => {
+            copyBtn.classList.add('copied');
+            const copyText = copyBtn.querySelector('.copy-text');
+            const originalText = copyText.textContent;
+            copyText.textContent = 'Copied!';
+            setTimeout(() => {
+                copyBtn.classList.remove('copied');
+                copyText.textContent = originalText;
+            }, 2000);
+        }).catch(() => {
+            showError('Unable to copy to clipboard.');
+        });
+    });
+
+    // Reset and upload another PDF
+    newUploadBtn.addEventListener('click', () => {
+        resetFile();
+        resultsSection.classList.add('hidden');
+        quizSection.classList.add('hidden');
+        uploadSection.classList.remove('hidden');
+    });
+
+    if (quizNewUploadBtn) {
+        quizNewUploadBtn.addEventListener('click', () => {
+            resetFile();
+            resultsSection.classList.add('hidden');
+            quizSection.classList.add('hidden');
+            uploadSection.classList.remove('hidden');
+        });
+    }
+
+    /* ----------------------------------------------------
+       QUIZ MODE LOGIC & ANIMATIONS
+    ---------------------------------------------------- */
+
+    // Confetti animation helper (with canvas-confetti & fallback)
+    function triggerConfetti(isGrandCelebration = false) {
+        if (typeof confetti === 'function') {
+            if (isGrandCelebration) {
+                // Multi-burst celebration for high scores
+                const duration = 2500;
+                const end = Date.now() + duration;
+                (function frame() {
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 }
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 }
+                    });
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            } else {
+                // Single question correct answer burst
+                confetti({
+                    particleCount: 45,
+                    spread: 60,
+                    origin: { y: 0.75 },
+                    colors: ['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b']
+                });
+            }
+        }
+    }
+
+    // Trigger subtle shake animation on incorrect answer
+    function triggerShake() {
+        quizActiveCard.classList.remove('shake');
+        // Force reflow
+        void quizActiveCard.offsetWidth;
+        quizActiveCard.classList.add('shake');
+        setTimeout(() => {
+            quizActiveCard.classList.remove('shake');
+        }, 500);
+    }
+
+    // Start / Fetch Quiz Flow
+    async function startQuizFlow() {
+        if (!selectedFile) {
+            showError('Please select or upload a PDF document first.');
+            return;
+        }
+
+        // If quiz questions already generated for this file, start immediately
+        if (quizQuestions && quizQuestions.length === 10) {
+            startQuizSession();
+            return;
+        }
+
+        hideError();
+        uploadSection.classList.add('hidden');
+        resultsSection.classList.add('hidden');
+        quizSection.classList.add('hidden');
+        loadingSection.classList.remove('hidden');
+        startLoadingAnimation('Creating Quiz Mode (10 Questions)...', quizLoadingSteps);
+
+        const formData = new FormData();
+        formData.append('pdf', selectedFile);
+
+        try {
+            const response = await fetch('/quiz/generate', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                const errorMsg = data.error || 'Failed to generate quiz questions.';
+                if (response.status === 503 || errorMsg.includes('503') || errorMsg.toLowerCase().includes('busy')) {
+                    throw new Error('Gemini is busy right now, please try again in a minute.');
+                }
+                throw new Error(errorMsg);
+            }
+
+            if (!Array.isArray(data.questions) || data.questions.length === 0) {
+                throw new Error('No quiz questions returned from Gemini.');
+            }
+
+            quizQuestions = data.questions;
+            stopLoadingAnimation();
+            loadingSection.classList.add('hidden');
+            startQuizSession();
+
+        } catch (err) {
+            console.error(err);
+            stopLoadingAnimation();
+            loadingSection.classList.add('hidden');
+            if (summariesData) {
+                resultsSection.classList.remove('hidden');
+            } else {
+                uploadSection.classList.remove('hidden');
+            }
+            showError(err.message || 'An error occurred while generating the quiz.');
+        }
+    }
+
+    // Initialize Quiz Session
+    function startQuizSession() {
+        quizScore = 0;
+        currentQuestionIndex = 0;
+        isQuestionAnswered = false;
+
+        quizDocName.textContent = selectedFile ? selectedFile.name : 'document.pdf';
+        quizCompletedCard.classList.add('hidden');
+        quizActiveCard.classList.remove('hidden');
+        quizSection.classList.remove('hidden');
+
+        renderCurrentQuestion();
+    }
+
+    // 30-Second Timer Implementation
+    function startTimer(seconds = 30) {
+        clearInterval(timerInterval);
+        timerSeconds = seconds;
+        updateTimerDisplay(timerSeconds);
+
+        quizTimerWrapper.classList.remove('warning', 'danger');
+
+        timerInterval = setInterval(() => {
+            timerSeconds--;
+            updateTimerDisplay(timerSeconds);
+
+            if (timerSeconds <= 10 && timerSeconds > 5) {
+                quizTimerWrapper.classList.add('warning');
+            } else if (timerSeconds <= 5) {
+                quizTimerWrapper.classList.remove('warning');
+                quizTimerWrapper.classList.add('danger');
+            }
+
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                handleTimeOut();
+            }
+        }, 1000);
+    }
+
+    function updateTimerDisplay(remaining) {
+        timerText.textContent = remaining;
+        // Stroke dasharray 100 max
+        const offset = ((30 - remaining) / 30) * 100;
+        timerCircle.setAttribute('stroke-dasharray', `${Math.max(0, 100 - offset)}, 100`);
+    }
+
+    function stopTimer() {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    // Render Question
+    function renderCurrentQuestion() {
+        if (currentQuestionIndex >= quizQuestions.length) {
+            finishQuiz();
+            return;
+        }
+
+        const q = quizQuestions[currentQuestionIndex];
+        isQuestionAnswered = false;
+
+        // Update progress indicators
+        const progressPct = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
+        quizProgressBarFill.style.width = `${progressPct}%`;
+        quizQuestionCounter.textContent = `Question ${currentQuestionIndex + 1} / ${quizQuestions.length}`;
+        quizScoreCounter.textContent = `Score: ${quizScore} / ${quizQuestions.length}`;
+        qTag.textContent = `QUESTION ${currentQuestionIndex + 1}`;
+
+        // Reset UI states
+        quizQuestionText.textContent = q.question;
+        quizExplanationBox.classList.add('hidden');
+        quizExplanationBox.className = 'quiz-explanation-box hidden';
+        nextQuestionBtn.classList.add('hidden');
+
+        // Render 4 Options
+        quizOptionsContainer.innerHTML = '';
+        const letters = ['A', 'B', 'C', 'D'];
+        const options = Array.isArray(q.options) ? q.options : [];
+
+        options.forEach((optText, idx) => {
+            const letter = letters[idx] || `${idx + 1}`;
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'quiz-option-btn';
+            btn.dataset.option = optText;
+
+            btn.innerHTML = `
+                <span class="quiz-option-letter">${letter}</span>
+                <span class="quiz-option-text">${optText}</span>
+                <span class="quiz-option-icon"></span>
+            `;
+
+            btn.addEventListener('click', () => {
+                handleOptionClick(btn, optText, q);
+            });
+
+            quizOptionsContainer.appendChild(btn);
+        });
+
+        // Start 30-second timer for this question
+        startTimer(30);
+    }
+
+    // Option Click Handler
+    function handleOptionClick(selectedBtn, selectedText, q) {
+        if (isQuestionAnswered) return;
+        isQuestionAnswered = true;
+        stopTimer();
+
+        // Disable all option buttons
+        const allOptionBtns = quizOptionsContainer.querySelectorAll('.quiz-option-btn');
+        allOptionBtns.forEach(btn => btn.classList.add('disabled'));
+
+        const cleanSelected = String(selectedText).trim().toLowerCase();
+        const cleanCorrect = String(q.correct_answer).trim().toLowerCase();
+        const isCorrect = cleanSelected === cleanCorrect;
+
+        if (isCorrect) {
+            quizScore++;
+            quizScoreCounter.textContent = `Score: ${quizScore} / ${quizQuestions.length}`;
+            selectedBtn.classList.add('correct');
+            const icon = selectedBtn.querySelector('.quiz-option-icon');
+            if (icon) icon.textContent = '✓';
+
+            // Confetti animation
+            triggerConfetti(false);
+
+            // Explanation box (success)
+            explanationIcon.textContent = '🎉';
+            explanationTitle.textContent = 'Correct Answer!';
+            quizExplanationText.textContent = q.explanation || 'Great job! You identified the correct concept directly from the document.';
+            quizExplanationBox.className = 'quiz-explanation-box correct';
+            quizExplanationBox.classList.remove('hidden');
+
+        } else {
+            // Wrong answer
+            selectedBtn.classList.add('wrong');
+            const icon = selectedBtn.querySelector('.quiz-option-icon');
+            if (icon) icon.textContent = '✗';
+
+            // Subtle shake animation
+            triggerShake();
+
+            // Highlight the correct answer option
+            allOptionBtns.forEach(btn => {
+                if (String(btn.dataset.option).trim().toLowerCase() === cleanCorrect) {
+                    btn.classList.add('correct-revealed');
+                    const cIcon = btn.querySelector('.quiz-option-icon');
+                    if (cIcon) cIcon.textContent = '✓';
+                }
+            });
+
+            // Explanation box (failure)
+            explanationIcon.textContent = '💡';
+            explanationTitle.textContent = 'Incorrect';
+            quizExplanationText.innerHTML = `<strong>Correct answer:</strong> ${q.correct_answer}<br><br>${q.explanation || ''}`;
+            quizExplanationBox.className = 'quiz-explanation-box wrong';
+            quizExplanationBox.classList.remove('hidden');
+        }
+
+        // Show Next Button
+        const isLastQuestion = currentQuestionIndex === quizQuestions.length - 1;
+        nextBtnText.textContent = isLastQuestion ? 'Finish & See Final Score 🏆' : 'Next Question';
+        nextQuestionBtn.classList.remove('hidden');
+    }
+
+    // Time's Up Handler
+    function handleTimeOut() {
+        if (isQuestionAnswered) return;
+        isQuestionAnswered = true;
+
+        const q = quizQuestions[currentQuestionIndex];
+        const allOptionBtns = quizOptionsContainer.querySelectorAll('.quiz-option-btn');
+        allOptionBtns.forEach(btn => btn.classList.add('disabled'));
+
+        triggerShake();
+
+        // Highlight correct answer
+        const cleanCorrect = String(q.correct_answer).trim().toLowerCase();
+        allOptionBtns.forEach(btn => {
+            if (String(btn.dataset.option).trim().toLowerCase() === cleanCorrect) {
+                btn.classList.add('correct-revealed');
+                const cIcon = btn.querySelector('.quiz-option-icon');
+                if (cIcon) cIcon.textContent = '✓';
+            }
+        });
+
+        explanationIcon.textContent = '⏰';
+        explanationTitle.textContent = "Time's Up!";
+        quizExplanationText.innerHTML = `You ran out of time for this question.<br><strong>Correct answer:</strong> ${q.correct_answer}<br><br>${q.explanation || ''}`;
+        quizExplanationBox.className = 'quiz-explanation-box wrong';
+        quizExplanationBox.classList.remove('hidden');
+
+        const isLastQuestion = currentQuestionIndex === quizQuestions.length - 1;
+        nextBtnText.textContent = isLastQuestion ? 'Finish & See Final Score 🏆' : 'Next Question';
+        nextQuestionBtn.classList.remove('hidden');
+    }
+
+    // Next Question Button Click
+    nextQuestionBtn.addEventListener('click', () => {
+        currentQuestionIndex++;
+        renderCurrentQuestion();
+    });
+
+    // Finish Quiz & Show Results
+    function finishQuiz() {
+        stopTimer();
+        quizActiveCard.classList.add('hidden');
+        quizCompletedCard.classList.remove('hidden');
+
+        finalScoreVal.textContent = quizScore;
+        const accuracyPct = Math.round((quizScore / quizQuestions.length) * 100);
+        statAccuracy.textContent = `${accuracyPct}%`;
+        statCorrect.textContent = `${quizScore}`;
+
+        // Dynamic, fun performance messages
+        let title = '';
+        let message = '';
+
+        if (quizScore === 10) {
+            title = '🏆 Absolute Perfection!';
+            message = "Flawless score! You have total, comprehensive mastery of this document's content down to every detail!";
+            triggerConfetti(true);
+        } else if (quizScore >= 8) {
+            title = '🌟 Outstanding Scholar!';
+            message = "Phenomenal work! You grasp the vast majority of core concepts, arguments, and takeaways with ease.";
+            triggerConfetti(true);
+        } else if (quizScore >= 6) {
+            title = '👏 Solid Understanding!';
+            message = "Great effort! You've got the primary foundations down, with just a couple of nuanced areas to polish.";
+        } else if (quizScore >= 4) {
+            title = '📚 Fair Effort!';
+            message = "A decent try! A quick re-read of the Deep Mode summary will help lock in the trickier questions.";
+        } else {
+            title = '🌱 Keep Going!';
+            message = "Every quiz is a step forward! Review the Easy Mode summary and give it another shot — you've got this!";
+        }
+
+        finalResultTitle.textContent = title;
+        finalResultMsg.textContent = message;
+
+        // Automatically persist quiz result to SQLite / JSON
+        saveQuizResultToDatabase(quizScore, quizQuestions.length, accuracyPct, `${title} - ${message}`);
+    }
+
+    // Save Quiz Result Endpoint
+    async function saveQuizResultToDatabase(score, total, percentage, performanceMessage) {
+        try {
+            await fetch('/quiz/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pdf_name: selectedFile ? selectedFile.name : 'document.pdf',
+                    score: score,
+                    total: total,
+                    percentage: percentage,
+                    performance_message: performanceMessage,
+                    created_at: new Date().toLocaleString()
+                })
+            });
+        } catch (err) {
+            console.warn('Failed to save quiz result to database:', err);
+        }
+    }
+
+    // Retake Quiz
+    retakeQuizBtn.addEventListener('click', () => {
+        startQuizSession();
+    });
+
+    // Exit Quiz / Back to Summaries
+    function exitQuiz() {
+        stopTimer();
+        quizSection.classList.add('hidden');
+        if (summariesData) {
+            resultsSection.classList.remove('hidden');
+        } else {
+            uploadSection.classList.remove('hidden');
+        }
+    }
+
+    exitQuizBtn.addEventListener('click', exitQuiz);
+    backToSummariesBtn.addEventListener('click', exitQuiz);
+
+    // Event Listeners for Launching Quiz
+    if (uploadQuizBtn) uploadQuizBtn.addEventListener('click', startQuizFlow);
+    if (resultsQuizBtn) resultsQuizBtn.addEventListener('click', startQuizFlow);
+    if (summaryQuizCtaBtn) summaryQuizCtaBtn.addEventListener('click', startQuizFlow);
+});
