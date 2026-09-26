@@ -37,9 +37,14 @@ def init_db():
             total INTEGER NOT NULL DEFAULT 10,
             percentage REAL NOT NULL,
             performance_message TEXT,
+            difficulty TEXT DEFAULT 'medium',
             created_at TEXT NOT NULL
         )
     ''')
+    cursor.execute("PRAGMA table_info(quiz_results)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if "difficulty" not in columns:
+        cursor.execute("ALTER TABLE quiz_results ADD COLUMN difficulty TEXT DEFAULT 'medium'")
     conn.commit()
     conn.close()
 
@@ -196,7 +201,7 @@ def summarize():
 
 @app.route('/quiz/generate', methods=['POST'])
 def generate_quiz():
-    """Generates 10 multiple-choice questions from the uploaded PDF content only."""
+    """Generates customized multiple-choice questions (10, 20, 30, 40, 50) and difficulty (easy, medium, hard) from the uploaded PDF content only."""
     # 1. Validate file presence
     if 'pdf' not in request.files:
         return jsonify({"success": False, "error": "No PDF file uploaded for quiz."}), 400
@@ -207,6 +212,15 @@ def generate_quiz():
 
     if not file.filename.lower().endswith('.pdf'):
         return jsonify({"success": False, "error": "Only PDF files are supported."}), 400
+
+    # 1b. Parse user decision parameters: number of questions & difficulty
+    num_questions = request.form.get('num_questions', default=10, type=int)
+    if num_questions not in [10, 20, 30, 40, 50]:
+        num_questions = 10
+
+    difficulty = str(request.form.get('difficulty', 'medium')).lower().strip()
+    if difficulty not in ['easy', 'medium', 'hard']:
+        difficulty = 'medium'
 
     temp_path = None
     uploaded_file = None
@@ -229,27 +243,49 @@ def generate_quiz():
             operation_name="Files.upload (Quiz)"
         )
 
-        # 5. Formulate prompt requesting exactly 10 MCQs from the PDF content only
-        quiz_prompt = """
-        You are an expert academic examiner. Analyze the attached PDF document thoroughly.
-        Generate exactly 10 multiple-choice questions (MCQs) that rigorously evaluate comprehension of key concepts, factual findings, methods, and insights strictly found in this document.
+        # 5. Formulate prompt requesting customized MCQs from the PDF content only
+        difficulty_instructions = {
+            'easy': (
+                "DIFFICULTY LEVEL: EASY\n"
+                "- Focus on straightforward definitions, explicit factual statements, key vocabulary, and foundational concepts.\n"
+                "- Distractors should be clear and distinct, without tricky double negatives or subtle ambiguity."
+            ),
+            'medium': (
+                "DIFFICULTY LEVEL: MEDIUM\n"
+                "- Focus on conceptual understanding, cause-and-effect relationships, and practical comprehension of the document.\n"
+                "- Distractors should be plausible and test authentic comprehension rather than simple keyword matching."
+            ),
+            'hard': (
+                "DIFFICULTY LEVEL: HARD\n"
+                "- Focus on advanced analytical questions, methodology details, technical nuances, edge cases, and cross-section synthesis.\n"
+                "- Distractors should be sophisticated, challenging misconceptions and testing thorough document mastery."
+            )
+        }
+
+        diff_guide = difficulty_instructions.get(difficulty, difficulty_instructions['medium'])
+
+        quiz_prompt = f"""
+        You are an expert academic examiner and educator. Analyze the attached PDF document thoroughly.
+        Generate exactly {num_questions} multiple-choice questions (MCQs) that evaluate comprehension of key concepts, factual findings, methods, and insights strictly found in this document.
+
+        {diff_guide}
 
         STRICT REQUIREMENTS:
         1. Rely ONLY on the information presented in the provided PDF. Do not invent or assume external facts.
-        2. Create exactly 10 questions.
+        2. Create exactly {num_questions} questions numbered 1 to {num_questions}.
         3. Each question must have exactly 4 plausible, distinct options.
         4. "correct_answer" MUST match one of the 4 options verbatim.
         5. "explanation" must clearly explain why the correct answer is right based directly on the document text.
 
-        Return your output STRICTLY as a JSON array of 10 question objects with this exact structure:
+        Return your output STRICTLY as a JSON array of {num_questions} question objects with this exact structure:
         [
-          {
+          {{
             "id": 1,
-            "question": "What is the primary mechanism discussed in Section 2?",
+            "question": "Question text here?",
             "options": ["Option A text", "Option B text", "Option C text", "Option D text"],
             "correct_answer": "Option B text",
             "explanation": "According to the document, ..."
-          }
+          }}
         ]
         """
 
@@ -299,11 +335,14 @@ def generate_quiz():
                     break
 
         if not isinstance(questions, list):
-            raise ValueError("Expected a list of 10 questions from Gemini model.")
+            raise ValueError(f"Expected a list of {num_questions} questions from Gemini model.")
 
         return jsonify({
             "success": True,
             "filename": file.filename,
+            "num_questions": len(questions),
+            "requested_questions": num_questions,
+            "difficulty": difficulty,
             "model_used": result.get("model_used"),
             "attempts": result.get("attempts"),
             "questions": questions
@@ -340,6 +379,7 @@ def save_quiz_result():
         total = int(data.get("total", 10))
         percentage = float(data.get("percentage", (score / total) * 100 if total > 0 else 0))
         performance_message = data.get("performance_message", "")
+        difficulty = str(data.get("difficulty", "medium")).lower().strip()
         created_at = data.get("created_at") or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # 1. Save to SQLite database
@@ -347,10 +387,10 @@ def save_quiz_result():
         cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO quiz_results (pdf_name, score, total, percentage, performance_message, created_at)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO quiz_results (pdf_name, score, total, percentage, performance_message, difficulty, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (pdf_name, score, total, percentage, performance_message, created_at)
+            (pdf_name, score, total, percentage, performance_message, difficulty, created_at)
         )
         record_id = cursor.lastrowid
         conn.commit()
@@ -364,6 +404,7 @@ def save_quiz_result():
             "total": total,
             "percentage": percentage,
             "performance_message": performance_message,
+            "difficulty": difficulty,
             "created_at": created_at
         }
         history = []

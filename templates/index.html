@@ -87,9 +87,9 @@
                             <polyline points="12 5 19 12 12 19"></polyline>
                         </svg>
                     </button>
-                    <button type="button" id="uploadQuizBtn" class="btn btn-quiz" disabled title="Generate a 10-question multiple-choice quiz directly">
+                    <button type="button" id="uploadQuizBtn" class="btn btn-quiz" disabled title="Configure and take an interactive quiz directly">
                         <span class="btn-icon">🎯</span>
-                        <span class="btn-text">Quiz Me Directly</span>
+                        <span class="btn-text">Quiz Mode</span>
                     </button>
                 </div>
             </section>
@@ -132,7 +132,7 @@
                     <div class="results-header-actions">
                         <button type="button" id="resultsQuizBtn" class="btn btn-quiz">
                             <span class="btn-icon">🎯</span>
-                            <span class="btn-text">Quiz Me (10 Questions)</span>
+                            <span class="btn-text">Quiz Mode</span>
                         </button>
                         <button type="button" id="newUploadBtn" class="btn btn-secondary">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -222,6 +222,7 @@
                         </div>
                         <span id="quizQuestionCounter" class="quiz-badge counter">Question 1 / 10</span>
                         <span id="quizScoreCounter" class="quiz-badge score">Score: 0 / 10</span>
+                        <span id="quizDifficultyBadge" class="quiz-badge difficulty">⚡ Medium</span>
                     </div>
 
                     <div class="quiz-meta-right">
@@ -290,7 +291,7 @@
                         <div class="score-display-ring">
                             <span id="finalScoreVal" class="score-number">10</span>
                             <span class="score-divider">/</span>
-                            <span class="score-total">10</span>
+                            <span id="finalTotalVal" class="score-total">10</span>
                         </div>
                         <h3 id="finalResultTitle" class="final-title">Absolute Perfection!</h3>
                         <p id="finalResultMsg" class="final-message">You've mastered this material down to every single detail!</p>
@@ -307,7 +308,11 @@
                         </div>
                         <div class="stat-box">
                             <span class="stat-label">Total Questions</span>
-                            <span class="stat-value">10</span>
+                            <span id="statTotalQuestions" class="stat-value">10</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-label">Difficulty</span>
+                            <span id="statDifficulty" class="stat-value">⚡ Medium</span>
                         </div>
                     </div>
 
@@ -319,7 +324,10 @@
                         <button type="button" id="retakeQuizBtn" class="btn btn-primary">
                             <span class="btn-icon">🔄</span> Retake Quiz
                         </button>
-                        <button type="button" id="backToSummariesBtn" class="btn btn-secondary">
+                        <button type="button" id="changeQuizSettingsBtn" class="btn btn-secondary">
+                            <span class="btn-icon">⚙️</span> Change Settings
+                        </button>
+                        <button type="button" id="backToSummariesBtn" class="btn btn-outline">
                             <span class="btn-icon">📖</span> Back to Summaries
                         </button>
                         <button type="button" id="quizNewUploadBtn" class="btn btn-outline">
@@ -328,6 +336,99 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Quiz Setup & Decision Modal -->
+            <div id="quizConfigModal" class="quiz-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="quizModalTitle">
+                <div class="quiz-modal-card">
+                    <div class="quiz-modal-header">
+                        <div class="quiz-modal-title-box">
+                            <div class="quiz-modal-icon-badge">🎯</div>
+                            <div>
+                                <h3 id="quizModalTitle" class="quiz-modal-title">Customize Your Quiz</h3>
+                                <p class="quiz-modal-subtitle">Choose question quantity and challenge level</p>
+                            </div>
+                        </div>
+                        <button type="button" id="closeQuizModalBtn" class="quiz-modal-close" aria-label="Close setup modal">&times;</button>
+                    </div>
+
+                    <div class="quiz-modal-body">
+                        <!-- Target Document Banner -->
+                        <div class="quiz-target-file">
+                            <span class="target-file-label">Target Document:</span>
+                            <span id="quizTargetFileName" class="target-file-name">document.pdf</span>
+                        </div>
+
+                        <!-- 1. Number of Questions Selection (10, 20, 30, 40, 50) -->
+                        <div class="config-group">
+                            <label class="config-label">
+                                <span class="label-title">Number of Questions</span>
+                                <span class="label-hint">Choose between 10, 20, 30, 40, or 50 questions</span>
+                            </label>
+                            <div class="pill-options-grid" role="radiogroup" aria-label="Number of questions">
+                                <button type="button" class="quiz-pill-btn active" data-questions="10" role="radio" aria-checked="true">
+                                    <span class="pill-number">10</span>
+                                    <span class="pill-text">Questions</span>
+                                </button>
+                                <button type="button" class="quiz-pill-btn" data-questions="20" role="radio" aria-checked="false">
+                                    <span class="pill-number">20</span>
+                                    <span class="pill-text">Questions</span>
+                                </button>
+                                <button type="button" class="quiz-pill-btn" data-questions="30" role="radio" aria-checked="false">
+                                    <span class="pill-number">30</span>
+                                    <span class="pill-text">Questions</span>
+                                </button>
+                                <button type="button" class="quiz-pill-btn" data-questions="40" role="radio" aria-checked="false">
+                                    <span class="pill-number">40</span>
+                                    <span class="pill-text">Questions</span>
+                                </button>
+                                <button type="button" class="quiz-pill-btn" data-questions="50" role="radio" aria-checked="false">
+                                    <span class="pill-number">50</span>
+                                    <span class="pill-text">Questions</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 2. Difficulty Level Selection (Easy, Medium, Hard) -->
+                        <div class="config-group">
+                            <label class="config-label">
+                                <span class="label-title">Difficulty Level</span>
+                                <span class="label-hint">Adjust challenge depth & complexity</span>
+                            </label>
+                            <div class="difficulty-options-grid" role="radiogroup" aria-label="Quiz difficulty">
+                                <button type="button" class="diff-card-btn" data-difficulty="easy" role="radio" aria-checked="false">
+                                    <span class="diff-icon">🌱</span>
+                                    <div class="diff-info">
+                                        <span class="diff-name">Easy</span>
+                                        <span class="diff-desc">Foundational definitions & direct facts</span>
+                                    </div>
+                                </button>
+                                <button type="button" class="diff-card-btn active" data-difficulty="medium" role="radio" aria-checked="true">
+                                    <span class="diff-icon">⚡</span>
+                                    <div class="diff-info">
+                                        <span class="diff-name">Medium</span>
+                                        <span class="diff-desc">Conceptual understanding & application</span>
+                                    </div>
+                                </button>
+                                <button type="button" class="diff-card-btn" data-difficulty="hard" role="radio" aria-checked="false">
+                                    <span class="diff-icon">🔥</span>
+                                    <div class="diff-info">
+                                        <span class="diff-name">Hard</span>
+                                        <span class="diff-desc">Technical nuances & in-depth analysis</span>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quiz-modal-footer">
+                        <button type="button" id="cancelQuizModalBtn" class="btn btn-outline">Cancel</button>
+                        <button type="button" id="startCustomQuizBtn" class="btn btn-quiz">
+                            <span class="btn-icon">🚀</span>
+                            <span id="startQuizBtnText">Start 10-Question Quiz (Medium)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </main>
 
         <footer class="footer">

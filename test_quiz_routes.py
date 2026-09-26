@@ -18,7 +18,7 @@ class TestQuizRoutes(unittest.TestCase):
     @patch("app.call_gemini_with_retry")
     @patch("app.retry_gemini_operation")
     def test_quiz_generate_success(self, mock_retry_op, mock_call_gemini, mock_get_client):
-        """Tests that /quiz/generate calls Gemini through retry logic and returns 10 questions."""
+        """Tests that /quiz/generate calls Gemini with custom question count and difficulty."""
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
         mock_file = MagicMock()
@@ -33,7 +33,7 @@ class TestQuizRoutes(unittest.TestCase):
                 "correct_answer": "B",
                 "explanation": f"Explanation for Q{i + 1}"
             }
-            for i in range(10)
+            for i in range(20)
         ]
 
         mock_call_gemini.return_value = {
@@ -46,7 +46,11 @@ class TestQuizRoutes(unittest.TestCase):
 
         response = self.client.post(
             "/quiz/generate",
-            data={"pdf": (io.BytesIO(b"%PDF-1.4 sample content"), "test_study.pdf")},
+            data={
+                "pdf": (io.BytesIO(b"%PDF-1.4 sample content"), "test_study.pdf"),
+                "num_questions": "20",
+                "difficulty": "hard"
+            },
             content_type="multipart/form-data"
         )
 
@@ -54,7 +58,9 @@ class TestQuizRoutes(unittest.TestCase):
         data = response.get_json()
         self.assertTrue(data["success"])
         self.assertEqual(data["filename"], "test_study.pdf")
-        self.assertEqual(len(data["questions"]), 10)
+        self.assertEqual(data["requested_questions"], 20)
+        self.assertEqual(data["difficulty"], "hard")
+        self.assertEqual(len(data["questions"]), 20)
         self.assertEqual(data["questions"][0]["question"], "Question 1 text?")
         self.assertEqual(data["questions"][0]["correct_answer"], "B")
 
@@ -65,13 +71,14 @@ class TestQuizRoutes(unittest.TestCase):
         self.assertIn("gemini-3.5-flash-lite", kwargs["fallback_models"])
 
     def test_quiz_save_and_history(self):
-        """Tests saving a quiz result to SQLite / JSON and retrieving it via /quiz/history."""
+        """Tests saving a quiz result with difficulty to SQLite / JSON and retrieving it via /quiz/history."""
         payload = {
             "pdf_name": "quantum_physics.pdf",
-            "score": 9,
-            "total": 10,
+            "score": 18,
+            "total": 20,
             "percentage": 90.0,
             "performance_message": "Outstanding Scholar! - Phenomenal work!",
+            "difficulty": "hard",
             "created_at": "2026-09-26 20:00:00"
         }
 
@@ -95,8 +102,9 @@ class TestQuizRoutes(unittest.TestCase):
 
         latest = history_data["history"][0]
         self.assertEqual(latest["pdf_name"], "quantum_physics.pdf")
-        self.assertEqual(latest["score"], 9)
-        self.assertEqual(latest["total"], 10)
+        self.assertEqual(latest["score"], 18)
+        self.assertEqual(latest["total"], 20)
+        self.assertEqual(latest["difficulty"], "hard")
 
 
 if __name__ == "__main__":

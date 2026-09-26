@@ -54,13 +54,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM Elements - Quiz Completed Card
     const quizCompletedCard = document.getElementById('quizCompletedCard');
     const finalScoreVal = document.getElementById('finalScoreVal');
+    const finalTotalVal = document.getElementById('finalTotalVal');
     const finalResultTitle = document.getElementById('finalResultTitle');
     const finalResultMsg = document.getElementById('finalResultMsg');
     const statAccuracy = document.getElementById('statAccuracy');
     const statCorrect = document.getElementById('statCorrect');
+    const statTotalQuestions = document.getElementById('statTotalQuestions');
+    const statDifficulty = document.getElementById('statDifficulty');
+    const quizDifficultyBadge = document.getElementById('quizDifficultyBadge');
     const retakeQuizBtn = document.getElementById('retakeQuizBtn');
+    const changeQuizSettingsBtn = document.getElementById('changeQuizSettingsBtn');
     const backToSummariesBtn = document.getElementById('backToSummariesBtn');
     const quizNewUploadBtn = document.getElementById('quizNewUploadBtn');
+
+    // DOM Elements - Quiz Configuration / Decision Modal
+    const quizConfigModal = document.getElementById('quizConfigModal');
+    const closeQuizModalBtn = document.getElementById('closeQuizModalBtn');
+    const cancelQuizModalBtn = document.getElementById('cancelQuizModalBtn');
+    const startCustomQuizBtn = document.getElementById('startCustomQuizBtn');
+    const startQuizBtnText = document.getElementById('startQuizBtnText');
+    const quizTargetFileName = document.getElementById('quizTargetFileName');
+    const quizPillBtns = document.querySelectorAll('.quiz-pill-btn');
+    const diffCardBtns = document.querySelectorAll('.diff-card-btn');
 
     // Application State
     let selectedFile = null;
@@ -68,7 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentMode = 'easy';
     let statusInterval = null;
 
-    // Quiz State
+    // Quiz State & Decision Options
+    let selectedNumQuestions = 10;
+    let selectedDifficulty = 'medium';
+    let activeQuizDifficulty = 'medium';
     let quizQuestions = [];
     let currentQuestionIndex = 0;
     let quizScore = 0;
@@ -391,16 +409,65 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     }
 
-    // Start / Fetch Quiz Flow
-    async function startQuizFlow() {
+    // Helper: Format Difficulty Badge Display
+    function formatDiffBadge(diff) {
+        if (diff === 'easy') return '🌱 Easy';
+        if (diff === 'hard') return '🔥 Hard';
+        return '⚡ Medium';
+    }
+
+    // Helper: Update Dynamic Button Label in Customization Modal
+    function updateStartQuizButtonLabel() {
+        if (startQuizBtnText) {
+            const capDiff = selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1);
+            startQuizBtnText.textContent = `Start ${selectedNumQuestions}-Question Quiz (${capDiff})`;
+        }
+    }
+
+    // Open Quiz Customization / Decision Modal
+    function openQuizConfigModal() {
         if (!selectedFile) {
             showError('Please select or upload a PDF document first.');
             return;
         }
+        hideError();
+        if (quizTargetFileName) {
+            quizTargetFileName.textContent = selectedFile.name;
+        }
 
-        // If quiz questions already generated for this file, start immediately
-        if (quizQuestions && quizQuestions.length === 10) {
-            startQuizSession();
+        // Sync pill buttons UI state
+        quizPillBtns.forEach(btn => {
+            const count = parseInt(btn.dataset.questions, 10);
+            const isMatch = count === selectedNumQuestions;
+            btn.classList.toggle('active', isMatch);
+            btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+        });
+
+        // Sync difficulty cards UI state
+        diffCardBtns.forEach(btn => {
+            const diff = btn.dataset.difficulty;
+            const isMatch = diff === selectedDifficulty;
+            btn.classList.toggle('active', isMatch);
+            btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+        });
+
+        updateStartQuizButtonLabel();
+        if (quizConfigModal) {
+            quizConfigModal.classList.remove('hidden');
+        }
+    }
+
+    // Close Quiz Customization Modal
+    function closeQuizConfigModal() {
+        if (quizConfigModal) {
+            quizConfigModal.classList.add('hidden');
+        }
+    }
+
+    // Generate & Start Quiz with selected count (10, 20, 30, 40, 50) and difficulty (easy, medium, hard)
+    async function generateAndStartQuiz(numQuestions = 10, difficulty = 'medium') {
+        if (!selectedFile) {
+            showError('Please select or upload a PDF document first.');
             return;
         }
 
@@ -409,10 +476,14 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSection.classList.add('hidden');
         quizSection.classList.add('hidden');
         loadingSection.classList.remove('hidden');
-        startLoadingAnimation('Creating Quiz Mode (10 Questions)...', quizLoadingSteps);
+
+        const capDiff = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+        startLoadingAnimation(`Crafting ${numQuestions} ${capDiff} Questions with Gemini 3.1 Flash-Lite...`, quizLoadingSteps);
 
         const formData = new FormData();
         formData.append('pdf', selectedFile);
+        formData.append('num_questions', numQuestions);
+        formData.append('difficulty', difficulty);
 
         try {
             const response = await fetch('/quiz/generate', {
@@ -435,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             quizQuestions = data.questions;
+            activeQuizDifficulty = difficulty;
             stopLoadingAnimation();
             loadingSection.classList.add('hidden');
             startQuizSession();
@@ -452,6 +524,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Start Quiz Flow (prompts customization modal)
+    function startQuizFlow() {
+        openQuizConfigModal();
+    }
+
     // Initialize Quiz Session
     function startQuizSession() {
         quizScore = 0;
@@ -459,6 +536,10 @@ document.addEventListener('DOMContentLoaded', () => {
         isQuestionAnswered = false;
 
         quizDocName.textContent = selectedFile ? selectedFile.name : 'document.pdf';
+        if (quizDifficultyBadge) {
+            quizDifficultyBadge.textContent = formatDiffBadge(activeQuizDifficulty);
+            quizDifficultyBadge.className = `quiz-badge difficulty ${activeQuizDifficulty}`;
+        }
         quizCompletedCard.classList.add('hidden');
         quizActiveCard.classList.remove('hidden');
         quizSection.classList.remove('hidden');
@@ -665,43 +746,49 @@ document.addEventListener('DOMContentLoaded', () => {
         quizActiveCard.classList.add('hidden');
         quizCompletedCard.classList.remove('hidden');
 
+        const totalQ = quizQuestions.length || 1;
         finalScoreVal.textContent = quizScore;
-        const accuracyPct = Math.round((quizScore / quizQuestions.length) * 100);
+        if (finalTotalVal) finalTotalVal.textContent = totalQ;
+        if (statTotalQuestions) statTotalQuestions.textContent = `${totalQ}`;
+        if (statDifficulty) statDifficulty.textContent = activeQuizDifficulty.toUpperCase();
+
+        const accuracyPct = Math.round((quizScore / totalQ) * 100);
         statAccuracy.textContent = `${accuracyPct}%`;
         statCorrect.textContent = `${quizScore}`;
 
-        // Dynamic, fun performance messages
+        // Dynamic, fun performance messages based on percentage & difficulty
         let title = '';
         let message = '';
+        const capDiff = activeQuizDifficulty.charAt(0).toUpperCase() + activeQuizDifficulty.slice(1);
 
-        if (quizScore === 10) {
+        if (accuracyPct === 100) {
             title = '🏆 Absolute Perfection!';
-            message = "Flawless score! You have total, comprehensive mastery of this document's content down to every detail!";
+            message = `Flawless score! You achieved ${quizScore}/${totalQ} on ${capDiff} mode! You have total mastery of this document's content down to every detail!`;
             triggerConfetti(true);
-        } else if (quizScore >= 8) {
+        } else if (accuracyPct >= 80) {
             title = '🌟 Outstanding Scholar!';
-            message = "Phenomenal work! You grasp the vast majority of core concepts, arguments, and takeaways with ease.";
+            message = `Phenomenal work! You scored ${quizScore}/${totalQ} on ${capDiff} mode. You grasp the core concepts, arguments, and takeaways with ease!`;
             triggerConfetti(true);
-        } else if (quizScore >= 6) {
+        } else if (accuracyPct >= 60) {
             title = '👏 Solid Understanding!';
-            message = "Great effort! You've got the primary foundations down, with just a couple of nuanced areas to polish.";
-        } else if (quizScore >= 4) {
+            message = `Great effort! You scored ${quizScore}/${totalQ} on ${capDiff} mode. You've got the primary foundations down, with just a couple of nuanced areas to polish.`;
+        } else if (accuracyPct >= 40) {
             title = '📚 Fair Effort!';
-            message = "A decent try! A quick re-read of the Deep Mode summary will help lock in the trickier questions.";
+            message = `A decent try! You scored ${quizScore}/${totalQ} on ${capDiff} mode. A quick re-read of the Deep Mode summary will help lock in the trickier questions.`;
         } else {
             title = '🌱 Keep Going!';
-            message = "Every quiz is a step forward! Review the Easy Mode summary and give it another shot — you've got this!";
+            message = `Every quiz is a step forward! You scored ${quizScore}/${totalQ}. Review the summary and give it another shot — you've got this!`;
         }
 
         finalResultTitle.textContent = title;
         finalResultMsg.textContent = message;
 
         // Automatically persist quiz result to SQLite / JSON
-        saveQuizResultToDatabase(quizScore, quizQuestions.length, accuracyPct, `${title} - ${message}`);
+        saveQuizResultToDatabase(quizScore, totalQ, accuracyPct, `${title} - ${message}`, activeQuizDifficulty);
     }
 
     // Save Quiz Result Endpoint
-    async function saveQuizResultToDatabase(score, total, percentage, performanceMessage) {
+    async function saveQuizResultToDatabase(score, total, percentage, performanceMessage, difficulty = 'medium') {
         try {
             await fetch('/quiz/save', {
                 method: 'POST',
@@ -711,6 +798,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     score: score,
                     total: total,
                     percentage: percentage,
+                    difficulty: difficulty,
                     performance_message: performanceMessage,
                     created_at: new Date().toLocaleString()
                 })
@@ -720,7 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Retake Quiz
+    // Retake Quiz (retries same set of questions)
     retakeQuizBtn.addEventListener('click', () => {
         startQuizSession();
     });
@@ -739,10 +827,77 @@ document.addEventListener('DOMContentLoaded', () => {
     exitQuizBtn.addEventListener('click', exitQuiz);
     backToSummariesBtn.addEventListener('click', exitQuiz);
 
-    // Event Listeners for Launching Quiz
-    if (uploadQuizBtn) uploadQuizBtn.addEventListener('click', startQuizFlow);
-    if (resultsQuizBtn) resultsQuizBtn.addEventListener('click', startQuizFlow);
-    if (summaryQuizCtaBtn) summaryQuizCtaBtn.addEventListener('click', startQuizFlow);
+    // ========================================================
+    // QUIZ CONFIGURATION / DECISION MODAL EVENT LISTENERS
+    // ========================================================
+    if (closeQuizModalBtn) closeQuizModalBtn.addEventListener('click', closeQuizConfigModal);
+    if (cancelQuizModalBtn) cancelQuizModalBtn.addEventListener('click', closeQuizConfigModal);
+
+    if (quizConfigModal) {
+        quizConfigModal.addEventListener('click', (e) => {
+            if (e.target === quizConfigModal) closeQuizConfigModal();
+        });
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && quizConfigModal && !quizConfigModal.classList.contains('hidden')) {
+            closeQuizConfigModal();
+        }
+    });
+
+    // Question Count Pills (10, 20, 30, 40, 50)
+    quizPillBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const count = parseInt(btn.dataset.questions, 10);
+            if (count) {
+                selectedNumQuestions = count;
+                quizPillBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-checked', 'false');
+                });
+                btn.classList.add('active');
+                btn.setAttribute('aria-checked', 'true');
+                updateStartQuizButtonLabel();
+            }
+        });
+    });
+
+    // Difficulty Option Cards (Easy, Medium, Hard)
+    diffCardBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const diff = btn.dataset.difficulty;
+            if (diff) {
+                selectedDifficulty = diff;
+                diffCardBtns.forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-checked', 'false');
+                });
+                btn.classList.add('active');
+                btn.setAttribute('aria-checked', 'true');
+                updateStartQuizButtonLabel();
+            }
+        });
+    });
+
+    // Start Custom Quiz button from modal
+    if (startCustomQuizBtn) {
+        startCustomQuizBtn.addEventListener('click', () => {
+            closeQuizConfigModal();
+            generateAndStartQuiz(selectedNumQuestions, selectedDifficulty);
+        });
+    }
+
+    // Change Settings button on completed card
+    if (changeQuizSettingsBtn) {
+        changeQuizSettingsBtn.addEventListener('click', () => {
+            openQuizConfigModal();
+        });
+    }
+
+    // Event Listeners for Launching Quiz (opens Decision Modal)
+    if (uploadQuizBtn) uploadQuizBtn.addEventListener('click', openQuizConfigModal);
+    if (resultsQuizBtn) resultsQuizBtn.addEventListener('click', openQuizConfigModal);
+    if (summaryQuizCtaBtn) summaryQuizCtaBtn.addEventListener('click', openQuizConfigModal);
 
     // ========================================================
     // SMALL CIRCULAR FLEXIBLE BLACK CURSOR CONTROLLER
