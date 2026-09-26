@@ -455,20 +455,22 @@ document.addEventListener('DOMContentLoaded', () => {
             quizTargetFileName.textContent = selectedFile.name;
         }
 
-        // Sync pill buttons UI state
+        // Sync pill buttons UI state without continuous glow
         quizPillBtns.forEach(btn => {
             const count = parseInt(btn.dataset.questions, 10);
             const isMatch = count === selectedNumQuestions;
             btn.classList.toggle('active', isMatch);
             btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+            btn.classList.remove('glow-pulse');
         });
 
-        // Sync difficulty cards UI state
+        // Sync difficulty cards UI state without continuous glow
         diffCardBtns.forEach(btn => {
             const diff = btn.dataset.difficulty;
             const isMatch = diff === selectedDifficulty;
             btn.classList.toggle('active', isMatch);
             btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+            btn.classList.remove('glow-pulse');
         });
 
         updateStartQuizButtonLabel();
@@ -868,36 +870,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Question Count Pills (10, 20, 30, 40, 50)
+    // Question Count Pills (10, 20, 30, 40, 50) - glow and animate only on selection
     quizPillBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const count = parseInt(btn.dataset.questions, 10);
             if (count) {
                 selectedNumQuestions = count;
                 quizPillBtns.forEach(b => {
-                    b.classList.remove('active');
+                    b.classList.remove('active', 'glow-pulse');
                     b.setAttribute('aria-checked', 'false');
                 });
-                btn.classList.add('active');
+                btn.classList.add('active', 'glow-pulse');
                 btn.setAttribute('aria-checked', 'true');
                 updateStartQuizButtonLabel();
+                setTimeout(() => btn.classList.remove('glow-pulse'), 500);
             }
         });
     });
 
-    // Difficulty Option Cards (Easy, Medium, Hard)
+    // Difficulty Option Cards (Easy, Medium, Hard) - glow and animate only on selection
     diffCardBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const diff = btn.dataset.difficulty;
             if (diff) {
                 selectedDifficulty = diff;
                 diffCardBtns.forEach(b => {
-                    b.classList.remove('active');
+                    b.classList.remove('active', 'glow-pulse');
                     b.setAttribute('aria-checked', 'false');
                 });
-                btn.classList.add('active');
+                btn.classList.add('active', 'glow-pulse');
                 btn.setAttribute('aria-checked', 'true');
                 updateStartQuizButtonLabel();
+                setTimeout(() => btn.classList.remove('glow-pulse'), 500);
             }
         });
     });
