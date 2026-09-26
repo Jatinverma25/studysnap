@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let summariesData = null;
     let currentMode = 'easy';
     let statusInterval = null;
+    let pendingAction = null;
 
     // Quiz State & Decision Options
     let selectedNumQuestions = 10;
@@ -127,8 +128,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         uploadContent.classList.add('hidden');
         fileInfo.classList.remove('hidden');
-        submitBtn.disabled = false;
-        if (uploadQuizBtn) uploadQuizBtn.disabled = false;
+        submitBtn.classList.add('file-ready');
+        if (uploadQuizBtn) uploadQuizBtn.classList.add('file-ready');
+
+        // Execute any action the user clicked prior to picking the file
+        if (pendingAction === 'quiz') {
+            pendingAction = null;
+            setTimeout(() => openQuizConfigModal(), 120);
+        } else if (pendingAction === 'summarize') {
+            pendingAction = null;
+            setTimeout(() => submitBtn.click(), 120);
+        }
     }
 
     // Reset selected file
@@ -136,11 +146,12 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedFile = null;
         summariesData = null;
         quizQuestions = [];
+        pendingAction = null;
         fileInput.value = '';
         uploadContent.classList.remove('hidden');
         fileInfo.classList.add('hidden');
-        submitBtn.disabled = true;
-        if (uploadQuizBtn) uploadQuizBtn.disabled = true;
+        submitBtn.classList.remove('file-ready');
+        if (uploadQuizBtn) uploadQuizBtn.classList.remove('file-ready');
     }
 
     // Error helpers
@@ -272,7 +283,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Submit and Generate Summaries handler
     submitBtn.addEventListener('click', async () => {
-        if (!selectedFile) return;
+        if (!selectedFile) {
+            // Give instant glowing pulse to drop zone and prompt user to choose a PDF
+            dropZone.classList.remove('pulse-highlight');
+            void dropZone.offsetWidth;
+            dropZone.classList.add('pulse-highlight');
+            setTimeout(() => dropZone.classList.remove('pulse-highlight'), 1200);
+            pendingAction = 'summarize';
+            fileInput.click();
+            return;
+        }
 
         hideError();
         uploadSection.classList.add('hidden');
@@ -898,9 +918,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Event Listeners for Launching Quiz (opens Decision Modal)
-    if (uploadQuizBtn) uploadQuizBtn.addEventListener('click', openQuizConfigModal);
+    if (uploadQuizBtn) {
+        uploadQuizBtn.addEventListener('click', () => {
+            if (!selectedFile) {
+                // Give instant glowing pulse to drop zone and open file picker
+                dropZone.classList.remove('pulse-highlight');
+                void dropZone.offsetWidth;
+                dropZone.classList.add('pulse-highlight');
+                setTimeout(() => dropZone.classList.remove('pulse-highlight'), 1200);
+                pendingAction = 'quiz';
+                fileInput.click();
+                return;
+            }
+            openQuizConfigModal();
+        });
+    }
     if (resultsQuizBtn) resultsQuizBtn.addEventListener('click', openQuizConfigModal);
     if (summaryQuizCtaBtn) summaryQuizCtaBtn.addEventListener('click', openQuizConfigModal);
+
+    // ========================================================
+    // DYNAMIC SELECTION GLOW EFFECT FOR ALL BUTTONS & OPTIONS
+    // ========================================================
+    document.addEventListener('click', (e) => {
+        const targetBtn = e.target.closest('button, .quiz-option-btn, .diff-card-btn, .quiz-pill-btn, .mode-btn');
+        if (targetBtn) {
+            targetBtn.classList.remove('glow-pulse');
+            void targetBtn.offsetWidth; // Force reflow to re-trigger glow pulse animation
+            targetBtn.classList.add('glow-pulse');
+            setTimeout(() => {
+                targetBtn.classList.remove('glow-pulse');
+            }, 600);
+        }
+    });
 
     // ========================================================
     // THEME SWITCHER (DARK / LIGHT MODE)
@@ -1030,12 +1079,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let scaleX = 1 + currentStretch;
                 let scaleY = 1 / Math.sqrt(1 + currentStretch * 1.15);
 
-                if (isClicking) {
-                    scaleX *= 0.85;
-                    scaleY *= 0.85;
-                }
-
-                // Render with GPU accelerated 3D transform - circle remains identical in all states
+                // Circle ball stays identical at all times (no changes on click or selection)
                 cursorBall.style.transform = `translate3d(${ballX.toFixed(2)}px, ${ballY.toFixed(2)}px, 0) rotate(${currentAngle.toFixed(4)}rad) scale(${scaleX.toFixed(3)}, ${scaleY.toFixed(3)})`;
             }
 
