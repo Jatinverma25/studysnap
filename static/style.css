@@ -1021,6 +1021,19 @@ body {
     color: #f1f5f9;
 }
 
+/* KaTeX LaTeX Math Styling */
+.markdown-content .katex {
+    font-size: 1.05em;
+    color: inherit;
+}
+
+.markdown-content .katex-display {
+    margin: 1.2em 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 8px 0;
+}
+
 /* Footer */
 .footer {
     text-align: center;
@@ -1886,8 +1899,8 @@ body {
 }
 
 .quiz-pill-btn {
-    background: rgba(28, 34, 56, 0.75);
-    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    background: rgba(28, 20, 48, 0.65);
+    border: 1.5px solid rgba(168, 85, 247, 0.18);
     border-radius: var(--radius-md);
     padding: 12px 6px;
     display: flex;
@@ -1896,7 +1909,10 @@ body {
     gap: 4px;
     color: var(--text-primary);
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+    transform: none;
+    outline: none;
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, color 0.25s ease;
 }
 
 .quiz-pill-btn .pill-number {
@@ -1904,7 +1920,7 @@ body {
     font-weight: 800;
     font-family: 'JetBrains Mono', monospace;
     color: var(--text-primary);
-    transition: color 0.2s ease;
+    transition: color 0.25s ease, text-shadow 0.25s ease;
 }
 
 .quiz-pill-btn .pill-text {
@@ -1913,64 +1929,43 @@ body {
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    transition: color 0.25s ease;
 }
 
-.quiz-pill-btn:hover,
-.quiz-pill-btn:focus-visible {
-    border-color: #c084fc;
-    background: rgba(45, 29, 82, 0.95);
-    box-shadow: 0 0 24px rgba(192, 132, 252, 0.65), inset 0 0 10px rgba(192, 132, 252, 0.2);
-    transform: translateY(-3px) scale(1.04);
-    outline: none;
+/* Subtle, polite hover on unselected option - clearly distinct from active selection */
+.quiz-pill-btn:not(.active):hover {
+    background: rgba(45, 29, 82, 0.65);
+    border-color: rgba(192, 132, 252, 0.45);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
 }
 
+.quiz-pill-btn:focus-visible:not(.active) {
+    outline: 2px solid rgba(192, 132, 252, 0.5);
+    outline-offset: 2px;
+}
+
+/* Bright selected active style for actively clicked question pill */
 .quiz-pill-btn.active {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.35), rgba(168, 85, 247, 0.25));
+    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #c084fc 100%);
     border-color: #c084fc;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    transform: none;
+    box-shadow: 0 0 22px rgba(192, 132, 252, 0.6), 0 4px 14px rgba(124, 58, 237, 0.4);
+    transform: translateY(-1px);
+    color: #ffffff;
 }
 
 .quiz-pill-btn.active .pill-number {
-    color: #c084fc;
-    text-shadow: none;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
 .quiz-pill-btn.active .pill-text {
-    color: #f8fafc;
+    color: rgba(255, 255, 255, 0.95);
 }
 
-.quiz-pill-btn:active,
-.quiz-pill-btn.glow-pulse {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.6), rgba(168, 85, 247, 0.5));
-    border-color: #c084fc;
-    box-shadow: 
-        0 0 34px rgba(192, 132, 252, 0.9),
-        0 0 65px rgba(124, 58, 237, 0.6),
-        inset 0 1px 4px rgba(255, 255, 255, 0.5);
-    animation: optionGlowPulse 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.quiz-pill-btn.glow-pulse .pill-number {
-    text-shadow: 0 0 14px rgba(192, 132, 252, 0.9);
-}
-
-@keyframes optionGlowPulse {
-    0% {
-        transform: scale(0.96);
-        box-shadow: 0 0 8px rgba(192, 132, 252, 0.3);
-    }
-    40% {
-        transform: scale(1.05);
-        box-shadow: 
-            0 0 34px rgba(192, 132, 252, 0.9),
-            0 0 65px rgba(124, 58, 237, 0.6),
-            inset 0 1px 4px rgba(255, 255, 255, 0.5);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    }
+.quiz-pill-btn.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 26px rgba(192, 132, 252, 0.75), 0 6px 18px rgba(124, 58, 237, 0.5);
 }
 
 /* 3-Option Card Grid for Difficulty Level */
@@ -1981,7 +1976,7 @@ body {
 }
 
 .diff-card-btn {
-    background: rgba(26, 17, 48, 0.75);
+    background: rgba(26, 17, 48, 0.65);
     border: 1.5px solid rgba(168, 85, 247, 0.18);
     border-radius: var(--radius-md);
     padding: 14px 12px;
@@ -1991,12 +1986,15 @@ body {
     gap: 6px;
     text-align: left;
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+    transform: none;
     outline: none;
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, color 0.25s ease;
 }
 
 .diff-card-btn .diff-icon {
     font-size: 1.4rem;
+    transition: transform 0.25s ease;
 }
 
 .diff-card-btn .diff-info {
@@ -2009,66 +2007,49 @@ body {
     font-weight: 700;
     font-size: 0.95rem;
     color: var(--text-primary);
-    transition: color 0.2s ease;
+    transition: color 0.25s ease, text-shadow 0.25s ease;
 }
 
 .diff-card-btn .diff-desc {
     font-size: 0.72rem;
     color: var(--text-secondary);
     line-height: 1.35;
+    transition: color 0.25s ease;
 }
 
-.diff-card-btn:hover,
-.diff-card-btn:focus-visible {
-    border-color: #c084fc;
-    background: rgba(45, 29, 82, 0.95);
-    box-shadow: 0 0 25px rgba(192, 132, 252, 0.6), inset 0 0 10px rgba(192, 132, 252, 0.15);
-    transform: translateY(-3px) scale(1.025);
+/* Subtle, polite hover on unselected difficulty card - clearly inactive & subtle */
+.diff-card-btn:not(.active):hover {
+    background: rgba(45, 29, 82, 0.65);
+    border-color: rgba(192, 132, 252, 0.45);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
 }
 
+.diff-card-btn:focus-visible:not(.active) {
+    outline: 2px solid rgba(192, 132, 252, 0.5);
+    outline-offset: 2px;
+}
+
+/* Bright selected active style for actively clicked difficulty card */
 .diff-card-btn.active {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.3), rgba(168, 85, 247, 0.2));
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.45) 0%, rgba(147, 51, 234, 0.4) 50%, rgba(192, 132, 252, 0.3) 100%);
     border-color: #c084fc;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    transform: none;
+    box-shadow: 0 0 22px rgba(192, 132, 252, 0.55), 0 4px 14px rgba(124, 58, 237, 0.35);
+    transform: translateY(-1px);
 }
 
 .diff-card-btn.active .diff-name {
-    color: #c084fc;
-    text-shadow: none;
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(192, 132, 252, 0.6);
 }
 
-.diff-card-btn:active,
-.diff-card-btn.glow-pulse {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.5), rgba(168, 85, 247, 0.4));
-    border-color: #c084fc;
-    box-shadow: 
-        0 0 34px rgba(192, 132, 252, 0.85),
-        0 0 60px rgba(124, 58, 237, 0.5),
-        inset 0 1px 4px rgba(255, 255, 255, 0.4);
-    animation: cardGlowPulse 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+.diff-card-btn.active .diff-desc {
+    color: #f3e8ff;
 }
 
-.diff-card-btn.glow-pulse .diff-name {
-    text-shadow: 0 0 14px rgba(192, 132, 252, 0.85);
-}
-
-@keyframes cardGlowPulse {
-    0% {
-        transform: scale(0.97);
-        box-shadow: 0 0 8px rgba(192, 132, 252, 0.3);
-    }
-    40% {
-        transform: scale(1.035);
-        box-shadow: 
-            0 0 34px rgba(192, 132, 252, 0.85),
-            0 0 60px rgba(124, 58, 237, 0.5),
-            inset 0 1px 4px rgba(255, 255, 255, 0.4);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-    }
+.diff-card-btn.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 26px rgba(192, 132, 252, 0.7), 0 6px 18px rgba(124, 58, 237, 0.45);
 }
 
 .quiz-modal-footer {
@@ -2743,115 +2724,109 @@ body {
 }
 
 [data-theme="light"] .quiz-pill-btn {
-    background: #e8dff7;
-    border-color: rgba(124, 58, 237, 0.22);
+    background: #ede6f8;
+    border: 1.5px solid rgba(124, 58, 237, 0.2);
     color: #1e143b;
+    box-shadow: none;
+    transform: none;
+    outline: none;
 }
 
-[data-theme="light"] .quiz-pill-btn:hover,
-[data-theme="light"] .quiz-pill-btn:focus-visible {
-    background: #ddcff5;
-    border-color: #7c3aed;
-    box-shadow: 0 0 16px rgba(124, 58, 237, 0.3);
+[data-theme="light"] .quiz-pill-btn .pill-number {
+    color: #1e143b;
+    text-shadow: none;
 }
 
+[data-theme="light"] .quiz-pill-btn .pill-text {
+    color: #6b5c8b;
+}
+
+/* Subtle, polite hover on unselected option in light mode */
+[data-theme="light"] .quiz-pill-btn:not(.active):hover {
+    background: #e2d5f5;
+    border-color: rgba(124, 58, 237, 0.45);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.12);
+    transform: translateY(-2px);
+}
+
+[data-theme="light"] .quiz-pill-btn:focus-visible:not(.active) {
+    outline: 2px solid rgba(124, 58, 237, 0.4);
+    outline-offset: 2px;
+}
+
+/* Light mode bright active Question Pill */
 [data-theme="light"] .quiz-pill-btn.active {
     background: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #8b5cf6 100%);
+    border-color: #7c3aed;
     color: #ffffff;
-    border-color: transparent;
-    box-shadow: 0 2px 8px rgba(91, 33, 182, 0.15);
-    transform: none;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.45), 0 4px 14px rgba(147, 51, 234, 0.25);
+    transform: translateY(-1px);
 }
 
 [data-theme="light"] .quiz-pill-btn.active .pill-number {
     color: #ffffff;
-    text-shadow: none;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
 }
 
 [data-theme="light"] .quiz-pill-btn.active .pill-text {
     color: rgba(255, 255, 255, 0.95);
 }
 
-[data-theme="light"] .quiz-pill-btn:active,
-[data-theme="light"] .quiz-pill-btn.glow-pulse {
-    box-shadow: 
-        0 0 28px rgba(124, 58, 237, 0.7),
-        0 4px 18px rgba(147, 51, 234, 0.4);
-    animation: lightOptionGlowPulse 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-@keyframes lightOptionGlowPulse {
-    0% {
-        transform: scale(0.96);
-        box-shadow: 0 0 8px rgba(124, 58, 237, 0.25);
-    }
-    40% {
-        transform: scale(1.05);
-        box-shadow: 
-            0 0 28px rgba(124, 58, 237, 0.7),
-            0 4px 18px rgba(147, 51, 234, 0.4);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 2px 8px rgba(91, 33, 182, 0.15);
-    }
+[data-theme="light"] .quiz-pill-btn.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 24px rgba(124, 58, 237, 0.55), 0 6px 16px rgba(147, 51, 234, 0.3);
 }
 
 [data-theme="light"] .diff-card-btn {
-    background: #eae0f8;
-    border-color: rgba(124, 58, 237, 0.24);
-}
-
-[data-theme="light"] .diff-card-btn:hover,
-[data-theme="light"] .diff-card-btn:focus-visible {
-    background: #dfd2f6;
-    border-color: #7c3aed;
-    box-shadow: 0 0 18px rgba(124, 58, 237, 0.32);
+    background: #ede6f8;
+    border: 1.5px solid rgba(124, 58, 237, 0.2);
+    box-shadow: none;
+    transform: none;
+    outline: none;
 }
 
 [data-theme="light"] .diff-card-btn .diff-name {
     color: #1e143b;
-}
-
-[data-theme="light"] .diff-card-btn .diff-desc {
-    color: var(--text-secondary);
-}
-
-[data-theme="light"] .diff-card-btn.active {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.16) 0%, rgba(168, 85, 247, 0.16) 100%);
-    border-color: #7c3aed;
-    box-shadow: 0 2px 8px rgba(91, 33, 182, 0.08);
-    transform: none;
-}
-
-[data-theme="light"] .diff-card-btn.active .diff-name {
-    color: #6d28d9;
     text-shadow: none;
 }
 
-[data-theme="light"] .diff-card-btn:active,
-[data-theme="light"] .diff-card-btn.glow-pulse {
-    box-shadow: 
-        0 0 28px rgba(124, 58, 237, 0.55),
-        0 4px 16px rgba(124, 58, 237, 0.2);
-    animation: lightCardGlowPulse 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+[data-theme="light"] .diff-card-btn .diff-desc {
+    color: #6b5c8b;
 }
 
-@keyframes lightCardGlowPulse {
-    0% {
-        transform: scale(0.97);
-        box-shadow: 0 0 8px rgba(124, 58, 237, 0.2);
-    }
-    40% {
-        transform: scale(1.035);
-        box-shadow: 
-            0 0 28px rgba(124, 58, 237, 0.55),
-            0 4px 16px rgba(124, 58, 237, 0.2);
-    }
-    100% {
-        transform: scale(1);
-        box-shadow: 0 2px 8px rgba(91, 33, 182, 0.08);
-    }
+/* Subtle, polite hover on unselected difficulty card in light mode */
+[data-theme="light"] .diff-card-btn:not(.active):hover {
+    background: #e2d5f5;
+    border-color: rgba(124, 58, 237, 0.45);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.12);
+    transform: translateY(-2px);
+}
+
+[data-theme="light"] .diff-card-btn:focus-visible:not(.active) {
+    outline: 2px solid rgba(124, 58, 237, 0.4);
+    outline-offset: 2px;
+}
+
+/* Light mode bright active Difficulty Card */
+[data-theme="light"] .diff-card-btn.active {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.18) 0%, rgba(147, 51, 234, 0.15) 100%);
+    border-color: #7c3aed;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.35), 0 3px 12px rgba(124, 58, 237, 0.15);
+    transform: translateY(-1px);
+}
+
+[data-theme="light"] .diff-card-btn.active .diff-name {
+    color: #5b21b6;
+    text-shadow: none;
+}
+
+[data-theme="light"] .diff-card-btn.active .diff-desc {
+    color: #4c1d95;
+}
+
+[data-theme="light"] .diff-card-btn.active:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 24px rgba(124, 58, 237, 0.45), 0 4px 14px rgba(124, 58, 237, 0.2);
 }
 
 [data-theme="light"] .quiz-modal-footer {

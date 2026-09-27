@@ -85,8 +85,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let pendingAction = null;
 
     // Quiz State & Decision Options
-    let selectedNumQuestions = 10;
-    let selectedDifficulty = 'medium';
+    let selectedNumQuestions = null;
+    let selectedDifficulty = null;
     let activeQuizDifficulty = 'medium';
     let quizQuestions = [];
     let currentQuestionIndex = 0;
@@ -252,6 +252,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Helper: Render LaTeX math in element using KaTeX auto-render
+    function renderMath(element) {
+        if (!element) return;
+        const autoRender = () => {
+            if (typeof renderMathInElement === 'function') {
+                try {
+                    renderMathInElement(element, {
+                        delimiters: [
+                            { left: '$$', right: '$$', display: true },
+                            { left: '$', right: '$', display: false },
+                            { left: '\\(', right: '\\)', display: false },
+                            { left: '\\[', right: '\\]', display: true }
+                        ],
+                        throwOnError: false,
+                        errorColor: '#ef4444'
+                    });
+                } catch (err) {
+                    console.warn('KaTeX auto-render error:', err);
+                }
+            }
+        };
+
+        if (typeof renderMathInElement === 'function') {
+            autoRender();
+        } else {
+            // Fallback retry if CDN script is still downloading
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts++;
+                if (typeof renderMathInElement === 'function') {
+                    clearInterval(interval);
+                    autoRender();
+                } else if (attempts > 20) {
+                    clearInterval(interval);
+                }
+            }, 100);
+        }
+    }
+
     // Switch summary modes with smooth animation
     function switchMode(mode) {
         if (!summariesData || !summariesData[mode]) return;
@@ -276,6 +315,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
             const markdownText = summariesData[mode] || 'No summary available for this mode.';
             summaryContent.innerHTML = marked.parse(markdownText);
+            // Run KaTeX auto-render script so all LaTeX notation converts into formatted math
+            renderMath(summaryContent);
             summaryContent.classList.remove('switching');
             summaryContent.classList.add('active');
         }, 200);
@@ -438,9 +479,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Helper: Update Dynamic Button Label in Customization Modal
     function updateStartQuizButtonLabel() {
-        if (startQuizBtnText) {
-            const capDiff = selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1);
-            startQuizBtnText.textContent = `Start ${selectedNumQuestions}-Question Quiz (${capDiff})`;
+        if (!startQuizBtnText) return;
+        const num = selectedNumQuestions || 10;
+        const diff = selectedDifficulty 
+            ? (selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)) 
+            : 'Medium';
+        if (selectedNumQuestions || selectedDifficulty) {
+            startQuizBtnText.textContent = `Start ${num}-Question Quiz (${diff})`;
+        } else {
+            startQuizBtnText.textContent = 'Start Quiz (10 Questions · Medium)';
         }
     }
 
@@ -455,22 +502,24 @@ document.addEventListener('DOMContentLoaded', () => {
             quizTargetFileName.textContent = selectedFile.name;
         }
 
-        // Sync pill buttons UI state without continuous glow
+        // Sync pill buttons UI state without continuous glow or stuck focus
         quizPillBtns.forEach(btn => {
             const count = parseInt(btn.dataset.questions, 10);
-            const isMatch = count === selectedNumQuestions;
+            const isMatch = Boolean(selectedNumQuestions && count === selectedNumQuestions);
             btn.classList.toggle('active', isMatch);
             btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
             btn.classList.remove('glow-pulse');
+            btn.blur();
         });
 
-        // Sync difficulty cards UI state without continuous glow
+        // Sync difficulty cards UI state without continuous glow or stuck focus
         diffCardBtns.forEach(btn => {
             const diff = btn.dataset.difficulty;
-            const isMatch = diff === selectedDifficulty;
+            const isMatch = Boolean(selectedDifficulty && diff === selectedDifficulty);
             btn.classList.toggle('active', isMatch);
             btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
             btn.classList.remove('glow-pulse');
+            btn.blur();
         });
 
         updateStartQuizButtonLabel();
@@ -493,19 +542,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const countToUse = numQuestions || selectedNumQuestions || 10;
+        const diffToUse = difficulty || selectedDifficulty || 'medium';
+
         hideError();
         uploadSection.classList.add('hidden');
         resultsSection.classList.add('hidden');
         quizSection.classList.add('hidden');
         loadingSection.classList.remove('hidden');
 
-        const capDiff = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
-        startLoadingAnimation(`Crafting ${numQuestions} ${capDiff} Questions...`, quizLoadingSteps);
+        const capDiff = diffToUse.charAt(0).toUpperCase() + diffToUse.slice(1);
+        startLoadingAnimation(`Crafting ${countToUse} ${capDiff} Questions...`, quizLoadingSteps);
 
         const formData = new FormData();
         formData.append('pdf', selectedFile);
-        formData.append('num_questions', numQuestions);
-        formData.append('difficulty', difficulty);
+        formData.append('num_questions', countToUse);
+        formData.append('difficulty', diffToUse);
 
         try {
             const response = await fetch('/quiz/generate', {
@@ -870,7 +922,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Question Count Pills (10, 20, 30, 40, 50) - glow and animate only on selection
+    // Question Count Pills (10, 20, 30, 40, 50) - smoothly toggle active state & blur button
     quizPillBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const count = parseInt(btn.dataset.questions, 10);
@@ -880,15 +932,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     b.classList.remove('active', 'glow-pulse');
                     b.setAttribute('aria-checked', 'false');
                 });
-                btn.classList.add('active', 'glow-pulse');
+                btn.classList.add('active');
                 btn.setAttribute('aria-checked', 'true');
                 updateStartQuizButtonLabel();
-                setTimeout(() => btn.classList.remove('glow-pulse'), 500);
+                // Remove stuck hover/focus effect immediately after click
+                btn.blur();
             }
         });
     });
 
-    // Difficulty Option Cards (Easy, Medium, Hard) - glow and animate only on selection
+    // Difficulty Option Cards (Easy, Medium, Hard) - smoothly toggle active state & blur button
     diffCardBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const diff = btn.dataset.difficulty;
@@ -898,10 +951,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     b.classList.remove('active', 'glow-pulse');
                     b.setAttribute('aria-checked', 'false');
                 });
-                btn.classList.add('active', 'glow-pulse');
+                btn.classList.add('active');
                 btn.setAttribute('aria-checked', 'true');
                 updateStartQuizButtonLabel();
-                setTimeout(() => btn.classList.remove('glow-pulse'), 500);
+                // Remove stuck hover/focus effect immediately after click
+                btn.blur();
             }
         });
     });
@@ -909,8 +963,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Start Custom Quiz button from modal
     if (startCustomQuizBtn) {
         startCustomQuizBtn.addEventListener('click', () => {
+            const count = selectedNumQuestions || 10;
+            const diff = selectedDifficulty || 'medium';
             closeQuizConfigModal();
-            generateAndStartQuiz(selectedNumQuestions, selectedDifficulty);
+            generateAndStartQuiz(count, diff);
         });
     }
 
@@ -944,8 +1000,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // DYNAMIC SELECTION GLOW EFFECT FOR ALL BUTTONS & OPTIONS
     // ========================================================
     document.addEventListener('click', (e) => {
-        const targetBtn = e.target.closest('button, .quiz-option-btn, .diff-card-btn, .quiz-pill-btn, .mode-btn');
-        if (targetBtn) {
+        const targetBtn = e.target.closest('button, .quiz-option-btn, .mode-btn');
+        if (targetBtn && !targetBtn.classList.contains('quiz-pill-btn') && !targetBtn.classList.contains('diff-card-btn')) {
             targetBtn.classList.remove('glow-pulse');
             void targetBtn.offsetWidth; // Force reflow to re-trigger glow pulse animation
             targetBtn.classList.add('glow-pulse');

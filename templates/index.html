@@ -12,6 +12,10 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Canvas Confetti for celebratory animations -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <!-- KaTeX for rendering mathematical formulas and LaTeX notation -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -377,7 +381,7 @@
                                 <span class="label-hint">Choose between 10, 20, 30, 40, or 50 questions</span>
                             </label>
                             <div class="pill-options-grid" role="radiogroup" aria-label="Number of questions">
-                                <button type="button" class="quiz-pill-btn active" data-questions="10" role="radio" aria-checked="true">
+                                <button type="button" class="quiz-pill-btn" data-questions="10" role="radio" aria-checked="false">
                                     <span class="pill-number">10</span>
                                     <span class="pill-text">Questions</span>
                                 </button>
@@ -414,7 +418,7 @@
                                         <span class="diff-desc">Foundational definitions & direct facts</span>
                                     </div>
                                 </button>
-                                <button type="button" class="diff-card-btn active" data-difficulty="medium" role="radio" aria-checked="true">
+                                <button type="button" class="diff-card-btn" data-difficulty="medium" role="radio" aria-checked="false">
                                     <span class="diff-icon">⚡</span>
                                     <div class="diff-info">
                                         <span class="diff-name">Medium</span>
@@ -436,7 +440,7 @@
                         <button type="button" id="cancelQuizModalBtn" class="btn btn-outline">Cancel</button>
                         <button type="button" id="startCustomQuizBtn" class="btn btn-quiz">
                             <span class="btn-icon">🚀</span>
-                            <span id="startQuizBtnText">Start 10-Question Quiz (Medium)</span>
+                            <span id="startQuizBtnText">Start Quiz (10 Questions · Medium)</span>
                         </button>
                     </div>
                 </div>

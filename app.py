@@ -99,7 +99,7 @@ def summarize():
         )
 
         # 5. Formulate prompt requesting all three summary modes in structured JSON
-        prompt = """
+        prompt = r"""
         You are an expert educational companion and study assistant. Analyze this uploaded PDF document in depth.
         Generate three distinct summaries formatted in Markdown, tailored to different learning styles:
 
@@ -107,16 +107,19 @@ def summarize():
            - Break down the core concepts using simple, plain everyday English.
            - Avoid technical jargon, or explain it immediately with accessible analogies.
            - Provide high-level takeaways, core ideas, and a bulleted review.
+           - Write math using LaTeX notation (e.g., $I_a = \sqrt{2} I \cos(\omega t)$) so it can be rendered properly. Keep LaTeX simple and standard.
 
         2. DEEP MODE (Technical & Comprehensive):
            - Provide an exhaustive, detailed study breakdown of the paper/document.
            - Retain technical and domain-specific terminology with clear explanations.
            - Cover methodology, architecture, mathematical formulation (if present), nuances, and conclusions.
+           - Write math using LaTeX notation (e.g., $I_a = \sqrt{2} I \cos(\omega t)$) so it can be rendered properly. Keep LaTeX simple and standard.
 
         3. FUN MODE (Analogies & Emojis):
            - Explain the material using creative, funny, and relatable real-world analogies.
            - Use a conversational, engaging, and lively tone.
            - Sprinkle relevant emojis throughout to make it entertaining and memorable.
+           - Write math using LaTeX notation (e.g., $I_a = \sqrt{2} I \cos(\omega t)$) so it can be rendered properly. Keep LaTeX simple and standard.
 
         Return your output strictly as a JSON object with this exact structure:
         {
