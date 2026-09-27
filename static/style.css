@@ -1,12 +1,12 @@
 :root,
 [data-theme="dark"] {
     color-scheme: dark;
-    /* Deep midnight cosmic dark violet */
+    /* Deep midnight cosmic dark violet - Glassmorphic Frosted Surfaces */
     --bg-base: #0c0817;
-    --bg-surface: rgba(24, 16, 44, 0.78);
-    --bg-surface-elevated: rgba(35, 23, 62, 0.88);
-    --bg-input: rgba(20, 13, 38, 0.72);
-    --border-subtle: rgba(168, 85, 247, 0.24);
+    --bg-surface: rgba(24, 16, 44, 0.58);
+    --bg-surface-elevated: rgba(35, 23, 62, 0.62);
+    --bg-input: rgba(20, 13, 38, 0.50);
+    --border-subtle: rgba(168, 85, 247, 0.28);
     --border-highlight: rgba(192, 132, 252, 0.55);
     
     /* Harmonic Dark Violet Palette */
@@ -18,7 +18,7 @@
     
     --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #c084fc 100%);
     --gradient-accent: linear-gradient(135deg, #a855f7 0%, #c084fc 50%, #e879f9 100%);
-    --gradient-card: linear-gradient(180deg, rgba(32, 21, 58, 0.88) 0%, rgba(18, 12, 34, 0.88) 100%);
+    --gradient-card: linear-gradient(180deg, rgba(32, 21, 58, 0.65) 0%, rgba(18, 12, 34, 0.68) 100%);
     
     --text-primary: #f8f6fe;
     --text-secondary: #c4b5fd;
@@ -531,8 +531,8 @@ body {
 /* Main Card */
 .main-card {
     background: var(--gradient-card);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-lg);
     padding: 36px;
@@ -553,6 +553,8 @@ body {
     border: 2px dashed rgba(139, 92, 246, 0.35);
     border-radius: var(--radius-md);
     background: var(--bg-input);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     padding: 48px 24px;
     text-align: center;
     position: relative;
@@ -562,7 +564,7 @@ body {
 
 .drop-zone:hover, .drop-zone.dragover {
     border-color: #c084fc;
-    background: rgba(168, 85, 247, 0.08);
+    background: rgba(168, 85, 247, 0.12);
     transform: translateY(-2px);
     box-shadow: 0 0 25px rgba(168, 85, 247, 0.25);
 }
@@ -656,6 +658,8 @@ body {
     align-items: center;
     justify-content: space-between;
     background: var(--bg-surface-elevated);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--border-highlight);
     border-radius: var(--radius-sm);
     padding: 14px 18px;
@@ -1167,7 +1171,9 @@ body {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    background: rgba(10, 12, 20, 0.6);
+    background: rgba(10, 12, 20, 0.45);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     padding: 6px;
     border-radius: var(--radius-md);
     border: 1px solid var(--border-subtle);
@@ -1219,6 +1225,8 @@ body {
 
 .mode-btn.active {
     background: var(--bg-surface-elevated);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-color: #c084fc;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     transform: none;
@@ -1227,6 +1235,8 @@ body {
 .mode-btn:active,
 .mode-btn.glow-pulse {
     background: var(--bg-surface-elevated);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-color: #c084fc;
     box-shadow: 
         0 0 30px rgba(168, 85, 247, 0.7),
@@ -1248,6 +1258,8 @@ body {
 /* Summary Card */
 .summary-card {
     background: var(--bg-surface-elevated);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--border-subtle);
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -1259,7 +1271,9 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 14px 20px;
-    background: rgba(10, 12, 20, 0.5);
+    background: rgba(10, 12, 20, 0.40);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -1558,6 +1572,8 @@ body {
 .quiz-cta-banner {
     margin-top: 24px;
     background: linear-gradient(135deg, rgba(236, 72, 153, 0.12) 0%, rgba(139, 92, 246, 0.16) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(236, 72, 153, 0.35);
     border-radius: var(--radius-md);
     padding: 20px 24px;
@@ -1747,7 +1763,8 @@ body {
     border-radius: var(--radius-lg);
     padding: 30px;
     box-shadow: var(--shadow-card);
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
     gap: 24px;
@@ -1783,6 +1800,8 @@ body {
     align-items: center;
     gap: 16px;
     background: var(--bg-surface-elevated);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-md);
     padding: 16px 20px;
@@ -1908,7 +1927,9 @@ body {
 
 /* Explanation Box */
 .quiz-explanation-box {
-    background: rgba(18, 22, 38, 0.95);
+    background: rgba(18, 22, 38, 0.68);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-left: 4px solid var(--purple);
     border-radius: var(--radius-sm);
     padding: 16px 20px;
@@ -1917,12 +1938,12 @@ body {
 
 .quiz-explanation-box.correct {
     border-left-color: #10b981;
-    background: rgba(16, 185, 129, 0.08);
+    background: rgba(16, 185, 129, 0.12);
 }
 
 .quiz-explanation-box.wrong {
     border-left-color: #ef4444;
-    background: rgba(239, 68, 68, 0.08);
+    background: rgba(239, 68, 68, 0.12);
 }
 
 .explanation-title-row {
@@ -1959,7 +1980,8 @@ body {
     padding: 44px 32px;
     text-align: center;
     box-shadow: var(--shadow-card);
-    backdrop-filter: blur(16px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2022,6 +2044,8 @@ body {
 
 .stat-box {
     background: var(--bg-surface-elevated);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-md);
     padding: 14px 12px;
@@ -2161,8 +2185,10 @@ body {
 }
 
 .quiz-modal-card {
-    background: rgba(18, 22, 38, 0.96);
-    border: 1px solid rgba(139, 92, 246, 0.35);
+    background: rgba(22, 14, 42, 0.72);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(168, 85, 247, 0.35);
     border-radius: var(--radius-lg);
     width: 100%;
     max-width: 600px;
@@ -2260,8 +2286,10 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(14, 18, 30, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(14, 18, 30, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-md);
     padding: 10px 14px;
     font-size: 0.85rem;
@@ -2316,8 +2344,10 @@ body {
 .quiz-pill-btn {
     position: relative;
     overflow: hidden;
-    background: #231640;
-    border: 1.5px solid rgba(168, 85, 247, 0.22);
+    background: rgba(35, 22, 64, 0.50);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(168, 85, 247, 0.25);
     border-radius: var(--radius-md);
     padding: 12px 6px;
     display: flex;
@@ -2349,12 +2379,14 @@ body {
     opacity: 0.55;
 }
 
-/* Inner card surface (inset 1.5px with 92% opacity) */
+/* Inner card surface (inset 1.5px with frosted translucency) */
 .quiz-pill-btn::after {
     content: '';
     position: absolute;
     inset: 1.5px;
-    background: rgba(26, 17, 48, 0.92);
+    background: rgba(24, 15, 46, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: calc(var(--radius-md) - 1.5px);
     z-index: 0;
     pointer-events: none;
@@ -2397,7 +2429,7 @@ body {
 }
 
 .quiz-pill-btn:not(.active):hover::after {
-    background: rgba(36, 23, 66, 0.92);
+    background: rgba(38, 24, 72, 0.72);
 }
 
 .quiz-pill-btn:focus-visible:not(.active) {
@@ -2448,8 +2480,10 @@ body {
 .diff-card-btn {
     position: relative;
     overflow: hidden;
-    background: #231640;
-    border: 1.5px solid rgba(168, 85, 247, 0.22);
+    background: rgba(35, 22, 64, 0.50);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(168, 85, 247, 0.25);
     border-radius: var(--radius-md);
     padding: 14px 12px;
     display: flex;
@@ -2485,7 +2519,9 @@ body {
     content: '';
     position: absolute;
     inset: 1.5px;
-    background: rgba(26, 17, 48, 0.92);
+    background: rgba(24, 15, 46, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-radius: calc(var(--radius-md) - 1.5px);
     z-index: 0;
     pointer-events: none;
@@ -2536,7 +2572,7 @@ body {
 }
 
 .diff-card-btn:not(.active):hover::after {
-    background: rgba(36, 23, 66, 0.92);
+    background: rgba(38, 24, 72, 0.72);
 }
 
 .diff-card-btn:focus-visible:not(.active) {
@@ -2584,7 +2620,9 @@ body {
     height: 16rem;
     overflow: hidden;
     border-radius: 0.75rem;
-    background-color: #3d3c3d;
+    background-color: rgba(61, 60, 61, 0.45);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .uiverse-glow-card__inner {
@@ -2597,7 +2635,9 @@ body {
     z-index: 1;
     opacity: 0.9;
     border-radius: 0.75rem;
-    background-color: #323132;
+    background-color: rgba(50, 49, 50, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .uiverse-glow-card__light {
@@ -2618,7 +2658,9 @@ body {
     gap: 12px;
     padding: 18px 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(14, 18, 30, 0.5);
+    background: rgba(14, 18, 30, 0.50);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 /* Responsive adjustments for quiz modal & header */
@@ -2669,13 +2711,13 @@ body {
    ======================================================== */
 [data-theme="light"] {
     color-scheme: light;
-    /* Soft, low-glare soothing pastel light violet background */
+    /* Soft, low-glare soothing pastel light violet background - Glassmorphic Frosted Surfaces */
     --bg-base: #ede7fa;
-    --bg-surface: rgba(247, 244, 253, 0.94);
-    --bg-surface-elevated: #f3eefc;
-    --bg-input: #ded5f3;
-    --border-subtle: rgba(124, 58, 237, 0.22);
-    --border-highlight: rgba(147, 51, 234, 0.55);
+    --bg-surface: rgba(255, 255, 255, 0.65);
+    --bg-surface-elevated: rgba(255, 255, 255, 0.72);
+    --bg-input: rgba(255, 255, 255, 0.52);
+    --border-subtle: rgba(124, 58, 237, 0.20);
+    --border-highlight: rgba(147, 51, 234, 0.50);
 
     --purple: #7c3aed;
     --purple-light: #9333ea;
@@ -2684,7 +2726,7 @@ body {
 
     --gradient-primary: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #8b5cf6 100%);
     --gradient-accent: linear-gradient(135deg, #8b5cf6 0%, #a855f7 50%, #c084fc 100%);
-    --gradient-card: linear-gradient(180deg, #f7f4fd 0%, #ece5f9 100%);
+    --gradient-card: linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(243, 238, 252, 0.62) 100%);
 
     --text-primary: #1e143b;
     --text-secondary: #4c4075;
@@ -2749,6 +2791,8 @@ body {
 /* Light Mode Card and Surface Layers in Multiple Violet Tones */
 [data-theme="light"] .main-card {
     background: var(--gradient-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-color: rgba(124, 58, 237, 0.22);
     box-shadow: 0 15px 40px -10px rgba(91, 33, 182, 0.08), 0 0 30px rgba(168, 85, 247, 0.08);
 }
@@ -2777,12 +2821,14 @@ body {
 
 [data-theme="light"] .drop-zone {
     border-color: rgba(124, 58, 237, 0.35);
-    background: #f0e9fb;
+    background: rgba(255, 255, 255, 0.50);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
 }
 
 [data-theme="light"] .drop-zone:hover,
 [data-theme="light"] .drop-zone.dragover {
-    background: #e8def8;
+    background: rgba(232, 222, 248, 0.65);
     border-color: #7c3aed;
     box-shadow: 0 0 25px rgba(124, 58, 237, 0.22);
 }
@@ -2810,7 +2856,9 @@ body {
 }
 
 [data-theme="light"] .file-info {
-    background: #f3eefc;
+    background: rgba(255, 255, 255, 0.70);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border-color: rgba(124, 58, 237, 0.28);
     box-shadow: 0 4px 16px rgba(91, 33, 182, 0.08);
 }
@@ -2916,7 +2964,9 @@ body {
 }
 
 [data-theme="light"] .mode-tabs {
-    background: #e6daf7;
+    background: rgba(230, 218, 247, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border-color: rgba(124, 58, 237, 0.25);
 }
 
@@ -2930,7 +2980,9 @@ body {
 }
 
 [data-theme="light"] .mode-btn.active {
-    background: #f7f4fd;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-color: #7c3aed;
     box-shadow: 0 2px 8px rgba(91, 33, 182, 0.08);
     transform: none;
@@ -2938,7 +2990,9 @@ body {
 
 [data-theme="light"] .mode-btn:active,
 [data-theme="light"] .mode-btn.glow-pulse {
-    background: #f7f4fd;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border-color: #7c3aed;
     box-shadow: 
         0 0 24px rgba(124, 58, 237, 0.45),
@@ -2956,13 +3010,17 @@ body {
 }
 
 [data-theme="light"] .summary-card {
-    background: #f3eefc;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-color: rgba(124, 58, 237, 0.25);
     box-shadow: 0 8px 25px rgba(91, 33, 182, 0.06);
 }
 
 [data-theme="light"] .summary-topbar {
-    background: #e8def8;
+    background: rgba(232, 222, 248, 0.60);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(124, 58, 237, 0.2);
 }
 
@@ -3017,7 +3075,9 @@ body {
 }
 
 [data-theme="light"] .quiz-cta-banner {
-    background: linear-gradient(135deg, rgba(192, 38, 211, 0.1) 0%, rgba(124, 58, 237, 0.12) 100%);
+    background: linear-gradient(135deg, rgba(192, 38, 211, 0.10) 0%, rgba(124, 58, 237, 0.12) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-color: rgba(124, 58, 237, 0.3);
     box-shadow: 0 4px 20px rgba(91, 33, 182, 0.05);
 }
@@ -3091,6 +3151,8 @@ body {
 
 [data-theme="light"] .quiz-active-card {
     background: var(--gradient-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-color: rgba(124, 58, 237, 0.25);
     box-shadow: var(--shadow-card);
 }
@@ -3100,7 +3162,9 @@ body {
 }
 
 [data-theme="light"] .quiz-option-btn {
-    background: #f3eefc;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border-color: rgba(124, 58, 237, 0.22);
     color: #1e143b;
     box-shadow: 0 2px 8px rgba(91, 33, 182, 0.04);
@@ -3108,7 +3172,7 @@ body {
 
 [data-theme="light"] .quiz-option-btn:hover:not(.disabled),
 [data-theme="light"] .quiz-option-btn:focus-visible {
-    background: #eae0f8;
+    background: rgba(234, 224, 248, 0.82);
     border-color: #7c3aed;
     box-shadow: 0 0 20px rgba(124, 58, 237, 0.32);
 }
@@ -3157,7 +3221,9 @@ body {
 }
 
 [data-theme="light"] .quiz-explanation-box {
-    background: #e8def8;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 [data-theme="light"] .quiz-explanation-box.correct {
@@ -3178,6 +3244,8 @@ body {
 
 [data-theme="light"] .quiz-completed-card {
     background: var(--gradient-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-color: rgba(124, 58, 237, 0.25);
     box-shadow: var(--shadow-card);
 }
@@ -3206,7 +3274,9 @@ body {
 
 [data-theme="light"] .stat-box,
 [data-theme="light"] .stat-card {
-    background: #f3eefc;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border-color: rgba(124, 58, 237, 0.22);
 }
 
@@ -3230,7 +3300,9 @@ body {
 }
 
 [data-theme="light"] .quiz-modal-card {
-    background: #f5f0fd;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-color: rgba(124, 58, 237, 0.35);
     box-shadow: 0 25px 60px -15px rgba(91, 33, 182, 0.25), 0 0 35px -5px rgba(124, 58, 237, 0.2);
 }
@@ -3262,7 +3334,9 @@ body {
 }
 
 [data-theme="light"] .quiz-target-file {
-    background: #e8def8;
+    background: rgba(232, 222, 248, 0.60);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-color: rgba(124, 58, 237, 0.25);
 }
 
@@ -3283,7 +3357,9 @@ body {
 }
 
 [data-theme="light"] .quiz-pill-btn {
-    background: #e2d5f5;
+    background: rgba(226, 213, 245, 0.50);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-color: rgba(124, 58, 237, 0.25);
     color: #1e143b;
     box-shadow: 0 6px 18px -4px rgba(124, 58, 237, 0.15);
@@ -3295,7 +3371,9 @@ body {
 }
 
 [data-theme="light"] .quiz-pill-btn::after {
-    background: rgba(248, 244, 255, 0.94);
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 [data-theme="light"] .quiz-pill-btn .pill-number {
@@ -3315,7 +3393,7 @@ body {
 }
 
 [data-theme="light"] .quiz-pill-btn:not(.active):hover::after {
-    background: rgba(238, 228, 252, 0.94);
+    background: rgba(240, 230, 255, 0.82);
 }
 
 [data-theme="light"] .quiz-pill-btn:focus-visible:not(.active) {
@@ -3355,7 +3433,9 @@ body {
 }
 
 [data-theme="light"] .diff-card-btn {
-    background: #e2d5f5;
+    background: rgba(226, 213, 245, 0.50);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-color: rgba(124, 58, 237, 0.25);
     box-shadow: 0 8px 20px -4px rgba(124, 58, 237, 0.16);
 }
@@ -3366,7 +3446,9 @@ body {
 }
 
 [data-theme="light"] .diff-card-btn::after {
-    background: rgba(248, 244, 255, 0.94);
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 [data-theme="light"] .diff-card-btn .diff-name {
@@ -3386,7 +3468,7 @@ body {
 }
 
 [data-theme="light"] .diff-card-btn:not(.active):hover::after {
-    background: rgba(238, 228, 252, 0.94);
+    background: rgba(240, 230, 255, 0.82);
 }
 
 [data-theme="light"] .diff-card-btn:focus-visible:not(.active) {
@@ -3425,7 +3507,9 @@ body {
 }
 
 [data-theme="light"] .quiz-modal-footer {
-    background: #e8def8;
+    background: rgba(232, 222, 248, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-top-color: rgba(124, 58, 237, 0.18);
 }
 
