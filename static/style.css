@@ -685,6 +685,204 @@ body {
     animation: fadeIn 0.4s ease;
 }
 
+/* ========================================================
+   UIVERSE.IO ANIMATED BOOK LOADER (by anand_4957)
+   ======================================================== */
+.book {
+    --book-width: 96px;
+    --book-height: 64px;
+    --book-page-width: 46px;
+    --book-page-height: 60px;
+    --book-duration: 3.4s;
+    --book-cover-bg: linear-gradient(135deg, #1e1138 0%, #2b1652 100%);
+    --book-cover-border: #7c3aed;
+    --book-page-bg: #ffffff;
+    --book-page-line: rgba(124, 58, 237, 0.22);
+    --book-shadow-color: rgba(0, 0, 0, 0.45);
+    position: relative;
+    width: var(--book-width);
+    height: var(--book-height);
+    perspective: 37.5em;
+    transform-style: preserve-3d;
+    margin: 8px auto 14px auto;
+}
+
+[data-theme="light"] .book {
+    --book-cover-bg: linear-gradient(135deg, #f5f0ff 0%, #ede5fc 100%);
+    --book-cover-border: #8b5cf6;
+    --book-page-bg: #ffffff;
+    --book-page-line: rgba(124, 58, 237, 0.16);
+    --book-shadow-color: rgba(124, 58, 237, 0.18);
+}
+
+/* Static Left and Right Book Covers / Backing */
+.book::before,
+.book::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: var(--book-page-width);
+    height: var(--book-height);
+    background: var(--book-cover-bg);
+    border: 2px solid var(--book-cover-border);
+    box-sizing: border-box;
+    box-shadow: 0 4px 14px var(--book-shadow-color);
+}
+
+.book::before {
+    left: calc(50% - var(--book-page-width));
+    border-radius: 6px 0 0 6px;
+    border-right: none;
+}
+
+.book::after {
+    left: 50%;
+    border-radius: 0 6px 6px 0;
+    border-left: none;
+}
+
+/* Dynamic Shadow under flipping pages */
+.book__pg-shadow {
+    position: absolute;
+    left: 50%;
+    top: calc(100% - 2px);
+    width: var(--book-page-width);
+    height: 18px;
+    background-image: linear-gradient(-45deg, hsla(0, 0%, 0%, 0) 50%, hsla(270, 70%, 15%, 0.45) 50%);
+    filter: blur(0.25em);
+    transform: scaleY(0);
+    transform-origin: 100% 0%;
+    animation: shadow var(--book-duration) ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Individual Flipping Pages */
+.book__pg {
+    position: absolute;
+    left: 50%;
+    top: calc((var(--book-height) - var(--book-page-height)) / 2);
+    width: var(--book-page-width);
+    height: var(--book-page-height);
+    background: var(--book-page-bg);
+    border-radius: 0 4px 4px 0;
+    border: 1px solid rgba(124, 58, 237, 0.35);
+    border-left: 1px solid rgba(124, 58, 237, 0.5);
+    box-sizing: border-box;
+    transform-origin: 0% 50%;
+    transform-style: preserve-3d;
+    backface-visibility: visible;
+    box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.14);
+    animation-duration: var(--book-duration);
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+}
+
+/* Paper rule lines for realistic book detail */
+.book__pg::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 6px;
+    right: 6px;
+    bottom: 8px;
+    background: repeating-linear-gradient(
+        to bottom,
+        var(--book-page-line) 0px,
+        var(--book-page-line) 1.5px,
+        transparent 1.5px,
+        transparent 8px
+    );
+    border-radius: 2px;
+}
+
+/* Page Flip Animations */
+.book__pg:nth-child(2) {
+    animation-name: pg1;
+}
+
+.book__pg--2 {
+    animation-name: pg2;
+}
+
+.book__pg--3 {
+    animation-name: pg3;
+}
+
+.book__pg--4 {
+    animation-name: pg4;
+}
+
+.book__pg--5 {
+    animation-name: pg5;
+}
+
+/* 5-page forward and reverse flip cycle */
+@keyframes pg1 {
+    0%, 100% {
+        transform: translate3d(0, 0, 5px) rotateY(0deg);
+        z-index: 5;
+    }
+    10%, 90% {
+        transform: translate3d(0, 0, 5px) rotateY(-180deg);
+        z-index: 1;
+    }
+}
+
+@keyframes pg2 {
+    0%, 90%, 100% {
+        transform: translate3d(0, 0, 4px) rotateY(0deg);
+        z-index: 4;
+    }
+    20%, 80% {
+        transform: translate3d(0, 0, 4px) rotateY(-180deg);
+        z-index: 2;
+    }
+}
+
+@keyframes pg3 {
+    0%, 80%, 100% {
+        transform: translate3d(0, 0, 3px) rotateY(0deg);
+        z-index: 3;
+    }
+    30%, 70% {
+        transform: translate3d(0, 0, 3px) rotateY(-180deg);
+        z-index: 3;
+    }
+}
+
+@keyframes pg4 {
+    0%, 70%, 100% {
+        transform: translate3d(0, 0, 2px) rotateY(0deg);
+        z-index: 2;
+    }
+    40%, 60% {
+        transform: translate3d(0, 0, 2px) rotateY(-180deg);
+        z-index: 4;
+    }
+}
+
+@keyframes pg5 {
+    0%, 60%, 100% {
+        transform: translate3d(0, 0, 1px) rotateY(0deg);
+        z-index: 1;
+    }
+    50% {
+        transform: translate3d(0, 0, 1px) rotateY(-180deg);
+        z-index: 5;
+    }
+}
+
+@keyframes shadow {
+    0%, 10.01%, 20.01%, 30.01%, 40.01%, 50.01%, 60.01%, 70.01%, 80.01%, 90.01%, 100% {
+        transform: translate3d(0, 0, 1px) scaleY(0);
+        opacity: 0.15;
+    }
+    5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85%, 95% {
+        transform: translate3d(0, 0, 1px) scaleY(1);
+        opacity: 0.7;
+    }
+}
+
 .loader-spinner {
     width: 60px;
     height: 60px;
