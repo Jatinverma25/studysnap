@@ -1276,14 +1276,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ========================================================
-    // THEME SWITCHER (DARK / LIGHT MODE)
+    // THEME SWITCHER (DARK / LIGHT MODE - UIVERSE GALAHHAD SWITCH)
     // ========================================================
+    const themeSwitchCheckbox = document.getElementById('themeSwitchCheckbox');
+    const themeSwitchLabel = document.getElementById('themeSwitchLabel');
     const themeToggleBtn = document.getElementById('themeToggleBtn');
     const themeToggleLabel = document.getElementById('themeToggleLabel');
 
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('studysnap-theme', theme);
+        
+        // Sync Uiverse day/night checkbox (checked = dark/night mode, unchecked = light/day mode)
+        if (themeSwitchCheckbox) {
+            themeSwitchCheckbox.checked = (theme === 'dark');
+        }
+        if (themeSwitchLabel) {
+            const nextMode = theme === 'dark' ? 'Light' : 'Dark';
+            themeSwitchLabel.setAttribute('title', `Switch to ${nextMode} mode`);
+            themeSwitchLabel.setAttribute('aria-label', `Switch to ${nextMode} mode`);
+        }
+
         if (themeToggleLabel) {
             themeToggleLabel.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
         }
@@ -1304,6 +1317,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize theme from saved preference or default to dark
     const savedTheme = localStorage.getItem('studysnap-theme') || 'dark';
     applyTheme(savedTheme);
+
+    // Event listener for Uiverse animated theme switch
+    if (themeSwitchCheckbox) {
+        themeSwitchCheckbox.addEventListener('change', () => {
+            const newTheme = themeSwitchCheckbox.checked ? 'dark' : 'light';
+            applyTheme(newTheme);
+        });
+    }
 
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', () => {

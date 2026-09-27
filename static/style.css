@@ -268,6 +268,201 @@ body {
     gap: 16px;
 }
 
+/* ========================================================
+   UIVERSE.IO ANIMATED THEME SWITCH (by Galahhad)
+   ======================================================== */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.theme-switch {
+    --toggle-size: 11.5px;
+    --container-width: 5.625em;
+    --container-height: 2.5em;
+    --container-radius: 6.25em;
+    --container-light-bg: #3485FF;
+    --container-night-bg: #140d28;
+    --circle-container-diameter: 3.375em;
+    --sun-moon-diameter: 2.125em;
+    --sun-bg: #FFC72C;
+    --moon-bg: #DCE0E8;
+    --spot-color: #9AA0B2;
+    --clouds-color: #FFFFFF;
+    --transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+    --circle-transition: 0.35s cubic-bezier(0, -0.02, 0.35, 1.17);
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    vertical-align: middle;
+    transition: transform 0.25s ease;
+}
+
+.theme-switch:hover {
+    transform: scale(1.04);
+}
+
+.theme-switch, .theme-switch *, .theme-switch *::before, .theme-switch *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-size: var(--toggle-size);
+}
+
+.theme-switch__checkbox {
+    display: none;
+}
+
+.theme-switch__container {
+    width: var(--container-width);
+    height: var(--container-height);
+    background-color: var(--container-light-bg);
+    border-radius: var(--container-radius);
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25), inset 0 0 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    transition: var(--transition);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.theme-switch__checkbox:checked + .theme-switch__container {
+    background-color: var(--container-night-bg);
+    border-color: rgba(168, 85, 247, 0.4);
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.35), inset 0 0 6px rgba(0, 0, 0, 0.45);
+}
+
+/* Clouds for Day Mode */
+.theme-switch__clouds {
+    width: 1.25em;
+    height: 1.25em;
+    background-color: var(--clouds-color);
+    border-radius: var(--container-radius);
+    position: absolute;
+    bottom: -0.625em;
+    left: 0.312em;
+    box-shadow: 0.937em 0.312em var(--clouds-color),
+                -0.312em -0.312em 0 0.062em var(--clouds-color),
+                1.437em 0.375em 0 -0.062em var(--clouds-color),
+                0.5em -0.125em 0 var(--clouds-color),
+                2.187em 0 var(--clouds-color),
+                1.25em -0.062em 0 var(--clouds-color),
+                2.937em 0.312em 0 -0.062em var(--clouds-color);
+    transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+}
+
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__clouds {
+    transform: translateY(2.5em);
+    opacity: 0;
+}
+
+/* Stars for Night Mode */
+.theme-switch__stars-container {
+    position: absolute;
+    top: -100%;
+    left: 0.312em;
+    width: 2.75em;
+    height: auto;
+    transition: var(--transition);
+    opacity: 0;
+    color: #F8FAFC;
+    pointer-events: none;
+}
+
+.theme-switch__stars-container svg {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__stars-container {
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 1;
+}
+
+/* Moving Circular Knob */
+.theme-switch__circle-container {
+    width: var(--circle-container-diameter);
+    height: var(--circle-container-diameter);
+    background-color: rgba(255, 255, 255, 0.1);
+    position: absolute;
+    left: -0.437em;
+    top: calc((var(--container-height) - var(--circle-container-diameter)) / 2);
+    border-radius: var(--container-radius);
+    display: flex;
+    transition: var(--circle-transition);
+    pointer-events: none;
+}
+
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container {
+    left: calc(100% - var(--circle-container-diameter) + 0.437em);
+    background-color: rgba(147, 51, 234, 0.18);
+}
+
+/* Sun / Moon Orb Container */
+.theme-switch__sun-moon-container {
+    pointer-events: auto;
+    position: relative;
+    z-index: 2;
+    width: var(--sun-moon-diameter);
+    height: var(--sun-moon-diameter);
+    margin: auto;
+    border-radius: var(--container-radius);
+    background-color: var(--sun-bg);
+    box-shadow: 0.062em 0.062em 0.625em rgba(255, 199, 44, 0.7),
+                -0.062em -0.062em 0.625em rgba(255, 199, 44, 0.7);
+    transition: var(--transition);
+}
+
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__sun-moon-container {
+    background-color: var(--moon-bg);
+    box-shadow: 0.062em 0.062em 0.625em rgba(196, 201, 209, 0.5),
+                -0.062em -0.062em 0.625em rgba(196, 201, 209, 0.5);
+    transform: rotate(-180deg);
+}
+
+/* Moon Crater Spots */
+.theme-switch__moon {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--container-radius);
+    overflow: hidden;
+    opacity: 0;
+    transition: 0.4s ease;
+}
+
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__moon {
+    opacity: 1;
+}
+
+.theme-switch__spot {
+    position: absolute;
+    top: 0.75em;
+    left: 0.312em;
+    width: 0.437em;
+    height: 0.437em;
+    border-radius: var(--container-radius);
+    background-color: var(--spot-color);
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.theme-switch__spot:nth-child(2) {
+    top: 0.312em;
+    left: 0.875em;
+    width: 0.25em;
+    height: 0.25em;
+}
+
+.theme-switch__spot:nth-child(3) {
+    top: 1.125em;
+    left: 1em;
+    width: 0.312em;
+    height: 0.312em;
+}
+
+/* Backwards-compatible styling for any legacy theme-toggle-btn */
 .theme-toggle-btn {
     display: inline-flex;
     align-items: center;
@@ -295,23 +490,6 @@ body {
 .theme-toggle-icon {
     font-size: 1rem;
     line-height: 1;
-}
-
-/* Theme Icon Visibility */
-[data-theme="dark"] .moon-icon,
-:root:not([data-theme="light"]) .moon-icon {
-    display: none;
-}
-[data-theme="dark"] .sun-icon,
-:root:not([data-theme="light"]) .sun-icon {
-    display: inline-block;
-}
-
-[data-theme="light"] .sun-icon {
-    display: none;
-}
-[data-theme="light"] .moon-icon {
-    display: inline-block;
 }
 
 .brand {
