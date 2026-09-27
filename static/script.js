@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     particleCount: 45,
                     spread: 60,
                     origin: { y: 0.75 },
-                    colors: ['#4E9B74', '#E07D52', '#2D5A43', '#C2673F', '#F59E0B']
+                    colors: ['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b']
                 });
             }
         }
@@ -1020,8 +1020,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const config = {
             dotSize: options.dotSize ?? 10,
             gap: options.gap ?? 22,
-            baseColor: options.baseColor ?? '#2E2E2A',
-            activeColor: options.activeColor ?? '#4E9B74',
+            baseColor: options.baseColor ?? '#251642',
+            activeColor: options.activeColor ?? '#c084fc',
             proximity: options.proximity ?? 130,
             speedTrigger: options.speedTrigger ?? 100,
             shockRadius: options.shockRadius ?? 250,
@@ -1265,8 +1265,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dotGridInstance = initDotGrid(dotGridCanvas, dotGridWrapper, {
             dotSize: 10,
             gap: 22,
-            baseColor: initialTheme === 'dark' ? '#2E2E2A' : '#E5E5E0',
-            activeColor: initialTheme === 'dark' ? '#4E9B74' : '#2D5A43',
+            baseColor: initialTheme === 'dark' ? '#251642' : '#e0d5f5',
+            activeColor: initialTheme === 'dark' ? '#c084fc' : '#7c3aed',
             proximity: 130,
             shockRadius: 240,
             shockStrength: 5,
@@ -1307,9 +1307,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (dotGridInstance) {
             if (theme === 'dark') {
-                dotGridInstance.setColors('#2E2E2A', '#4E9B74');
+                dotGridInstance.setColors('#251642', '#c084fc');
             } else {
-                dotGridInstance.setColors('#E5E5E0', '#2D5A43');
+                dotGridInstance.setColors('#e0d5f5', '#7c3aed');
             }
         }
     }
