@@ -2424,57 +2424,83 @@ body {
 
 /* ========================================================
    QUIZ CONFIGURATION MODAL (DECISION MODAL)
+   - Top-Level Stacking Context (z-index: 100000)
+   - Separate full-screen backdrop (no backdrop-filter)
+   - 100% solid, fully opaque card panel (zero bleed-through)
    ======================================================== */
-.quiz-modal-backdrop {
+.quiz-modal-container {
     position: fixed;
     inset: 0;
-    background: rgba(4, 6, 12, 0.78);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    width: 100vw;
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 100000;
     padding: 20px;
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s ease;
+    transition: opacity 0.22s ease, visibility 0.22s ease;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
-.quiz-modal-backdrop.hidden {
+.quiz-modal-container.hidden {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
 }
 
-.quiz-modal-card {
-    background: rgba(22, 14, 42, 0.72);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(168, 85, 247, 0.35);
-    border-radius: var(--radius-lg);
+/* Separate Full-Screen Backdrop Element (solid dark scrim, NO backdrop-filter) */
+.quiz-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.72);
+    z-index: 1;
+    pointer-events: auto;
+}
+
+/* Centered Dialog Wrapper */
+.quiz-modal-dialog {
+    position: relative;
+    z-index: 2;
     width: 100%;
     max-width: 600px;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+/* Solid Opaque Modal Card Panel - 100% Solid & No Backdrop-Filter */
+.quiz-modal-card {
+    position: relative;
+    width: 100%;
+    background: #140d28; /* Solid deep midnight violet */
+    border: 1px solid #7c3aed;
+    border-radius: var(--radius-lg);
     box-shadow: 
-        0 25px 60px -15px rgba(0, 0, 0, 0.85),
-        0 0 50px -10px rgba(139, 92, 246, 0.3),
-        inset 0 1px 1px rgba(255, 255, 255, 0.12);
+        0 25px 65px -10px rgba(0, 0, 0, 0.95),
+        0 0 40px rgba(124, 58, 237, 0.35);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    opacity: 1 !important;
     transform: translateY(0) scale(1);
-    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-    animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.quiz-modal-backdrop.hidden .quiz-modal-card {
-    transform: translateY(18px) scale(0.96);
+.quiz-modal-container.hidden .quiz-modal-card {
+    transform: translateY(16px) scale(0.96);
 }
 
 @keyframes modalPopIn {
     from {
         opacity: 0;
-        transform: translateY(20px) scale(0.94);
+        transform: translateY(18px) scale(0.95);
     }
     to {
         opacity: 1;
@@ -2487,7 +2513,8 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 22px 24px 18px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: #1b1235; /* Solid opaque */
+    border-bottom: 1px solid rgba(168, 85, 247, 0.22);
 }
 
 .quiz-modal-title-box {
@@ -2500,31 +2527,31 @@ body {
     width: 44px;
     height: 44px;
     border-radius: var(--radius-md);
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(6, 182, 212, 0.25));
-    border: 1px solid rgba(139, 92, 246, 0.4);
+    background: #28184c; /* Solid opaque */
+    border: 1px solid #a855f7;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.45rem;
-    box-shadow: 0 0 16px rgba(139, 92, 246, 0.3);
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.4);
 }
 
 .quiz-modal-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #ffffff;
     margin-bottom: 2px;
 }
 
 .quiz-modal-subtitle {
     font-size: 0.82rem;
-    color: var(--text-secondary);
+    color: #c4b5fd;
 }
 
 .quiz-modal-close {
     background: transparent;
     border: none;
-    color: var(--text-muted);
+    color: #a78bfa;
     font-size: 1.6rem;
     cursor: pointer;
     line-height: 1;
@@ -2535,7 +2562,7 @@ body {
 
 .quiz-modal-close:hover {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(168, 85, 247, 0.2);
 }
 
 .quiz-modal-body {
@@ -2543,23 +2570,23 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    background: #140d28; /* Solid opaque */
 }
 
+/* Target Document Banner - Solid Opaque */
 .quiz-target-file {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(14, 18, 30, 0.55);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #1f143d; /* Solid opaque */
+    border: 1px solid rgba(168, 85, 247, 0.25);
     border-radius: var(--radius-md);
     padding: 10px 14px;
     font-size: 0.85rem;
 }
 
 .target-file-label {
-    color: var(--text-muted);
+    color: #c4b5fd;
     font-weight: 500;
 }
 
@@ -2586,31 +2613,26 @@ body {
 .label-title {
     font-size: 0.92rem;
     font-weight: 700;
-    color: var(--text-primary);
+    color: #f8f6fe;
 }
 
 .label-hint {
     font-size: 0.75rem;
-    color: var(--text-muted);
+    color: #a78bfa;
 }
 
-/* 5-Option Pill Grid for Questions Count */
+/* 5-Option Pill Grid for Questions Count - Solid Opaque */
 .pill-options-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 10px;
 }
 
-/* ========================================================
-   UIVERSE.IO GLOWING LIGHT-LEAK CARDS (by 05akalan57)
-   ======================================================== */
 .quiz-pill-btn {
     position: relative;
     overflow: hidden;
-    background: rgba(35, 22, 64, 0.50);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1.5px solid rgba(168, 85, 247, 0.25);
+    background: #1e1338; /* Solid opaque */
+    border: 1.5px solid rgba(168, 85, 247, 0.3);
     border-radius: var(--radius-md);
     padding: 12px 6px;
     display: flex;
@@ -2618,105 +2640,48 @@ body {
     align-items: center;
     justify-content: center;
     gap: 4px;
-    color: var(--text-primary);
+    color: #f8f6fe;
     cursor: pointer;
-    box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
     outline: none;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-    isolation: isolate;
-}
-
-/* Glowing light orb reflection (top-left blurred spotlight) */
-.quiz-pill-btn::before {
-    content: '';
-    position: absolute;
-    width: 140%;
-    height: 140%;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.35) 0%, rgba(192, 132, 252, 0.22) 35%, transparent 65%);
-    filter: blur(20px);
-    top: -50%;
-    left: -50%;
-    z-index: 0;
-    pointer-events: none;
-    transition: transform 0.35s ease, opacity 0.35s ease;
-    opacity: 0.55;
-}
-
-/* Inner card surface (inset 1.5px with frosted translucency) */
-.quiz-pill-btn::after {
-    content: '';
-    position: absolute;
-    inset: 1.5px;
-    background: rgba(24, 15, 46, 0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: calc(var(--radius-md) - 1.5px);
-    z-index: 0;
-    pointer-events: none;
-    transition: background 0.25s ease;
-}
-
-.quiz-pill-btn .pill-number,
-.quiz-pill-btn .pill-text {
-    position: relative;
-    z-index: 1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
 .quiz-pill-btn .pill-number {
     font-size: 1.35rem;
     font-weight: 800;
     font-family: 'JetBrains Mono', monospace;
-    color: var(--text-primary);
-    transition: color 0.25s ease, text-shadow 0.25s ease;
+    color: #f8f6fe;
+    transition: color 0.2s ease;
 }
 
 .quiz-pill-btn .pill-text {
     font-size: 0.68rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: #c4b5fd;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    transition: color 0.25s ease;
+    transition: color 0.2s ease;
 }
 
-/* Subtle, polite hover on unselected option */
 .quiz-pill-btn:not(.active):hover {
     transform: translateY(-2px);
-    border-color: rgba(192, 132, 252, 0.45);
-    box-shadow: 0 12px 22px -4px rgba(0, 0, 0, 0.45), 0 0 12px rgba(192, 132, 252, 0.2);
-}
-
-.quiz-pill-btn:not(.active):hover::before {
-    opacity: 0.85;
-    transform: translate(5%, 5%);
-}
-
-.quiz-pill-btn:not(.active):hover::after {
-    background: rgba(38, 24, 72, 0.72);
+    border-color: #c084fc;
+    background: #291a4d;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4), 0 0 14px rgba(168, 85, 247, 0.25);
 }
 
 .quiz-pill-btn:focus-visible:not(.active) {
-    outline: 2px solid rgba(192, 132, 252, 0.5);
+    outline: 2px solid #c084fc;
     outline-offset: 2px;
 }
 
-/* Bright selected active style for actively clicked question pill */
 .quiz-pill-btn.active {
-    border-color: #c084fc;
-    box-shadow: 0 0 22px rgba(192, 132, 252, 0.6), 0 6px 16px rgba(124, 58, 237, 0.4);
+    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #c084fc 100%);
+    border-color: #e9d5ff;
+    box-shadow: 0 0 22px rgba(192, 132, 252, 0.6), 0 4px 14px rgba(124, 58, 237, 0.4);
     transform: translateY(-1px);
     color: #ffffff;
-}
-
-.quiz-pill-btn.active::before {
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.85) 0%, rgba(192, 132, 252, 0.65) 35%, transparent 70%);
-    filter: blur(18px);
-    opacity: 1;
-    transform: translate(8%, 8%);
-}
-
-.quiz-pill-btn.active::after {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.85) 0%, rgba(147, 51, 234, 0.85) 100%);
 }
 
 .quiz-pill-btn.active .pill-number {
@@ -2733,7 +2698,7 @@ body {
     box-shadow: 0 0 26px rgba(192, 132, 252, 0.75), 0 6px 18px rgba(124, 58, 237, 0.5);
 }
 
-/* 3-Option Card Grid for Difficulty Level */
+/* 3-Option Card Grid for Difficulty Level - Solid Opaque */
 .difficulty-options-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -2743,10 +2708,8 @@ body {
 .diff-card-btn {
     position: relative;
     overflow: hidden;
-    background: rgba(35, 22, 64, 0.50);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1.5px solid rgba(168, 85, 247, 0.25);
+    background: #1e1338; /* Solid opaque */
+    border: 1.5px solid rgba(168, 85, 247, 0.3);
     border-radius: var(--radius-md);
     padding: 14px 12px;
     display: flex;
@@ -2755,51 +2718,14 @@ body {
     gap: 6px;
     text-align: left;
     cursor: pointer;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
     outline: none;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-    isolation: isolate;
-}
-
-/* Ambient white/purple blurred light orb at top-left (-50% -50%) */
-.diff-card-btn::before {
-    content: '';
-    position: absolute;
-    width: 140%;
-    height: 120%;
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.35) 0%, rgba(192, 132, 252, 0.25) 30%, transparent 65%);
-    filter: blur(28px);
-    top: -50%;
-    left: -50%;
-    z-index: 0;
-    pointer-events: none;
-    transition: transform 0.35s ease, opacity 0.35s ease;
-    opacity: 0.6;
-}
-
-/* Inner card surface */
-.diff-card-btn::after {
-    content: '';
-    position: absolute;
-    inset: 1.5px;
-    background: rgba(24, 15, 46, 0.65);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: calc(var(--radius-md) - 1.5px);
-    z-index: 0;
-    pointer-events: none;
-    transition: background 0.25s ease;
-}
-
-.diff-card-btn .diff-icon,
-.diff-card-btn .diff-info {
-    position: relative;
-    z-index: 1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
 .diff-card-btn .diff-icon {
     font-size: 1.4rem;
-    transition: transform 0.25s ease;
+    transition: transform 0.2s ease;
 }
 
 .diff-card-btn .diff-info {
@@ -2811,59 +2737,38 @@ body {
 .diff-card-btn .diff-name {
     font-weight: 700;
     font-size: 0.95rem;
-    color: var(--text-primary);
-    transition: color 0.25s ease, text-shadow 0.25s ease;
+    color: #f8f6fe;
+    transition: color 0.2s ease;
 }
 
 .diff-card-btn .diff-desc {
     font-size: 0.72rem;
-    color: var(--text-secondary);
+    color: #c4b5fd;
     line-height: 1.35;
-    transition: color 0.25s ease;
+    transition: color 0.2s ease;
 }
 
-/* Subtle, polite hover on unselected difficulty card */
 .diff-card-btn:not(.active):hover {
     transform: translateY(-2px);
-    border-color: rgba(192, 132, 252, 0.45);
-    box-shadow: 0 14px 28px -5px rgba(0, 0, 0, 0.45), 0 0 15px rgba(192, 132, 252, 0.2);
-}
-
-.diff-card-btn:not(.active):hover::before {
-    opacity: 0.9;
-    transform: translate(6%, 6%) scale(1.05);
-}
-
-.diff-card-btn:not(.active):hover::after {
-    background: rgba(38, 24, 72, 0.72);
+    border-color: #c084fc;
+    background: #291a4d;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4), 0 0 14px rgba(168, 85, 247, 0.25);
 }
 
 .diff-card-btn:focus-visible:not(.active) {
-    outline: 2px solid rgba(192, 132, 252, 0.5);
+    outline: 2px solid #c084fc;
     outline-offset: 2px;
 }
 
-/* Bright selected active style for actively clicked difficulty card */
 .diff-card-btn.active {
     border-color: #c084fc;
-    box-shadow: 0 0 25px rgba(192, 132, 252, 0.55), 0 8px 20px rgba(124, 58, 237, 0.4);
+    background: #2c1652;
+    box-shadow: 0 0 22px rgba(192, 132, 252, 0.5), 0 4px 14px rgba(124, 58, 237, 0.35);
     transform: translateY(-1px);
 }
 
-.diff-card-btn.active::before {
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.8) 0%, rgba(192, 132, 252, 0.55) 35%, transparent 70%);
-    filter: blur(24px);
-    opacity: 1;
-    transform: translate(10%, 10%) scale(1.15);
-}
-
-.diff-card-btn.active::after {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.55) 0%, rgba(147, 51, 234, 0.5) 50%, rgba(192, 132, 252, 0.35) 100%);
-}
-
 .diff-card-btn.active .diff-name {
-    color: #ffffff;
-    text-shadow: 0 0 10px rgba(192, 132, 252, 0.6);
+    color: #e9d5ff;
 }
 
 .diff-card-btn.active .diff-desc {
@@ -2872,7 +2777,17 @@ body {
 
 .diff-card-btn.active:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0 28px rgba(192, 132, 252, 0.7), 0 6px 18px rgba(124, 58, 237, 0.45);
+    box-shadow: 0 0 26px rgba(192, 132, 252, 0.65), 0 6px 18px rgba(124, 58, 237, 0.45);
+}
+
+.quiz-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 24px;
+    background: #1b1235; /* Solid opaque */
+    border-top: 1px solid rgba(168, 85, 247, 0.22);
 }
 
 /* Standalone Reusable Uiverse.io Card Component (by 05akalan57) */
@@ -2914,17 +2829,7 @@ body {
     pointer-events: none;
 }
 
-.quiz-modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 12px;
-    padding: 18px 24px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(14, 18, 30, 0.50);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-}
+/* Note: .quiz-modal-footer is styled above in the quiz modal section */
 
 /* Responsive adjustments for quiz modal & header */
 @media (max-width: 640px) {
@@ -3578,53 +3483,62 @@ body {
     color: var(--text-secondary);
 }
 
+/* Light Mode Quiz Modal - Solid Clean White Panel with High Contrast */
+[data-theme="light"] .quiz-modal-container {
+    background: transparent;
+}
+
 [data-theme="light"] .quiz-modal-backdrop {
-    background: rgba(30, 20, 60, 0.55);
+    background: rgba(15, 7, 30, 0.65);
 }
 
 [data-theme="light"] .quiz-modal-card {
-    background: rgba(255, 255, 255, 0.78);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border-color: rgba(124, 58, 237, 0.35);
-    box-shadow: 0 25px 60px -15px rgba(91, 33, 182, 0.25), 0 0 35px -5px rgba(124, 58, 237, 0.2);
+    background: #ffffff !important; /* Pure solid white */
+    border: 1px solid #c4b5fd;
+    box-shadow: 
+        0 25px 65px -10px rgba(76, 29, 149, 0.35),
+        0 0 35px rgba(124, 58, 237, 0.15);
 }
 
 [data-theme="light"] .quiz-modal-header {
-    border-bottom-color: rgba(124, 58, 237, 0.18);
+    background: #f8f6fe; /* Solid soft lavender-white */
+    border-bottom: 1px solid #e9d5ff;
 }
 
 [data-theme="light"] .quiz-modal-title {
-    color: #1e143b;
+    color: #2e1065;
 }
 
 [data-theme="light"] .quiz-modal-subtitle {
-    color: var(--text-secondary);
+    color: #6b5c8b;
 }
 
 [data-theme="light"] .quiz-modal-icon-badge {
-    background: rgba(124, 58, 237, 0.15);
-    border-color: rgba(124, 58, 237, 0.3);
+    background: #ede9fe;
+    border: 1px solid #c4b5fd;
+    box-shadow: 0 0 12px rgba(124, 58, 237, 0.2);
 }
 
 [data-theme="light"] .quiz-modal-close {
-    color: var(--text-secondary);
+    color: #6b5c8b;
 }
 
 [data-theme="light"] .quiz-modal-close:hover {
     color: #1e143b;
-    background: rgba(124, 58, 237, 0.12);
+    background: #ede9fe;
+}
+
+[data-theme="light"] .quiz-modal-body {
+    background: #ffffff;
 }
 
 [data-theme="light"] .quiz-target-file {
-    background: rgba(232, 222, 248, 0.60);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-color: rgba(124, 58, 237, 0.25);
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
 }
 
 [data-theme="light"] .target-file-label {
-    color: var(--text-secondary);
+    color: #6b5c8b;
 }
 
 [data-theme="light"] .target-file-name {
@@ -3636,164 +3550,83 @@ body {
 }
 
 [data-theme="light"] .label-hint {
-    color: var(--text-secondary);
+    color: #6b5c8b;
 }
 
 [data-theme="light"] .quiz-pill-btn {
-    background: rgba(226, 213, 245, 0.50);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-color: rgba(124, 58, 237, 0.25);
+    background: #f5f3ff;
+    border: 1.5px solid #ddd6fe;
     color: #1e143b;
-    box-shadow: 0 6px 18px -4px rgba(124, 58, 237, 0.15);
-}
-
-[data-theme="light"] .quiz-pill-btn::before {
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, rgba(192, 132, 252, 0.35) 40%, transparent 70%);
-    opacity: 0.65;
-}
-
-[data-theme="light"] .quiz-pill-btn::after {
-    background: rgba(255, 255, 255, 0.68);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08);
 }
 
 [data-theme="light"] .quiz-pill-btn .pill-number {
     color: #1e143b;
-    text-shadow: none;
 }
 
 [data-theme="light"] .quiz-pill-btn .pill-text {
     color: #6b5c8b;
 }
 
-/* Subtle, polite hover on unselected option in light mode */
 [data-theme="light"] .quiz-pill-btn:not(.active):hover {
-    border-color: rgba(124, 58, 237, 0.45);
-    box-shadow: 0 10px 20px -4px rgba(124, 58, 237, 0.22), 0 0 10px rgba(124, 58, 237, 0.15);
-    transform: translateY(-2px);
-}
-
-[data-theme="light"] .quiz-pill-btn:not(.active):hover::after {
-    background: rgba(240, 230, 255, 0.82);
-}
-
-[data-theme="light"] .quiz-pill-btn:focus-visible:not(.active) {
-    outline: 2px solid rgba(124, 58, 237, 0.4);
-    outline-offset: 2px;
-}
-
-/* Light mode bright active Question Pill */
-[data-theme="light"] .quiz-pill-btn.active {
     border-color: #7c3aed;
-    color: #ffffff;
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.45), 0 4px 14px rgba(147, 51, 234, 0.25);
-    transform: translateY(-1px);
+    background: #ede9fe;
+    box-shadow: 0 6px 14px rgba(124, 58, 237, 0.16);
 }
 
-[data-theme="light"] .quiz-pill-btn.active::before {
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.95) 0%, rgba(147, 51, 234, 0.55) 40%, transparent 70%);
-    opacity: 1;
-}
-
-[data-theme="light"] .quiz-pill-btn.active::after {
+[data-theme="light"] .quiz-pill-btn.active {
     background: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #8b5cf6 100%);
+    border-color: #6d28d9;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.45), 0 4px 12px rgba(124, 58, 237, 0.25);
 }
 
 [data-theme="light"] .quiz-pill-btn.active .pill-number {
     color: #ffffff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
 [data-theme="light"] .quiz-pill-btn.active .pill-text {
     color: rgba(255, 255, 255, 0.95);
 }
 
-[data-theme="light"] .quiz-pill-btn.active:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 24px rgba(124, 58, 237, 0.55), 0 6px 16px rgba(147, 51, 234, 0.3);
-}
-
 [data-theme="light"] .diff-card-btn {
-    background: rgba(226, 213, 245, 0.50);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-color: rgba(124, 58, 237, 0.25);
-    box-shadow: 0 8px 20px -4px rgba(124, 58, 237, 0.16);
-}
-
-[data-theme="light"] .diff-card-btn::before {
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, rgba(192, 132, 252, 0.35) 40%, transparent 70%);
-    opacity: 0.65;
-}
-
-[data-theme="light"] .diff-card-btn::after {
-    background: rgba(255, 255, 255, 0.68);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: #f5f3ff;
+    border: 1.5px solid #ddd6fe;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08);
 }
 
 [data-theme="light"] .diff-card-btn .diff-name {
     color: #1e143b;
-    text-shadow: none;
 }
 
 [data-theme="light"] .diff-card-btn .diff-desc {
     color: #6b5c8b;
 }
 
-/* Subtle, polite hover on unselected difficulty card in light mode */
 [data-theme="light"] .diff-card-btn:not(.active):hover {
-    border-color: rgba(124, 58, 237, 0.45);
-    box-shadow: 0 12px 24px -4px rgba(124, 58, 237, 0.22), 0 0 12px rgba(124, 58, 237, 0.15);
-    transform: translateY(-2px);
+    border-color: #7c3aed;
+    background: #ede9fe;
+    box-shadow: 0 6px 14px rgba(124, 58, 237, 0.16);
 }
 
-[data-theme="light"] .diff-card-btn:not(.active):hover::after {
-    background: rgba(240, 230, 255, 0.82);
-}
-
-[data-theme="light"] .diff-card-btn:focus-visible:not(.active) {
-    outline: 2px solid rgba(124, 58, 237, 0.4);
-    outline-offset: 2px;
-}
-
-/* Light mode bright active Difficulty Card */
 [data-theme="light"] .diff-card-btn.active {
     border-color: #7c3aed;
-    box-shadow: 0 0 20px rgba(124, 58, 237, 0.35), 0 3px 12px rgba(124, 58, 237, 0.15);
-    transform: translateY(-1px);
-}
-
-[data-theme="light"] .diff-card-btn.active::before {
-    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.95) 0%, rgba(147, 51, 234, 0.55) 40%, transparent 70%);
-    opacity: 1;
-}
-
-[data-theme="light"] .diff-card-btn.active::after {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.18) 0%, rgba(147, 51, 234, 0.15) 100%);
+    background: #ede9fe;
+    box-shadow: 0 0 20px rgba(124, 58, 237, 0.35), 0 3px 10px rgba(124, 58, 237, 0.15);
 }
 
 [data-theme="light"] .diff-card-btn.active .diff-name {
     color: #5b21b6;
-    text-shadow: none;
 }
 
 [data-theme="light"] .diff-card-btn.active .diff-desc {
     color: #4c1d95;
 }
 
-[data-theme="light"] .diff-card-btn.active:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 24px rgba(124, 58, 237, 0.45), 0 4px 14px rgba(124, 58, 237, 0.2);
-}
-
 [data-theme="light"] .quiz-modal-footer {
-    background: rgba(232, 222, 248, 0.65);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-top-color: rgba(124, 58, 237, 0.18);
+    background: #f8f6fe;
+    border-top: 1px solid #e9d5ff;
 }
 
 [data-theme="light"] .footer {

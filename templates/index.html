@@ -386,104 +386,110 @@
                     </div>
                 </div>
             </section>
-
-            <!-- Quiz Setup & Decision Modal -->
-            <div id="quizConfigModal" class="quiz-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="quizModalTitle">
-                <div class="quiz-modal-card">
-                    <div class="quiz-modal-header">
-                        <div class="quiz-modal-title-box">
-                            <div class="quiz-modal-icon-badge">🎯</div>
-                            <div>
-                                <h3 id="quizModalTitle" class="quiz-modal-title">Customize Your Quiz</h3>
-                                <p class="quiz-modal-subtitle">Choose question quantity and challenge level</p>
-                            </div>
-                        </div>
-                        <button type="button" id="closeQuizModalBtn" class="quiz-modal-close" aria-label="Close setup modal">&times;</button>
-                    </div>
-
-                    <div class="quiz-modal-body">
-                        <!-- Target Document Banner -->
-                        <div class="quiz-target-file">
-                            <span class="target-file-label">Target Document:</span>
-                            <span id="quizTargetFileName" class="target-file-name">document.pdf</span>
-                        </div>
-
-                        <!-- 1. Number of Questions Selection (10, 20, 30, 40, 50) -->
-                        <div class="config-group">
-                            <label class="config-label">
-                                <span class="label-title">Number of Questions</span>
-                                <span class="label-hint">Choose between 10, 20, 30, 40, or 50 questions</span>
-                            </label>
-                            <div class="pill-options-grid" role="radiogroup" aria-label="Number of questions">
-                                <button type="button" class="quiz-pill-btn" data-questions="10" role="radio" aria-checked="false">
-                                    <span class="pill-number">10</span>
-                                    <span class="pill-text">Questions</span>
-                                </button>
-                                <button type="button" class="quiz-pill-btn" data-questions="20" role="radio" aria-checked="false">
-                                    <span class="pill-number">20</span>
-                                    <span class="pill-text">Questions</span>
-                                </button>
-                                <button type="button" class="quiz-pill-btn" data-questions="30" role="radio" aria-checked="false">
-                                    <span class="pill-number">30</span>
-                                    <span class="pill-text">Questions</span>
-                                </button>
-                                <button type="button" class="quiz-pill-btn" data-questions="40" role="radio" aria-checked="false">
-                                    <span class="pill-number">40</span>
-                                    <span class="pill-text">Questions</span>
-                                </button>
-                                <button type="button" class="quiz-pill-btn" data-questions="50" role="radio" aria-checked="false">
-                                    <span class="pill-number">50</span>
-                                    <span class="pill-text">Questions</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- 2. Difficulty Level Selection (Easy, Medium, Hard) -->
-                        <div class="config-group">
-                            <label class="config-label">
-                                <span class="label-title">Difficulty Level</span>
-                                <span class="label-hint">Adjust challenge depth & complexity</span>
-                            </label>
-                            <div class="difficulty-options-grid" role="radiogroup" aria-label="Quiz difficulty">
-                                <button type="button" class="diff-card-btn" data-difficulty="easy" role="radio" aria-checked="false">
-                                    <span class="diff-icon">🌱</span>
-                                    <div class="diff-info">
-                                        <span class="diff-name">Easy</span>
-                                        <span class="diff-desc">Foundational definitions & direct facts</span>
-                                    </div>
-                                </button>
-                                <button type="button" class="diff-card-btn" data-difficulty="medium" role="radio" aria-checked="false">
-                                    <span class="diff-icon">⚡</span>
-                                    <div class="diff-info">
-                                        <span class="diff-name">Medium</span>
-                                        <span class="diff-desc">Conceptual understanding & application</span>
-                                    </div>
-                                </button>
-                                <button type="button" class="diff-card-btn" data-difficulty="hard" role="radio" aria-checked="false">
-                                    <span class="diff-icon">🔥</span>
-                                    <div class="diff-info">
-                                        <span class="diff-name">Hard</span>
-                                        <span class="diff-desc">Technical nuances & in-depth analysis</span>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="quiz-modal-footer">
-                        <button type="button" id="cancelQuizModalBtn" class="btn btn-outline">Cancel</button>
-                        <button type="button" id="startCustomQuizBtn" class="btn btn-quiz btn-start-quiz btn-tactile-3d">
-                            <span class="btn-icon">🚀</span>
-                            <span id="startQuizBtnText">Start Quiz (10 Questions · Medium)</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
         </main>
 
         <footer class="footer">
             <p>StudySnap</p>
         </footer>
+    </div>
+
+    <!-- Quiz Setup & Decision Modal (Top-Level Viewport Stacking Context) -->
+    <div id="quizConfigModal" class="quiz-modal-container hidden" role="dialog" aria-modal="true" aria-labelledby="quizModalTitle">
+        <!-- Separate Full-Screen Backdrop Element -->
+        <div id="quizModalBackdrop" class="quiz-modal-backdrop" aria-hidden="true"></div>
+
+        <!-- Centered Modal Dialog Wrapper -->
+        <div class="quiz-modal-dialog">
+            <div class="quiz-modal-card">
+                <div class="quiz-modal-header">
+                    <div class="quiz-modal-title-box">
+                        <div class="quiz-modal-icon-badge">🎯</div>
+                        <div>
+                            <h3 id="quizModalTitle" class="quiz-modal-title">Customize Your Quiz</h3>
+                            <p class="quiz-modal-subtitle">Choose question quantity and challenge level</p>
+                        </div>
+                    </div>
+                    <button type="button" id="closeQuizModalBtn" class="quiz-modal-close" aria-label="Close setup modal">&times;</button>
+                </div>
+
+                <div class="quiz-modal-body">
+                    <!-- Target Document Banner -->
+                    <div class="quiz-target-file">
+                        <span class="target-file-label">Target Document:</span>
+                        <span id="quizTargetFileName" class="target-file-name">document.pdf</span>
+                    </div>
+
+                    <!-- 1. Number of Questions Selection (10, 20, 30, 40, 50) -->
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span class="label-title">Number of Questions</span>
+                            <span class="label-hint">Choose between 10, 20, 30, 40, or 50 questions</span>
+                        </label>
+                        <div class="pill-options-grid" role="radiogroup" aria-label="Number of questions">
+                            <button type="button" class="quiz-pill-btn" data-questions="10" role="radio" aria-checked="false">
+                                <span class="pill-number">10</span>
+                                <span class="pill-text">Questions</span>
+                            </button>
+                            <button type="button" class="quiz-pill-btn" data-questions="20" role="radio" aria-checked="false">
+                                <span class="pill-number">20</span>
+                                <span class="pill-text">Questions</span>
+                            </button>
+                            <button type="button" class="quiz-pill-btn" data-questions="30" role="radio" aria-checked="false">
+                                <span class="pill-number">30</span>
+                                <span class="pill-text">Questions</span>
+                            </button>
+                            <button type="button" class="quiz-pill-btn" data-questions="40" role="radio" aria-checked="false">
+                                <span class="pill-number">40</span>
+                                <span class="pill-text">Questions</span>
+                            </button>
+                            <button type="button" class="quiz-pill-btn" data-questions="50" role="radio" aria-checked="false">
+                                <span class="pill-number">50</span>
+                                <span class="pill-text">Questions</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Difficulty Level Selection (Easy, Medium, Hard) -->
+                    <div class="config-group">
+                        <label class="config-label">
+                            <span class="label-title">Difficulty Level</span>
+                            <span class="label-hint">Adjust challenge depth & complexity</span>
+                        </label>
+                        <div class="difficulty-options-grid" role="radiogroup" aria-label="Quiz difficulty">
+                            <button type="button" class="diff-card-btn" data-difficulty="easy" role="radio" aria-checked="false">
+                                <span class="diff-icon">🌱</span>
+                                <div class="diff-info">
+                                    <span class="diff-name">Easy</span>
+                                    <span class="diff-desc">Foundational definitions & direct facts</span>
+                                </div>
+                            </button>
+                            <button type="button" class="diff-card-btn" data-difficulty="medium" role="radio" aria-checked="false">
+                                <span class="diff-icon">⚡</span>
+                                <div class="diff-info">
+                                    <span class="diff-name">Medium</span>
+                                    <span class="diff-desc">Conceptual understanding & application</span>
+                                </div>
+                            </button>
+                            <button type="button" class="diff-card-btn" data-difficulty="hard" role="radio" aria-checked="false">
+                                <span class="diff-icon">🔥</span>
+                                <div class="diff-info">
+                                    <span class="diff-name">Hard</span>
+                                    <span class="diff-desc">Technical nuances & in-depth analysis</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-modal-footer">
+                    <button type="button" id="cancelQuizModalBtn" class="btn btn-outline">Cancel</button>
+                    <button type="button" id="startCustomQuizBtn" class="btn btn-quiz btn-start-quiz btn-tactile-3d">
+                        <span class="btn-icon">🚀</span>
+                        <span id="startQuizBtnText">Start Quiz (10 Questions · Medium)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>

@@ -912,7 +912,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (quizConfigModal) {
         quizConfigModal.addEventListener('click', (e) => {
-            if (e.target === quizConfigModal) closeQuizConfigModal();
+            if (e.target === quizConfigModal || e.target.id === 'quizModalBackdrop' || e.target.classList.contains('quiz-modal-backdrop') || e.target.classList.contains('quiz-modal-dialog')) {
+                closeQuizConfigModal();
+            }
         });
     }
 
