@@ -2132,21 +2132,61 @@ body {
     gap: 10px;
 }
 
+/* ========================================================
+   UIVERSE.IO GLOWING LIGHT-LEAK CARDS (by 05akalan57)
+   ======================================================== */
 .quiz-pill-btn {
-    background: rgba(28, 20, 48, 0.65);
-    border: 1.5px solid rgba(168, 85, 247, 0.18);
+    position: relative;
+    overflow: hidden;
+    background: #231640;
+    border: 1.5px solid rgba(168, 85, 247, 0.22);
     border-radius: var(--radius-md);
     padding: 12px 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     color: var(--text-primary);
     cursor: pointer;
-    box-shadow: none;
-    transform: none;
+    box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.35);
     outline: none;
-    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, color 0.25s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    isolation: isolate;
+}
+
+/* Glowing light orb reflection (top-left blurred spotlight) */
+.quiz-pill-btn::before {
+    content: '';
+    position: absolute;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.35) 0%, rgba(192, 132, 252, 0.22) 35%, transparent 65%);
+    filter: blur(20px);
+    top: -50%;
+    left: -50%;
+    z-index: 0;
+    pointer-events: none;
+    transition: transform 0.35s ease, opacity 0.35s ease;
+    opacity: 0.55;
+}
+
+/* Inner card surface (inset 1.5px with 92% opacity) */
+.quiz-pill-btn::after {
+    content: '';
+    position: absolute;
+    inset: 1.5px;
+    background: rgba(26, 17, 48, 0.92);
+    border-radius: calc(var(--radius-md) - 1.5px);
+    z-index: 0;
+    pointer-events: none;
+    transition: background 0.25s ease;
+}
+
+.quiz-pill-btn .pill-number,
+.quiz-pill-btn .pill-text {
+    position: relative;
+    z-index: 1;
 }
 
 .quiz-pill-btn .pill-number {
@@ -2166,12 +2206,20 @@ body {
     transition: color 0.25s ease;
 }
 
-/* Subtle, polite hover on unselected option - clearly distinct from active selection */
+/* Subtle, polite hover on unselected option */
 .quiz-pill-btn:not(.active):hover {
-    background: rgba(45, 29, 82, 0.65);
-    border-color: rgba(192, 132, 252, 0.45);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transform: translateY(-2px);
+    border-color: rgba(192, 132, 252, 0.45);
+    box-shadow: 0 12px 22px -4px rgba(0, 0, 0, 0.45), 0 0 12px rgba(192, 132, 252, 0.2);
+}
+
+.quiz-pill-btn:not(.active):hover::before {
+    opacity: 0.85;
+    transform: translate(5%, 5%);
+}
+
+.quiz-pill-btn:not(.active):hover::after {
+    background: rgba(36, 23, 66, 0.92);
 }
 
 .quiz-pill-btn:focus-visible:not(.active) {
@@ -2181,11 +2229,21 @@ body {
 
 /* Bright selected active style for actively clicked question pill */
 .quiz-pill-btn.active {
-    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #c084fc 100%);
     border-color: #c084fc;
-    box-shadow: 0 0 22px rgba(192, 132, 252, 0.6), 0 4px 14px rgba(124, 58, 237, 0.4);
+    box-shadow: 0 0 22px rgba(192, 132, 252, 0.6), 0 6px 16px rgba(124, 58, 237, 0.4);
     transform: translateY(-1px);
     color: #ffffff;
+}
+
+.quiz-pill-btn.active::before {
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.85) 0%, rgba(192, 132, 252, 0.65) 35%, transparent 70%);
+    filter: blur(18px);
+    opacity: 1;
+    transform: translate(8%, 8%);
+}
+
+.quiz-pill-btn.active::after {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.85) 0%, rgba(147, 51, 234, 0.85) 100%);
 }
 
 .quiz-pill-btn.active .pill-number {
@@ -2210,8 +2268,10 @@ body {
 }
 
 .diff-card-btn {
-    background: rgba(26, 17, 48, 0.65);
-    border: 1.5px solid rgba(168, 85, 247, 0.18);
+    position: relative;
+    overflow: hidden;
+    background: #231640;
+    border: 1.5px solid rgba(168, 85, 247, 0.22);
     border-radius: var(--radius-md);
     padding: 14px 12px;
     display: flex;
@@ -2220,10 +2280,44 @@ body {
     gap: 6px;
     text-align: left;
     cursor: pointer;
-    box-shadow: none;
-    transform: none;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
     outline: none;
-    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, color 0.25s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    isolation: isolate;
+}
+
+/* Ambient white/purple blurred light orb at top-left (-50% -50%) */
+.diff-card-btn::before {
+    content: '';
+    position: absolute;
+    width: 140%;
+    height: 120%;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.35) 0%, rgba(192, 132, 252, 0.25) 30%, transparent 65%);
+    filter: blur(28px);
+    top: -50%;
+    left: -50%;
+    z-index: 0;
+    pointer-events: none;
+    transition: transform 0.35s ease, opacity 0.35s ease;
+    opacity: 0.6;
+}
+
+/* Inner card surface */
+.diff-card-btn::after {
+    content: '';
+    position: absolute;
+    inset: 1.5px;
+    background: rgba(26, 17, 48, 0.92);
+    border-radius: calc(var(--radius-md) - 1.5px);
+    z-index: 0;
+    pointer-events: none;
+    transition: background 0.25s ease;
+}
+
+.diff-card-btn .diff-icon,
+.diff-card-btn .diff-info {
+    position: relative;
+    z-index: 1;
 }
 
 .diff-card-btn .diff-icon {
@@ -2251,12 +2345,20 @@ body {
     transition: color 0.25s ease;
 }
 
-/* Subtle, polite hover on unselected difficulty card - clearly inactive & subtle */
+/* Subtle, polite hover on unselected difficulty card */
 .diff-card-btn:not(.active):hover {
-    background: rgba(45, 29, 82, 0.65);
-    border-color: rgba(192, 132, 252, 0.45);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     transform: translateY(-2px);
+    border-color: rgba(192, 132, 252, 0.45);
+    box-shadow: 0 14px 28px -5px rgba(0, 0, 0, 0.45), 0 0 15px rgba(192, 132, 252, 0.2);
+}
+
+.diff-card-btn:not(.active):hover::before {
+    opacity: 0.9;
+    transform: translate(6%, 6%) scale(1.05);
+}
+
+.diff-card-btn:not(.active):hover::after {
+    background: rgba(36, 23, 66, 0.92);
 }
 
 .diff-card-btn:focus-visible:not(.active) {
@@ -2266,10 +2368,20 @@ body {
 
 /* Bright selected active style for actively clicked difficulty card */
 .diff-card-btn.active {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.45) 0%, rgba(147, 51, 234, 0.4) 50%, rgba(192, 132, 252, 0.3) 100%);
     border-color: #c084fc;
-    box-shadow: 0 0 22px rgba(192, 132, 252, 0.55), 0 4px 14px rgba(124, 58, 237, 0.35);
+    box-shadow: 0 0 25px rgba(192, 132, 252, 0.55), 0 8px 20px rgba(124, 58, 237, 0.4);
     transform: translateY(-1px);
+}
+
+.diff-card-btn.active::before {
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.8) 0%, rgba(192, 132, 252, 0.55) 35%, transparent 70%);
+    filter: blur(24px);
+    opacity: 1;
+    transform: translate(10%, 10%) scale(1.15);
+}
+
+.diff-card-btn.active::after {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.55) 0%, rgba(147, 51, 234, 0.5) 50%, rgba(192, 132, 252, 0.35) 100%);
 }
 
 .diff-card-btn.active .diff-name {
@@ -2283,7 +2395,42 @@ body {
 
 .diff-card-btn.active:hover {
     transform: translateY(-2px);
-    box-shadow: 0 0 26px rgba(192, 132, 252, 0.7), 0 6px 18px rgba(124, 58, 237, 0.45);
+    box-shadow: 0 0 28px rgba(192, 132, 252, 0.7), 0 6px 18px rgba(124, 58, 237, 0.45);
+}
+
+/* Standalone Reusable Uiverse.io Card Component (by 05akalan57) */
+.uiverse-glow-card {
+    position: relative;
+    filter: drop-shadow(0 20px 13px rgba(0, 0, 0, 0.03)) drop-shadow(0 8px 5px rgba(0, 0, 0, 0.08));
+    width: 12rem;
+    height: 16rem;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    background-color: #3d3c3d;
+}
+
+.uiverse-glow-card__inner {
+    position: absolute;
+    inset: 0.125rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    z-index: 1;
+    opacity: 0.9;
+    border-radius: 0.75rem;
+    background-color: #323132;
+}
+
+.uiverse-glow-card__light {
+    position: absolute;
+    width: 14rem;
+    height: 12rem;
+    background-color: #ffffff;
+    filter: blur(50px);
+    left: -50%;
+    top: -50%;
+    pointer-events: none;
 }
 
 .quiz-modal-footer {
@@ -2958,12 +3105,19 @@ body {
 }
 
 [data-theme="light"] .quiz-pill-btn {
-    background: #ede6f8;
-    border: 1.5px solid rgba(124, 58, 237, 0.2);
+    background: #e2d5f5;
+    border-color: rgba(124, 58, 237, 0.25);
     color: #1e143b;
-    box-shadow: none;
-    transform: none;
-    outline: none;
+    box-shadow: 0 6px 18px -4px rgba(124, 58, 237, 0.15);
+}
+
+[data-theme="light"] .quiz-pill-btn::before {
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, rgba(192, 132, 252, 0.35) 40%, transparent 70%);
+    opacity: 0.65;
+}
+
+[data-theme="light"] .quiz-pill-btn::after {
+    background: rgba(248, 244, 255, 0.94);
 }
 
 [data-theme="light"] .quiz-pill-btn .pill-number {
@@ -2977,10 +3131,13 @@ body {
 
 /* Subtle, polite hover on unselected option in light mode */
 [data-theme="light"] .quiz-pill-btn:not(.active):hover {
-    background: #e2d5f5;
     border-color: rgba(124, 58, 237, 0.45);
-    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.12);
+    box-shadow: 0 10px 20px -4px rgba(124, 58, 237, 0.22), 0 0 10px rgba(124, 58, 237, 0.15);
     transform: translateY(-2px);
+}
+
+[data-theme="light"] .quiz-pill-btn:not(.active):hover::after {
+    background: rgba(238, 228, 252, 0.94);
 }
 
 [data-theme="light"] .quiz-pill-btn:focus-visible:not(.active) {
@@ -2990,11 +3147,19 @@ body {
 
 /* Light mode bright active Question Pill */
 [data-theme="light"] .quiz-pill-btn.active {
-    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #8b5cf6 100%);
     border-color: #7c3aed;
     color: #ffffff;
     box-shadow: 0 0 20px rgba(124, 58, 237, 0.45), 0 4px 14px rgba(147, 51, 234, 0.25);
     transform: translateY(-1px);
+}
+
+[data-theme="light"] .quiz-pill-btn.active::before {
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.95) 0%, rgba(147, 51, 234, 0.55) 40%, transparent 70%);
+    opacity: 1;
+}
+
+[data-theme="light"] .quiz-pill-btn.active::after {
+    background: linear-gradient(135deg, #7c3aed 0%, #9333ea 50%, #8b5cf6 100%);
 }
 
 [data-theme="light"] .quiz-pill-btn.active .pill-number {
@@ -3012,11 +3177,18 @@ body {
 }
 
 [data-theme="light"] .diff-card-btn {
-    background: #ede6f8;
-    border: 1.5px solid rgba(124, 58, 237, 0.2);
-    box-shadow: none;
-    transform: none;
-    outline: none;
+    background: #e2d5f5;
+    border-color: rgba(124, 58, 237, 0.25);
+    box-shadow: 0 8px 20px -4px rgba(124, 58, 237, 0.16);
+}
+
+[data-theme="light"] .diff-card-btn::before {
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.9) 0%, rgba(192, 132, 252, 0.35) 40%, transparent 70%);
+    opacity: 0.65;
+}
+
+[data-theme="light"] .diff-card-btn::after {
+    background: rgba(248, 244, 255, 0.94);
 }
 
 [data-theme="light"] .diff-card-btn .diff-name {
@@ -3030,10 +3202,13 @@ body {
 
 /* Subtle, polite hover on unselected difficulty card in light mode */
 [data-theme="light"] .diff-card-btn:not(.active):hover {
-    background: #e2d5f5;
     border-color: rgba(124, 58, 237, 0.45);
-    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.12);
+    box-shadow: 0 12px 24px -4px rgba(124, 58, 237, 0.22), 0 0 12px rgba(124, 58, 237, 0.15);
     transform: translateY(-2px);
+}
+
+[data-theme="light"] .diff-card-btn:not(.active):hover::after {
+    background: rgba(238, 228, 252, 0.94);
 }
 
 [data-theme="light"] .diff-card-btn:focus-visible:not(.active) {
@@ -3043,10 +3218,18 @@ body {
 
 /* Light mode bright active Difficulty Card */
 [data-theme="light"] .diff-card-btn.active {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.18) 0%, rgba(147, 51, 234, 0.15) 100%);
     border-color: #7c3aed;
     box-shadow: 0 0 20px rgba(124, 58, 237, 0.35), 0 3px 12px rgba(124, 58, 237, 0.15);
     transform: translateY(-1px);
+}
+
+[data-theme="light"] .diff-card-btn.active::before {
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.95) 0%, rgba(147, 51, 234, 0.55) 40%, transparent 70%);
+    opacity: 1;
+}
+
+[data-theme="light"] .diff-card-btn.active::after {
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.18) 0%, rgba(147, 51, 234, 0.15) 100%);
 }
 
 [data-theme="light"] .diff-card-btn.active .diff-name {
