@@ -444,39 +444,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ----------------------------------------------------
-    // Pure State-Driven Option Card Styling for Quiz Modal
-    // ----------------------------------------------------
-    function syncQuizOptionCardsUI() {
-        // 1. Number of Questions selection (10, 20, 30, 40, 50)
-        quizPillBtns.forEach(btn => {
-            const count = parseInt(btn.dataset.questions, 10);
-            const isSelected = count === selectedNumQuestions;
-            if (isSelected) {
-                btn.classList.add('active');
-                btn.setAttribute('aria-checked', 'true');
-            } else {
-                btn.classList.remove('active', 'glow-pulse');
-                btn.setAttribute('aria-checked', 'false');
-            }
-        });
-
-        // 2. Difficulty Level selection (Easy, Medium, Hard)
-        diffCardBtns.forEach(btn => {
-            const diff = btn.dataset.difficulty;
-            const isSelected = diff === selectedDifficulty;
-            if (isSelected) {
-                btn.classList.add('active');
-                btn.setAttribute('aria-checked', 'true');
-            } else {
-                btn.classList.remove('active', 'glow-pulse');
-                btn.setAttribute('aria-checked', 'false');
-            }
-        });
-
-        updateStartQuizButtonLabel();
-    }
-
     // Open Quiz Customization / Decision Modal
     function openQuizConfigModal() {
         if (!selectedFile) {
@@ -488,9 +455,25 @@ document.addEventListener('DOMContentLoaded', () => {
             quizTargetFileName.textContent = selectedFile.name;
         }
 
-        // Dynamically evaluate active styling 100% based on state
-        syncQuizOptionCardsUI();
+        // Sync pill buttons UI state without continuous glow
+        quizPillBtns.forEach(btn => {
+            const count = parseInt(btn.dataset.questions, 10);
+            const isMatch = count === selectedNumQuestions;
+            btn.classList.toggle('active', isMatch);
+            btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+            btn.classList.remove('glow-pulse');
+        });
 
+        // Sync difficulty cards UI state without continuous glow
+        diffCardBtns.forEach(btn => {
+            const diff = btn.dataset.difficulty;
+            const isMatch = diff === selectedDifficulty;
+            btn.classList.toggle('active', isMatch);
+            btn.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+            btn.classList.remove('glow-pulse');
+        });
+
+        updateStartQuizButtonLabel();
         if (quizConfigModal) {
             quizConfigModal.classList.remove('hidden');
         }
@@ -887,38 +870,38 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Question Count Pills (10, 20, 30, 40, 50) - strictly state-driven selection
+    // Question Count Pills (10, 20, 30, 40, 50) - glow and animate only on selection
     quizPillBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
+        btn.addEventListener('click', () => {
             const count = parseInt(btn.dataset.questions, 10);
             if (count) {
                 selectedNumQuestions = count;
-                // Purely evaluate all pills: only the selected card gets active styling
-                syncQuizOptionCardsUI();
-                // Add momentary selection glow pulse to the clicked option
-                btn.classList.add('glow-pulse');
+                quizPillBtns.forEach(b => {
+                    b.classList.remove('active', 'glow-pulse');
+                    b.setAttribute('aria-checked', 'false');
+                });
+                btn.classList.add('active', 'glow-pulse');
+                btn.setAttribute('aria-checked', 'true');
+                updateStartQuizButtonLabel();
                 setTimeout(() => btn.classList.remove('glow-pulse'), 500);
-                // Clear browser focus outline so it never sticks as a blue/cyan ring
-                btn.blur();
             }
         });
     });
 
-    // Difficulty Option Cards (Easy, Medium, Hard) - strictly state-driven selection
+    // Difficulty Option Cards (Easy, Medium, Hard) - glow and animate only on selection
     diffCardBtns.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
+        btn.addEventListener('click', () => {
             const diff = btn.dataset.difficulty;
             if (diff) {
                 selectedDifficulty = diff;
-                // Purely evaluate all cards: only the selected card gets active styling
-                syncQuizOptionCardsUI();
-                // Add momentary selection glow pulse to the clicked option
-                btn.classList.add('glow-pulse');
+                diffCardBtns.forEach(b => {
+                    b.classList.remove('active', 'glow-pulse');
+                    b.setAttribute('aria-checked', 'false');
+                });
+                btn.classList.add('active', 'glow-pulse');
+                btn.setAttribute('aria-checked', 'true');
+                updateStartQuizButtonLabel();
                 setTimeout(() => btn.classList.remove('glow-pulse'), 500);
-                // Clear browser focus outline so it never sticks as a blue/cyan ring
-                btn.blur();
             }
         });
     });
@@ -1109,9 +1092,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         requestAnimationFrame(animateCursor);
     }
-
-    // Initialize state-driven option cards
-    syncQuizOptionCardsUI();
 
     // Initialize custom cursor
     initBouncyCursor();
