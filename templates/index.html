@@ -16,6 +16,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+    <!-- GSAP for DotGrid interactive inertia and spring animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -30,6 +32,13 @@
         <div class="background-glow orb-2 bottom-right"></div>
         <div class="background-glow orb-3 center-right"></div>
         <div class="background-glow orb-4 bottom-left"></div>
+    </div>
+
+    <!-- Interactive React Bits DotGrid Background Canvas -->
+    <div id="dotGridBackground" class="dot-grid ambient-dot-grid" aria-hidden="true">
+        <div class="dot-grid__wrap">
+            <canvas id="dotGridCanvas" class="dot-grid__canvas"></canvas>
+        </div>
     </div>
 
     <div class="app-container">

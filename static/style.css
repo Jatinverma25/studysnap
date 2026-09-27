@@ -202,6 +202,42 @@ body {
     }
 }
 
+/* ========================================================
+   REACT BITS: DOTGRID INTERACTIVE COMPONENT & BACKGROUND
+   ======================================================== */
+.dot-grid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.dot-grid__wrap {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.dot-grid__canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.ambient-dot-grid {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
 /* Main Container */
 .app-container {
     width: 100%;
