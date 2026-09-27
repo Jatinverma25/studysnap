@@ -202,6 +202,104 @@ def summarize():
                 pass
 
 
+@app.route('/word-help', methods=['POST'])
+def word_help():
+    """Explains a term ONLY in the context of the uploaded PDF using Gemini with retry logic."""
+    term = request.form.get('term', '').strip()
+    if not term:
+        return jsonify({"success": False, "error": "Please enter a term to explain."}), 400
+
+    # 1. Validate file presence
+    file = request.files.get('pdf') or request.files.get('file')
+    if not file or file.filename == '':
+        return jsonify({"success": False, "error": "Please upload a PDF first"}), 400
+
+    if not file.filename.lower().endswith('.pdf'):
+        return jsonify({"success": False, "error": "Only PDF files are supported."}), 400
+
+    temp_path = None
+    uploaded_file = None
+    client = None
+
+    try:
+        # 2. Initialize Gemini Client
+        client = get_gemini_client()
+
+        # 3. Save uploaded file to a temporary location
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            file.save(tmp.name)
+            temp_path = tmp.name
+
+        # 4. Upload file to Google Gemini Files API with automatic retry logic
+        uploaded_file = retry_gemini_operation(
+            lambda: client.files.upload(file=temp_path),
+            max_attempts=4,
+            retry_delay_seconds=3.0,
+            operation_name="Files.upload (Word Help)"
+        )
+
+        # 5. Formulate prompt requesting concise explanation in context of PDF
+        instruction = (
+            "Explain this term ONLY in the context of the uploaded PDF. "
+            "Give: (1) simple meaning in 1-2 lines, (2) why it matters in this chapter, (3) one example. "
+            'If the term is not related to the PDF, say exactly: "This term doesn\'t appear in your document." '
+            "Keep any math in LaTeX notation. No extra unrelated information."
+        )
+        prompt = f'Term: "{term}"\n\n{instruction}'
+
+        # 6. Generate content with automatic retry (4 attempts, 3s delay) and fallback chain
+        result = call_gemini_with_retry(
+            client=client,
+            contents=[uploaded_file, prompt],
+            primary_model="gemini-3.1-flash-lite",
+            fallback_models=[
+                "gemini-3.5-flash-lite",
+                "gemini-flash-latest",
+                "gemini-3.8-flash",
+            ],
+            max_attempts=4,
+            retry_delay_seconds=3.0,
+            api_method="generate_content",
+        )
+
+        if not result["success"]:
+            return jsonify({
+                "success": False,
+                "error": FRIENDLY_BUSY_MESSAGE
+            }), 503
+
+        explanation = result["text"].strip()
+        is_not_found = "This term doesn't appear in your document." in explanation
+
+        return jsonify({
+            "success": True,
+            "term": term,
+            "explanation": explanation,
+            "not_found": is_not_found,
+            "filename": file.filename,
+            "model_used": result.get("model_used"),
+            "attempts": result.get("attempts")
+        })
+
+    except Exception as e:
+        app.logger.error(f"Error in word_help: {str(e)}")
+        return jsonify({"success": False, "error": str(e)}), 500
+
+    finally:
+        # Clean up temporary local file
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except Exception:
+                pass
+        # Clean up Gemini uploaded file
+        if client and uploaded_file:
+            try:
+                client.files.delete(name=uploaded_file.name)
+            except Exception:
+                pass
+
+
 @app.route('/quiz/generate', methods=['POST'])
 def generate_quiz():
     """Generates customized multiple-choice questions (10, 20, 30, 40, 50) and difficulty (easy, medium, hard) from the uploaded PDF content only."""
@@ -279,6 +377,7 @@ def generate_quiz():
         3. Each question must have exactly 4 plausible, distinct options.
         4. "correct_answer" MUST match one of the 4 options verbatim.
         5. "explanation" must clearly explain why the correct answer is right based directly on the document text.
+        6. Mathematical notation: Write any mathematical formulas, expressions, variables, or equations strictly using standard LaTeX notation enclosed in dollar signs (e.g., $E = mc^2$, $\\sqrt{{x^2 + y^2}}$, $\\frac{{a}}{{b}}$, $\\theta$, $\\omega$) so they can be rendered properly with KaTeX. Keep LaTeX simple and standard.
 
         Return your output STRICTLY as a JSON array of {num_questions} question objects with this exact structure:
         [
@@ -437,6 +536,148 @@ def get_quiz_history():
         rows = [dict(row) for row in cursor.fetchall()]
         conn.close()
         return jsonify({"success": True, "history": rows})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/quiz/reset', methods=['POST'])
+def reset_quiz_data():
+    """Resets all quiz history and progress data so the user can start and record progress from scratch."""
+    try:
+        # 1. Clear SQLite table
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM quiz_results")
+        try:
+            cursor.execute("DELETE FROM sqlite_sequence WHERE name='quiz_results'")
+        except Exception:
+            pass
+        conn.commit()
+        conn.close()
+
+        # 2. Reset JSON backup file to an empty list
+        with open(JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump([], f, indent=2)
+
+        return jsonify({
+            "success": True,
+            "message": "All progress data and quiz history have been reset successfully."
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/quiz/stats', methods=['GET'])
+def get_quiz_stats():
+    """Computes aggregated quiz stats, average score, accuracy, and level progression."""
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM quiz_results ORDER BY id DESC")
+        rows = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+
+        total_quizzes = len(rows)
+        if total_quizzes == 0:
+            return jsonify({
+                "success": True,
+                "stats": {
+                    "total_quizzes": 0,
+                    "average_score": 0.0,
+                    "best_score": "0%",
+                    "best_score_val": 0,
+                    "best_score_total": 0,
+                    "best_score_pct": 0.0,
+                    "total_questions": 0,
+                    "total_correct": 0,
+                    "overall_accuracy": 0.0,
+                    "level": "Beginner",
+                    "level_title": "Beginner",
+                    "level_emoji": "🌱",
+                    "tier_label": "Tier 1: Novice Explorer",
+                    "level_desc": "Starting your knowledge journey and building foundation",
+                    "next_level": "Learner",
+                    "progress_to_next": 0.0,
+                    "points_needed": 40.0
+                }
+            })
+
+        total_questions = sum(int(r.get('total') or 10) for r in rows)
+        total_correct = sum(int(r.get('score') or 0) for r in rows)
+        overall_accuracy = round((total_correct / total_questions) * 100, 1) if total_questions > 0 else 0.0
+
+        avg_pct = round(sum(float(r.get('percentage') or 0.0) for r in rows) / total_quizzes, 1)
+
+        best_row = max(rows, key=lambda r: float(r.get('percentage') or 0.0))
+        best_pct = round(float(best_row.get('percentage') or 0.0), 1)
+        best_score_str = f"{best_pct}% ({best_row.get('score')}/{best_row.get('total')})"
+
+        # Level determination based on average score:
+        # Beginner (<40%), Learner (40-60%), Scholar (60-80%), Master (80%+)
+        if avg_pct < 40.0:
+            level = "Beginner"
+            level_emoji = "🌱"
+            tier_label = "Tier 1: Novice Explorer"
+            level_desc = "Starting your knowledge journey and building foundation"
+            next_level = "Learner"
+            progress_to_next = round(min(100.0, max(0.0, (avg_pct / 40.0) * 100)), 1)
+            points_needed = round(max(0.0, 40.0 - avg_pct), 1)
+        elif avg_pct < 60.0:
+            level = "Learner"
+            level_emoji = "⚡"
+            tier_label = "Tier 2: Knowledge Builder"
+            level_desc = "Building core foundations and solid understanding"
+            next_level = "Scholar"
+            progress_to_next = round(min(100.0, max(0.0, ((avg_pct - 40.0) / 20.0) * 100)), 1)
+            points_needed = round(max(0.0, 60.0 - avg_pct), 1)
+        elif avg_pct < 80.0:
+            level = "Scholar"
+            level_emoji = "🔮"
+            tier_label = "Tier 3: Academic Adept"
+            level_desc = "Mastering complex concepts and deep technical comprehension"
+            next_level = "Master"
+            progress_to_next = round(min(100.0, max(0.0, ((avg_pct - 60.0) / 20.0) * 100)), 1)
+            points_needed = round(max(0.0, 80.0 - avg_pct), 1)
+        elif avg_pct < 100.0:
+            level = "Master"
+            level_emoji = "👑"
+            tier_label = "Tier 4: Apex Grandmaster"
+            level_desc = "Exceptional retention and complete document mastery"
+            next_level = "Impossible"
+            progress_to_next = round(min(100.0, max(0.0, ((avg_pct - 80.0) / 20.0) * 100)), 1)
+            points_needed = round(max(0.0, 100.0 - avg_pct), 1)
+        else:
+            level = "Impossible"
+            level_emoji = "♾️"
+            tier_label = "Tier 5: Transcendent Godlike"
+            level_desc = "Transcendental Perfection! Flawless 100% accuracy — truly impossible mastery achieved!"
+            next_level = "Max Level"
+            progress_to_next = 100.0
+            points_needed = 0.0
+
+        return jsonify({
+            "success": True,
+            "stats": {
+                "total_quizzes": total_quizzes,
+                "average_score": avg_pct,
+                "best_score": best_score_str,
+                "best_score_val": best_row.get('score'),
+                "best_score_total": best_row.get('total'),
+                "best_score_pct": best_pct,
+                "total_questions": total_questions,
+                "total_correct": total_correct,
+                "overall_accuracy": overall_accuracy,
+                "level": level,
+                "level_title": level,
+                "level_emoji": level_emoji,
+                "tier_label": tier_label,
+                "level_desc": level_desc,
+                "next_level": next_level,
+                "progress_to_next": progress_to_next,
+                "points_needed": points_needed
+            }
+        })
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 

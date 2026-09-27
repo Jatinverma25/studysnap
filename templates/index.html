@@ -18,6 +18,8 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
     <!-- GSAP for DotGrid interactive inertia and spring animations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <!-- Chart.js for score trend analytics and progression tracking -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -56,28 +58,34 @@
                     </div>
                     <h1 class="brand-title">Study<span class="gradient-text">Snap</span></h1>
                 </div>
-                <!-- From Uiverse.io by Galahhad - Day / Night Theme Switch -->
-                <div class="theme-switch-wrapper">
-                    <label class="theme-switch" id="themeSwitchLabel" title="Toggle Light or Dark theme" aria-label="Toggle Light or Dark theme">
-                        <input type="checkbox" id="themeSwitchCheckbox" class="theme-switch__checkbox">
-                        <div class="theme-switch__container">
-                            <div class="theme-switch__clouds"></div>
-                            <div class="theme-switch__stars-container">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"></path>
-                                </svg>
-                            </div>
-                            <div class="theme-switch__circle-container">
-                                <div class="theme-switch__sun-moon-container">
-                                    <div class="theme-switch__moon">
-                                        <div class="theme-switch__spot"></div>
-                                        <div class="theme-switch__spot"></div>
-                                        <div class="theme-switch__spot"></div>
+                <div class="header-right-actions">
+                    <button type="button" id="myProgressBtn" class="btn btn-progress-nav btn-tactile-3d" title="View your study statistics and quiz rank" aria-label="Open My Progress Dashboard">
+                        <span class="btn-icon">📊</span>
+                        <span class="btn-text">My Progress</span>
+                    </button>
+                    <!-- From Uiverse.io by Galahhad - Day / Night Theme Switch -->
+                    <div class="theme-switch-wrapper">
+                        <label class="theme-switch" id="themeSwitchLabel" title="Toggle Light or Dark theme" aria-label="Toggle Light or Dark theme">
+                            <input type="checkbox" id="themeSwitchCheckbox" class="theme-switch__checkbox">
+                            <div class="theme-switch__container">
+                                <div class="theme-switch__clouds"></div>
+                                <div class="theme-switch__stars-container">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M135.831 3.00688C135.055 3.85027 134.111 4.29946 133 4.35447C134.111 4.40947 135.055 4.85867 135.831 5.71123C136.607 6.55462 136.996 7.56303 136.996 8.72727C136.996 7.95722 137.172 7.25134 137.525 6.59129C137.886 5.93124 138.372 5.39954 138.98 5.00535C139.598 4.60199 140.268 4.39114 141 4.35447C139.88 4.2903 138.936 3.85027 138.16 3.00688C137.384 2.16348 136.996 1.16425 136.996 0C136.996 1.16425 136.607 2.16348 135.831 3.00688ZM31 23.3545C32.1114 23.2995 33.0551 22.8503 33.8313 22.0069C34.6075 21.1635 34.9956 20.1642 34.9956 19C34.9956 20.1642 35.3837 21.1635 36.1599 22.0069C36.9361 22.8503 37.8798 23.2903 39 23.3545C38.2679 23.3911 37.5976 23.602 36.9802 24.0053C36.3716 24.3995 35.8864 24.9312 35.5248 25.5913C35.172 26.2513 34.9956 26.9572 34.9956 27.7273C34.9956 26.563 34.6075 25.5546 33.8313 24.7112C33.0551 23.8587 32.1114 23.4095 31 23.3545ZM0 36.3545C1.11136 36.2995 2.05513 35.8503 2.83131 35.0069C3.6075 34.1635 3.99559 33.1642 3.99559 32C3.99559 33.1642 4.38368 34.1635 5.15987 35.0069C5.93605 35.8503 6.87982 36.2903 8 36.3545C7.26792 36.3911 6.59757 36.602 5.98015 37.0053C5.37155 37.3995 4.88644 37.9312 4.52481 38.5913C4.172 39.2513 3.99559 39.9572 3.99559 40.7273C3.99559 39.563 3.6075 38.5546 2.83131 37.7112C2.05513 36.8587 1.11136 36.4095 0 36.3545ZM56.8313 24.0069C56.0551 24.8503 55.1114 25.2995 54 25.3545C55.1114 25.4095 56.0551 25.8587 56.8313 26.7112C57.6075 27.5546 57.9956 28.563 57.9956 29.7273C57.9956 28.9572 58.172 28.2513 58.5248 27.5913C58.8864 26.9312 59.3716 26.3995 59.9802 26.0053C60.5976 25.602 61.2679 25.3911 62 25.3545C60.8798 25.2903 59.9361 24.8503 59.1599 24.0069C58.3837 23.1635 57.9956 22.1642 57.9956 21C57.9956 22.1642 57.6075 23.1635 56.8313 24.0069ZM81 25.3545C82.1114 25.2995 83.0551 24.8503 83.8313 24.0069C84.6075 23.1635 84.9956 22.1642 84.9956 21C84.9956 22.1642 85.3837 23.1635 86.1599 24.0069C86.9361 24.8503 87.8798 25.2903 89 25.3545C88.2679 25.3911 87.5976 25.602 86.9802 26.0053C86.3716 26.3995 85.8864 26.9312 85.5248 27.5913C85.172 28.2513 84.9956 28.9572 84.9956 29.7273C84.9956 28.563 84.6075 27.5546 83.8313 26.7112C83.0551 25.8587 82.1114 25.4095 81 25.3545ZM136 36.3545C137.111 36.2995 138.055 35.8503 138.831 35.0069C139.607 34.1635 139.996 33.1642 139.996 32C139.996 33.1642 140.384 34.1635 141.16 35.0069C141.936 35.8503 142.88 36.2903 144 36.3545C143.268 36.3911 142.598 36.602 141.98 37.0053C141.372 37.3995 140.886 37.9312 140.525 38.5913C140.172 39.2513 139.996 39.9572 139.996 40.7273C139.996 39.563 139.607 38.5546 138.831 37.7112C138.055 36.8587 137.111 36.4095 136 36.3545ZM101.831 49.0069C101.055 49.8503 100.111 50.2995 99 50.3545C100.111 50.4095 101.055 50.8587 101.831 51.7112C102.607 52.5546 102.996 53.563 102.996 54.7273C102.996 53.9572 103.172 53.2513 103.525 52.5913C103.886 51.9312 104.372 51.3995 104.98 51.0053C105.598 50.602 106.268 50.3911 107 50.3545C105.88 50.2903 104.936 49.8503 104.16 49.0069C103.384 48.1635 102.996 47.1642 102.996 46C102.996 47.1642 102.607 48.1635 101.831 49.0069Z" fill="currentColor"></path>
+                                    </svg>
+                                </div>
+                                <div class="theme-switch__circle-container">
+                                    <div class="theme-switch__sun-moon-container">
+                                        <div class="theme-switch__moon">
+                                            <div class="theme-switch__spot"></div>
+                                            <div class="theme-switch__spot"></div>
+                                            <div class="theme-switch__spot"></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </label>
+                        </label>
+                    </div>
                 </div>
             </div>
             <p class="tagline">Transform any PDF document into quick study summaries and interactive quizzes.</p>
@@ -134,6 +142,10 @@
                         <span class="btn-icon">🎯</span>
                         <span class="btn-text">Quiz Mode</span>
                     </button>
+                    <button type="button" id="wordHelpTriggerBtn" class="btn btn-word-help-nav btn-tactile-3d" title="Confused by a term? Get a quick explanation from your PDF">
+                        <span class="btn-icon">💡</span>
+                        <span class="btn-text">Word Help</span>
+                    </button>
                 </div>
             </section>
 
@@ -179,6 +191,10 @@
                     </div>
 
                     <div class="results-header-actions">
+                        <button type="button" id="resultsWordHelpBtn" class="btn btn-word-help-nav btn-tactile-3d" title="Confused by a term? Get a quick explanation from this PDF">
+                            <span class="btn-icon">💡</span>
+                            <span class="btn-text">Word Help</span>
+                        </button>
                         <button type="button" id="resultsQuizBtn" class="btn btn-quiz btn-tactile-3d">
                             <span class="btn-icon">🎯</span>
                             <span class="btn-text">Quiz Mode</span>
@@ -377,6 +393,9 @@
                         <button type="button" id="changeQuizSettingsBtn" class="btn btn-secondary">
                             <span class="btn-icon">⚙️</span> Change Settings
                         </button>
+                        <button type="button" id="quizViewProgressBtn" class="btn btn-progress-cta btn-tactile-3d" title="View updated stats & level progression">
+                            <span class="btn-icon">📊</span> View Progress
+                        </button>
                         <button type="button" id="backToSummariesBtn" class="btn btn-outline">
                             <span class="btn-icon">📖</span> Back to Summaries
                         </button>
@@ -386,11 +405,357 @@
                     </div>
                 </div>
             </section>
+
+            <!-- ========================================================
+                 PROGRESS DASHBOARD SECTION (Phase 3)
+                 ======================================================== -->
+            <section id="progressSection" class="progress-section hidden" aria-labelledby="progressTitle">
+                <!-- Top Action Bar / Breadcrumb / Back Button -->
+                <div class="progress-topbar">
+                    <div class="progress-header-left">
+                        <button type="button" id="backFromProgressBtn" class="btn btn-secondary btn-back-progress" title="Return to Previous View" aria-label="Return to previous view">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                            <span>Back</span>
+                        </button>
+                        <div class="progress-title-group">
+                            <span class="hud-tag">PLAYER STATS & MASTERY</span>
+                            <h2 id="progressTitle" class="progress-main-title">My Progress Dashboard</h2>
+                        </div>
+                    </div>
+                    <div class="progress-header-right">
+                        <button type="button" id="restartProgressBtn" class="btn btn-restart-progress" title="Restart Progress" aria-label="Restart data and record progress from starting">
+                            <span class="btn-icon">🔄</span>
+                            <span class="btn-tooltip" role="tooltip">Restart Progress</span>
+                        </button>
+                        <button type="button" id="progressQuickQuizBtn" class="btn btn-quiz btn-tactile-3d" title="Start a quiz session now">
+                            <span class="btn-icon">🎯</span>
+                            <span class="btn-text">Take a Quiz</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Restart Success Notification Banner -->
+                <div id="progressResetAlert" class="progress-reset-alert hidden" role="alert" aria-live="polite">
+                    <div class="alert-content">
+                        <span class="alert-icon">✨</span>
+                        <span class="alert-msg">Your progress and history have been reset. Take your next quiz to begin recording fresh stats!</span>
+                    </div>
+                    <button type="button" id="dismissResetAlertBtn" class="alert-dismiss" aria-label="Dismiss alert">&times;</button>
+                </div>
+
+                <!-- LEVEL BADGE & PROGRESSION BANNER (Gamer Rank Card) -->
+                <div class="gamer-rank-banner" id="gamerRankBanner">
+                    <div class="rank-badge-glow-wrap">
+                        <div class="rank-badge-orb" id="rankBadgeOrb">
+                            <span class="rank-badge-emoji" id="rankBadgeEmoji">🔮</span>
+                        </div>
+                        <div class="rank-info-box">
+                            <div class="rank-title-row">
+                                <span class="rank-tier-pill" id="rankTierPill">TIER 3</span>
+                                <h3 class="rank-title" id="rankTitle">Scholar</h3>
+                            </div>
+                            <p class="rank-desc" id="rankDesc">Mastering complex concepts & solid academic comprehension.</p>
+                        </div>
+                    </div>
+
+                    <div class="rank-progression-box">
+                        <div class="rank-target-meta">
+                            <span class="current-avg-label">Average Score: <strong id="rankAvgScoreDisplay">0.0%</strong></span>
+                            <span class="next-rank-label" id="nextRankLabel">Calculating rank...</span>
+                        </div>
+
+                        <!-- Progress Meter: Track & 0-100% Numeric Scale -->
+                        <div class="rank-meter-container">
+                            <div class="rank-progress-track" role="progressbar" id="rankProgressBar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                <div class="rank-progress-fill" id="rankProgressFill" style="width: 0%;">
+                                    <span class="fill-glow-thumb" aria-hidden="true"></span>
+                                </div>
+                            </div>
+
+                            <!-- Numeric Scale 0% to 100% in increments of 10 -->
+                            <div class="meter-numeric-scale" aria-hidden="true">
+                                <div class="scale-tick" data-val="0"><span class="tick-mark"></span><span class="tick-num">0</span></div>
+                                <div class="scale-tick" data-val="10"><span class="tick-mark"></span><span class="tick-num">10</span></div>
+                                <div class="scale-tick" data-val="20"><span class="tick-mark"></span><span class="tick-num">20</span></div>
+                                <div class="scale-tick" data-val="30"><span class="tick-mark"></span><span class="tick-num">30</span></div>
+                                <div class="scale-tick milestone-tick" data-val="40"><span class="tick-mark"></span><span class="tick-num">40</span></div>
+                                <div class="scale-tick" data-val="50"><span class="tick-mark"></span><span class="tick-num">50</span></div>
+                                <div class="scale-tick milestone-tick" data-val="60"><span class="tick-mark"></span><span class="tick-num">60</span></div>
+                                <div class="scale-tick" data-val="70"><span class="tick-mark"></span><span class="tick-num">70</span></div>
+                                <div class="scale-tick milestone-tick" data-val="80"><span class="tick-mark"></span><span class="tick-num">80</span></div>
+                                <div class="scale-tick" data-val="90"><span class="tick-mark"></span><span class="tick-num">90</span></div>
+                                <div class="scale-tick" data-val="100"><span class="tick-mark"></span><span class="tick-num">100</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Colored Tier Zone Bands & Legend below 0-100 scale -->
+                        <div class="tier-zones-legend">
+                            <div class="tier-zone-badge" id="tierStepBeginner" data-tier="beginner">
+                                <div class="zone-color-bar beginner"></div>
+                                <div class="zone-info">
+                                    <span class="zone-icon">🌱</span>
+                                    <span class="zone-name">Beginner</span>
+                                    <span class="zone-range">&lt;40%</span>
+                                </div>
+                            </div>
+                            <div class="tier-zone-badge" id="tierStepLearner" data-tier="learner">
+                                <div class="zone-color-bar learner"></div>
+                                <div class="zone-info">
+                                    <span class="zone-icon">⚡</span>
+                                    <span class="zone-name">Learner</span>
+                                    <span class="zone-range">40–60%</span>
+                                </div>
+                            </div>
+                            <div class="tier-zone-badge" id="tierStepScholar" data-tier="scholar">
+                                <div class="zone-color-bar scholar"></div>
+                                <div class="zone-info">
+                                    <span class="zone-icon">🔮</span>
+                                    <span class="zone-name">Scholar</span>
+                                    <span class="zone-range">60–80%</span>
+                                </div>
+                            </div>
+                            <div class="tier-zone-badge" id="tierStepMaster" data-tier="master">
+                                <div class="zone-color-bar master"></div>
+                                <div class="zone-info">
+                                    <span class="zone-icon">👑</span>
+                                    <span class="zone-name">Master</span>
+                                    <span class="zone-range">80–99%</span>
+                                </div>
+                            </div>
+                            <div class="tier-zone-badge" id="tierStepImpossible" data-tier="impossible">
+                                <div class="zone-color-bar impossible"></div>
+                                <div class="zone-info">
+                                    <span class="zone-icon">♾️</span>
+                                    <span class="zone-name">Impossible</span>
+                                    <span class="zone-range">100%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STATS OVERVIEW CARDS GRID (5 Cards) -->
+                <div class="stats-overview-grid">
+                    <!-- 1. Total Quizzes Taken -->
+                    <div class="stat-overview-card" data-stat="quizzes">
+                        <div class="stat-card-icon-wrap purple">
+                            <span class="stat-card-emoji">📝</span>
+                        </div>
+                        <div class="stat-card-body">
+                            <span class="stat-card-label">Total Quizzes</span>
+                            <span class="stat-card-value" id="statCardTotalQuizzes">0</span>
+                            <span class="stat-card-subtext">Completed sessions</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Average Score -->
+                    <div class="stat-overview-card" data-stat="average">
+                        <div class="stat-card-icon-wrap cyan">
+                            <span class="stat-card-emoji">🎯</span>
+                        </div>
+                        <div class="stat-card-body">
+                            <span class="stat-card-label">Average Score</span>
+                            <span class="stat-card-value" id="statCardAverageScore">0%</span>
+                            <span class="stat-card-subtext">Across all quizzes</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Best Score -->
+                    <div class="stat-overview-card" data-stat="best">
+                        <div class="stat-card-icon-wrap gold">
+                            <span class="stat-card-emoji">🏆</span>
+                        </div>
+                        <div class="stat-card-body">
+                            <span class="stat-card-label">Best Score</span>
+                            <span class="stat-card-value" id="statCardBestScore">0%</span>
+                            <span class="stat-card-subtext" id="statCardBestScoreSub">Personal record</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Total Questions Answered -->
+                    <div class="stat-overview-card" data-stat="questions">
+                        <div class="stat-card-icon-wrap violet">
+                            <span class="stat-card-emoji">⚡</span>
+                        </div>
+                        <div class="stat-card-body">
+                            <span class="stat-card-label">Questions Answered</span>
+                            <span class="stat-card-value" id="statCardTotalQuestions">0</span>
+                            <span class="stat-card-subtext" id="statCardCorrectRatio">0 correct answers</span>
+                        </div>
+                    </div>
+
+                    <!-- 5. Overall Accuracy Percentage -->
+                    <div class="stat-overview-card" data-stat="accuracy">
+                        <div class="stat-card-icon-wrap emerald">
+                            <span class="stat-card-emoji">💎</span>
+                        </div>
+                        <div class="stat-card-body">
+                            <span class="stat-card-label">Overall Accuracy</span>
+                            <span class="stat-card-value" id="statCardOverallAccuracy">0%</span>
+                            <span class="stat-card-subtext">Correct answer rate</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCORE TREND CHART SECTION -->
+                <div class="progress-chart-card">
+                    <div class="chart-header-row">
+                        <div class="chart-title-group">
+                            <div class="chart-icon-box">📈</div>
+                            <div>
+                                <h3 class="chart-title">Score Trend Over Time</h3>
+                                <p class="chart-subtitle">Visualizing your quiz scores and accuracy over time</p>
+                            </div>
+                        </div>
+                        <div class="chart-controls">
+                            <button type="button" class="chart-type-btn active" id="chartTypeLineBtn" data-type="line" title="Switch to line trend chart">Line</button>
+                            <button type="button" class="chart-type-btn" id="chartTypeBarBtn" data-type="bar" title="Switch to bar chart">Bar</button>
+                        </div>
+                    </div>
+                    <div class="chart-canvas-container" id="chartCanvasContainer">
+                        <canvas id="scoreTrendChartCanvas" aria-label="Quiz score trend chart" role="img"></canvas>
+                        <div id="chartEmptyState" class="chart-empty-state hidden">
+                            <span class="empty-icon">📊</span>
+                            <p>No quiz score data yet. Take a quiz to begin tracking your score trend over time!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUIZ HISTORY TABLE -->
+                <div class="quiz-history-card">
+                    <div class="history-card-header">
+                        <div class="history-title-group">
+                            <div class="history-icon-box">📜</div>
+                            <div>
+                                <h3 class="history-title">Quiz History</h3>
+                                <p class="history-subtitle">All past quiz sessions, newest first</p>
+                            </div>
+                        </div>
+                        <span class="history-count-badge" id="historyCountBadge">0 attempts</span>
+                    </div>
+
+                    <div class="history-table-wrapper" id="historyTableWrapper">
+                        <table class="history-table" id="quizHistoryTable">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="th-date">Date</th>
+                                    <th scope="col" class="th-doc">PDF Document</th>
+                                    <th scope="col" class="th-questions">Questions</th>
+                                    <th scope="col" class="th-difficulty">Difficulty</th>
+                                    <th scope="col" class="th-score">Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="quizHistoryTableBody">
+                                <!-- Populated dynamically by JavaScript -->
+                            </tbody>
+                        </table>
+                        <!-- Empty State for History Table -->
+                        <div id="historyEmptyState" class="history-empty-state hidden">
+                            <div class="history-empty-icon">📂</div>
+                            <h4>No Quizzes Taken Yet</h4>
+                            <p>Upload a PDF document and take your first quiz to earn level badges, level up your rank, and see your performance history here!</p>
+                            <button type="button" id="historyStartQuizBtn" class="btn btn-primary btn-tactile-3d">
+                                <span class="btn-icon">🚀</span>
+                                <span class="btn-text">Start First Quiz</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
 
         <footer class="footer">
             <p>StudySnap</p>
         </footer>
+    </div>
+
+    <!-- Word Help Modal (Top-Level Viewport Stacking Context) -->
+    <div id="wordHelpModal" class="quiz-modal-container hidden" role="dialog" aria-modal="true" aria-labelledby="wordHelpModalTitle">
+        <!-- Separate Full-Screen Backdrop Element -->
+        <div id="wordHelpModalBackdrop" class="quiz-modal-backdrop" aria-hidden="true"></div>
+
+        <!-- Centered Modal Dialog Wrapper -->
+        <div class="quiz-modal-dialog word-help-modal-dialog">
+            <div class="quiz-modal-card word-help-modal-card">
+                <div class="quiz-modal-header word-help-modal-header">
+                    <div class="quiz-modal-title-box">
+                        <div class="quiz-modal-icon-badge word-help-icon-badge">💡</div>
+                        <div>
+                            <h3 id="wordHelpModalTitle" class="quiz-modal-title">Confused by a term?</h3>
+                            <p class="quiz-modal-subtitle">Type any word or concept from your PDF for a quick, tailored explanation</p>
+                        </div>
+                    </div>
+                    <button type="button" id="closeWordHelpModalBtn" class="quiz-modal-close" aria-label="Close Word Help modal">&times;</button>
+                </div>
+
+                <div class="quiz-modal-body word-help-modal-body">
+                    <!-- Target Document Banner -->
+                    <div class="quiz-target-file word-help-target-file">
+                        <span class="target-file-label">Target Document:</span>
+                        <span id="wordHelpTargetFileName" class="target-file-name">No PDF selected yet</span>
+                    </div>
+
+                    <!-- Search Form -->
+                    <form id="wordHelpForm" class="word-help-form" onsubmit="return false;">
+                        <div class="word-help-input-wrap">
+                            <span class="word-help-input-icon">🔍</span>
+                            <input type="text" id="wordHelpInput" class="word-help-input" placeholder="Type a term from the PDF (e.g. Backpropagation, Torque, Mitochondria)..." autocomplete="off" aria-label="Confused by a term?">
+                            <button type="button" id="wordHelpClearBtn" class="word-help-clear-btn hidden" title="Clear input" aria-label="Clear input">&times;</button>
+                        </div>
+                        <button type="submit" id="wordHelpSubmitBtn" class="btn btn-word-help btn-tactile-3d" title="Explain this term in document context">
+                            <span class="btn-icon">✨</span>
+                            <span class="btn-text">Explain</span>
+                        </button>
+                    </form>
+
+                    <!-- Alert message (e.g. Please upload a PDF first) -->
+                    <div id="wordHelpAlert" class="word-help-alert hidden" role="alert">
+                        <span class="alert-icon">⚠️</span>
+                        <span id="wordHelpAlertMsg" class="alert-text">Please upload a PDF first</span>
+                    </div>
+
+                    <!-- Small Loading Animation while StudySnap thinks -->
+                    <div id="wordHelpLoading" class="word-help-loading hidden" role="status" aria-live="polite">
+                        <div class="word-help-spinner-wrap">
+                            <!-- From Uiverse.io by AHMED-MIT -->
+                            <div class="spinner">
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                                <div></div>
+                            </div>
+                        </div>
+                        <div class="word-help-loading-meta">
+                            <span class="loading-label">StudySnap is analyzing the document...</span>
+                            <span class="loading-sublabel">Generating definition, chapter context, and example</span>
+                        </div>
+                    </div>
+
+                    <!-- Clean Answer Card -->
+                    <div id="wordHelpResult" class="word-help-result hidden" aria-live="polite">
+                        <div class="word-help-result-header">
+                            <div class="result-term-tag">
+                                <span class="tag-icon">📖</span>
+                                <span class="tag-label">Term:</span>
+                                <strong id="wordHelpResultTerm" class="tag-term-name"></strong>
+                            </div>
+                            <button type="button" id="closeWordHelpResultBtn" class="word-help-close-btn" title="Dismiss explanation" aria-label="Dismiss explanation">&times;</button>
+                        </div>
+                        <div id="wordHelpAnswerBody" class="word-help-answer-body markdown-body">
+                            <!-- Populated with explanation and LaTeX math rendered via KaTeX -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-modal-footer word-help-modal-footer">
+                    <button type="button" id="cancelWordHelpModalBtn" class="btn btn-outline">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Quiz Setup & Decision Modal (Top-Level Viewport Stacking Context) -->
@@ -486,6 +851,54 @@
                     <button type="button" id="startCustomQuizBtn" class="btn btn-quiz btn-start-quiz btn-tactile-3d">
                         <span class="btn-icon">🚀</span>
                         <span id="startQuizBtnText">Start Quiz (10 Questions · Medium)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Restart Progress Confirmation Modal (Top-Level Stacking Context) -->
+    <div id="restartConfirmModal" class="quiz-modal-container hidden" role="dialog" aria-modal="true" aria-labelledby="restartModalTitle">
+        <!-- Separate Full-Screen Backdrop Element -->
+        <div id="restartModalBackdrop" class="quiz-modal-backdrop" aria-hidden="true"></div>
+
+        <!-- Centered Modal Dialog Wrapper -->
+        <div class="quiz-modal-dialog restart-modal-dialog">
+            <div class="quiz-modal-card restart-modal-card">
+                <div class="quiz-modal-header restart-modal-header">
+                    <div class="quiz-modal-title-box">
+                        <div class="quiz-modal-icon-badge restart-modal-icon-badge">🔄</div>
+                        <div>
+                            <h3 id="restartModalTitle" class="quiz-modal-title">Restart Your Progress?</h3>
+                            <p class="quiz-modal-subtitle">Clear recorded data and track progress from starting</p>
+                        </div>
+                    </div>
+                    <button type="button" id="closeRestartModalBtn" class="quiz-modal-close" aria-label="Close restart confirmation modal">&times;</button>
+                </div>
+
+                <div class="quiz-modal-body restart-modal-body">
+                    <div class="restart-warning-card">
+                        <div class="restart-warning-header">
+                            <span class="restart-warning-pill badge-warning-theme">⚠️ Warning: Irreversible Action</span>
+                        </div>
+                        <p class="restart-warning-intro">This will reset all your stored study statistics and quiz attempts so you can record your progress fresh from scratch:</p>
+                        <ul class="restart-warning-list">
+                            <li><span class="list-bullet">✕</span> All past quiz scores and history table entries will be wiped</li>
+                            <li><span class="list-bullet">✕</span> Gamer rank badge will reset back to <strong class="restart-target-rank">Beginner (Tier 1)</strong></li>
+                            <li><span class="list-bullet">✕</span> Accuracy metrics and score progression chart will start over</li>
+                        </ul>
+                        <div class="restart-tip-box">
+                            <span class="tip-icon">💡</span>
+                            <span class="tip-text">Your generated summaries and uploaded documents will remain intact.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quiz-modal-footer restart-modal-footer">
+                    <button type="button" id="cancelRestartModalBtn" class="btn btn-outline">Cancel</button>
+                    <button type="button" id="confirmRestartBtn" class="btn btn-danger-restart btn-tactile-3d">
+                        <span class="btn-icon">🔄</span>
+                        <span class="btn-text">Yes, Restart Progress</span>
                     </button>
                 </div>
             </div>

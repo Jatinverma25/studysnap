@@ -1,55 +1,31 @@
 /* ========================================================
-   UIVERSE.IO 3D TACTILE PUSH-DOWN BUTTON (by Yaseen549)
-   Reusable Component Styles
+   TACTILE PUSH-DOWN BUTTON COMPONENT (CLEAN, FLAT, PREMIUM)
    ======================================================== */
 .tactile-button {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem 2rem;
+  padding: 0.85rem 1.8rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  border-radius: 1rem;
+  letter-spacing: 0.06em;
+  border-radius: 12px;
   color: #ffffff;
   cursor: pointer;
   user-select: none;
   outline: none;
   overflow: hidden;
-  isolation: isolate;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1),
-              border-bottom-width 0.1s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.1s cubic-bezier(0.4, 0, 0.2, 1),
-              background 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: none !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              background 0.2s ease,
+              border-color 0.2s ease;
 }
 
-/* Inner bottom depth shadow */
+.tactile-button::before,
 .tactile-button::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.25) 0%, transparent 60%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Top-left specular gloss pill */
-.tactile-button::before {
-  content: '';
-  position: absolute;
-  top: 0.5rem;
-  left: 0.75rem;
-  width: 1.5rem;
-  height: 0.75rem;
-  border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.45);
-  filter: blur(2px);
-  pointer-events: none;
-  z-index: 1;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  display: none !important;
 }
 
 .tactile-button__content {
@@ -59,7 +35,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  text-shadow: none !important;
 }
 
 .tactile-button__icon-pulse {
@@ -72,69 +48,66 @@
     transform: scale(1);
   }
   50% {
-    opacity: 0.65;
-    transform: scale(1.15);
+    opacity: 0.8;
+    transform: scale(1.1);
   }
 }
 
-/* Color Variant: Red (Original Yaseen549 Power Smash) */
+/* Color Variant: Red */
 .tactile-button--red {
   background-color: #ef4444;
-  border-bottom: 8px solid #b91c1c;
-  box-shadow: 0 15px 25px -10px rgba(239, 68, 68, 0.8), 0 6px 14px rgba(0, 0, 0, 0.35);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: none !important;
 }
 
 .tactile-button--red:hover:not(:disabled) {
   background-color: #f87171;
-  border-bottom: 9px solid #991b1b;
-  box-shadow: 0 18px 30px -6px rgba(239, 68, 68, 0.95), 0 0 25px rgba(248, 113, 113, 0.5);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: none !important;
   transform: translateY(-2px);
 }
 
 .tactile-button--red:active:not(:disabled) {
-  border-bottom-width: 0px !important;
-  transform: translateY(8px) !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+  transform: translateY(1px) !important;
+  box-shadow: none !important;
 }
 
-/* Color Variant: Purple / Violet (StudySnap Primary) */
+/* Color Variant: Purple / Violet (Primary) */
 .tactile-button--purple {
-  background: linear-gradient(180deg, #9333ea 0%, #7c3aed 100%);
-  border-bottom: 8px solid #4c1d95;
-  box-shadow: 0 15px 25px -10px rgba(147, 51, 234, 0.8), 0 6px 14px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: none !important;
 }
 
 .tactile-button--purple:hover:not(:disabled) {
-  background: linear-gradient(180deg, #a855f7 0%, #8b5cf6 100%);
-  border-bottom: 9px solid #581c87;
-  box-shadow: 0 18px 30px -6px rgba(168, 85, 247, 0.95), 0 0 25px rgba(192, 132, 252, 0.5);
+  background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: none !important;
   transform: translateY(-2px);
 }
 
 .tactile-button--purple:active:not(:disabled) {
-  border-bottom-width: 0px !important;
-  transform: translateY(8px) !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+  transform: translateY(1px) !important;
+  box-shadow: none !important;
 }
 
 /* Color Variant: Quiz / Magenta */
 .tactile-button--quiz {
-  background: linear-gradient(180deg, #c026d3 0%, #9333ea 50%, #7c3aed 100%);
-  border-bottom: 8px solid #581c87;
-  box-shadow: 0 15px 25px -10px rgba(192, 38, 211, 0.8), 0 6px 14px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(135deg, #c026d3 0%, #9333ea 50%, #7c3aed 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: none !important;
 }
 
 .tactile-button--quiz:hover:not(:disabled) {
-  background: linear-gradient(180deg, #d946ef 0%, #a855f7 50%, #8b5cf6 100%);
-  border-bottom: 9px solid #6b21a8;
-  box-shadow: 0 18px 30px -6px rgba(217, 70, 239, 0.95), 0 0 25px rgba(236, 72, 153, 0.5);
+  background: linear-gradient(135deg, #d946ef 0%, #a855f7 50%, #8b5cf6 100%);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: none !important;
   transform: translateY(-2px);
 }
 
 .tactile-button--quiz:active:not(:disabled) {
-  border-bottom-width: 0px !important;
-  transform: translateY(8px) !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+  transform: translateY(1px) !important;
+  box-shadow: none !important;
 }
 
 /* Disabled State */
@@ -143,5 +116,4 @@
   cursor: not-allowed;
   transform: none !important;
   box-shadow: none !important;
-  border-bottom-width: 4px !important;
 }

@@ -77,6 +77,84 @@ document.addEventListener('DOMContentLoaded', () => {
     const quizPillBtns = document.querySelectorAll('.quiz-pill-btn');
     const diffCardBtns = document.querySelectorAll('.diff-card-btn');
 
+    // DOM Elements - Phase 3: Progress Dashboard
+    const myProgressBtn = document.getElementById('myProgressBtn');
+    const quizViewProgressBtn = document.getElementById('quizViewProgressBtn');
+    const progressSection = document.getElementById('progressSection');
+    const backFromProgressBtn = document.getElementById('backFromProgressBtn');
+    const progressQuickQuizBtn = document.getElementById('progressQuickQuizBtn');
+    const gamerRankBanner = document.getElementById('gamerRankBanner');
+    const rankBadgeOrb = document.getElementById('rankBadgeOrb');
+    const rankBadgeEmoji = document.getElementById('rankBadgeEmoji');
+    const rankTierPill = document.getElementById('rankTierPill');
+    const rankTitle = document.getElementById('rankTitle');
+    const rankDesc = document.getElementById('rankDesc');
+    const rankAvgScoreDisplay = document.getElementById('rankAvgScoreDisplay');
+    const nextRankLabel = document.getElementById('nextRankLabel');
+    const rankProgressBar = document.getElementById('rankProgressBar');
+    const rankProgressFill = document.getElementById('rankProgressFill');
+    const tierStepBeginner = document.getElementById('tierStepBeginner');
+    const tierStepLearner = document.getElementById('tierStepLearner');
+    const tierStepScholar = document.getElementById('tierStepScholar');
+    const tierStepMaster = document.getElementById('tierStepMaster');
+    const tierStepImpossible = document.getElementById('tierStepImpossible');
+
+    const statCardTotalQuizzes = document.getElementById('statCardTotalQuizzes');
+    const statCardAverageScore = document.getElementById('statCardAverageScore');
+    const statCardBestScore = document.getElementById('statCardBestScore');
+    const statCardBestScoreSub = document.getElementById('statCardBestScoreSub');
+    const statCardTotalQuestions = document.getElementById('statCardTotalQuestions');
+    const statCardCorrectRatio = document.getElementById('statCardCorrectRatio');
+    const statCardOverallAccuracy = document.getElementById('statCardOverallAccuracy');
+
+    const chartTypeLineBtn = document.getElementById('chartTypeLineBtn');
+    const chartTypeBarBtn = document.getElementById('chartTypeBarBtn');
+    const scoreTrendChartCanvas = document.getElementById('scoreTrendChartCanvas');
+    const chartEmptyState = document.getElementById('chartEmptyState');
+
+    const historyCountBadge = document.getElementById('historyCountBadge');
+    const quizHistoryTable = document.getElementById('quizHistoryTable');
+    const quizHistoryTableBody = document.getElementById('quizHistoryTableBody');
+    const historyEmptyState = document.getElementById('historyEmptyState');
+    const historyStartQuizBtn = document.getElementById('historyStartQuizBtn');
+
+    // DOM Elements - Restart Progress Modal & Alert
+    const restartProgressBtn = document.getElementById('restartProgressBtn');
+    const restartConfirmModal = document.getElementById('restartConfirmModal');
+    const restartModalBackdrop = document.getElementById('restartModalBackdrop');
+    const closeRestartModalBtn = document.getElementById('closeRestartModalBtn');
+    const cancelRestartModalBtn = document.getElementById('cancelRestartModalBtn');
+    const confirmRestartBtn = document.getElementById('confirmRestartBtn');
+    const progressResetAlert = document.getElementById('progressResetAlert');
+    const dismissResetAlertBtn = document.getElementById('dismissResetAlertBtn');
+    let resetAlertTimeout = null;
+
+    // DOM Elements - Phase 4: Word Help
+    const wordHelpTriggerBtn = document.getElementById('wordHelpTriggerBtn');
+    const resultsWordHelpBtn = document.getElementById('resultsWordHelpBtn');
+    const wordHelpModal = document.getElementById('wordHelpModal');
+    const wordHelpModalBackdrop = document.getElementById('wordHelpModalBackdrop');
+    const closeWordHelpModalBtn = document.getElementById('closeWordHelpModalBtn');
+    const cancelWordHelpModalBtn = document.getElementById('cancelWordHelpModalBtn');
+    const wordHelpTargetFileName = document.getElementById('wordHelpTargetFileName');
+    const wordHelpForm = document.getElementById('wordHelpForm');
+    const wordHelpInput = document.getElementById('wordHelpInput');
+    const wordHelpClearBtn = document.getElementById('wordHelpClearBtn');
+    const wordHelpSubmitBtn = document.getElementById('wordHelpSubmitBtn');
+    const wordHelpAlert = document.getElementById('wordHelpAlert');
+    const wordHelpAlertMsg = document.getElementById('wordHelpAlertMsg');
+    const wordHelpLoading = document.getElementById('wordHelpLoading');
+    const wordHelpResult = document.getElementById('wordHelpResult');
+    const wordHelpResultTerm = document.getElementById('wordHelpResultTerm');
+    const wordHelpAnswerBody = document.getElementById('wordHelpAnswerBody');
+    const closeWordHelpResultBtn = document.getElementById('closeWordHelpResultBtn');
+
+    // Progress Dashboard State
+    let progressChartInstance = null;
+    let currentChartType = 'line';
+    let previousViewBeforeProgress = 'upload';
+    let cachedQuizHistory = [];
+
     // Application State
     let selectedFile = null;
     let summariesData = null;
@@ -130,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInfo.classList.remove('hidden');
         submitBtn.classList.add('file-ready');
         if (uploadQuizBtn) uploadQuizBtn.classList.add('file-ready');
+        hideWordHelpAlert();
 
         // Execute any action the user clicked prior to picking the file
         if (pendingAction === 'quiz') {
@@ -152,6 +231,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInfo.classList.add('hidden');
         submitBtn.classList.remove('file-ready');
         if (uploadQuizBtn) uploadQuizBtn.classList.remove('file-ready');
+        hideWordHelpAlert();
+        if (wordHelpResult) wordHelpResult.classList.add('hidden');
     }
 
     // Error helpers
@@ -711,6 +792,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Start 30-second timer for this question
         startTimer(30);
+
+        // Render KaTeX math formulas in question text & options
+        renderMath(quizActiveCard);
     }
 
     // Option Click Handler
@@ -746,6 +830,7 @@ document.addEventListener('DOMContentLoaded', () => {
             quizExplanationText.textContent = q.explanation || 'Great job! You identified the correct concept directly from the document.';
             quizExplanationBox.className = 'quiz-explanation-box correct';
             quizExplanationBox.classList.remove('hidden');
+            renderMath(quizExplanationBox);
 
         } else {
             // Wrong answer
@@ -771,6 +856,7 @@ document.addEventListener('DOMContentLoaded', () => {
             quizExplanationText.innerHTML = `<strong>Correct answer:</strong> ${q.correct_answer}<br><br>${q.explanation || ''}`;
             quizExplanationBox.className = 'quiz-explanation-box wrong';
             quizExplanationBox.classList.remove('hidden');
+            renderMath(quizExplanationBox);
         }
 
         // Show Next Button
@@ -805,6 +891,7 @@ document.addEventListener('DOMContentLoaded', () => {
         quizExplanationText.innerHTML = `You ran out of time for this question.<br><strong>Correct answer:</strong> ${q.correct_answer}<br><br>${q.explanation || ''}`;
         quizExplanationBox.className = 'quiz-explanation-box wrong';
         quizExplanationBox.classList.remove('hidden');
+        renderMath(quizExplanationBox);
 
         const isLastQuestion = currentQuestionIndex === quizQuestions.length - 1;
         nextBtnText.textContent = isLastQuestion ? 'Finish & See Final Score 🏆' : 'Next Question';
@@ -859,6 +946,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         finalResultTitle.textContent = title;
         finalResultMsg.textContent = message;
+        renderMath(quizCompletedCard);
 
         // Automatically persist quiz result to SQLite / JSON
         saveQuizResultToDatabase(quizScore, totalQ, accuracyPct, `${title} - ${message}`, activeQuizDifficulty);
@@ -1325,6 +1413,9 @@ document.addEventListener('DOMContentLoaded', () => {
         themeSwitchCheckbox.addEventListener('change', () => {
             const newTheme = themeSwitchCheckbox.checked ? 'dark' : 'light';
             applyTheme(newTheme);
+            if (progressSection && !progressSection.classList.contains('hidden') && cachedQuizHistory.length > 0) {
+                renderScoreTrendChart(cachedQuizHistory, currentChartType);
+            }
         });
     }
 
@@ -1333,7 +1424,790 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             applyTheme(newTheme);
+            if (progressSection && !progressSection.classList.contains('hidden') && cachedQuizHistory.length > 0) {
+                renderScoreTrendChart(cachedQuizHistory, currentChartType);
+            }
         });
+    }
+
+    // ========================================================
+    // PHASE 3: PROGRESS DASHBOARD & GAMER STATS LOGIC
+    // ========================================================
+
+    // Format quiz date timestamp
+    function formatQuizDate(dateStr) {
+        if (!dateStr) return 'Recently';
+        try {
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) {
+                return d.toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+        } catch (e) {
+            // fallback
+        }
+        return dateStr;
+    }
+
+    // Get score badge styling class based on percentage
+    function getScoreBadgeClass(pct) {
+        if (pct >= 80) return 'score-master';
+        if (pct >= 60) return 'score-scholar';
+        if (pct >= 40) return 'score-learner';
+        return 'score-beginner';
+    }
+
+    // Render Quiz History Table (Newest first)
+    function renderQuizHistoryTable(historyItems) {
+        if (!quizHistoryTableBody) return;
+        quizHistoryTableBody.innerHTML = '';
+
+        if (!historyItems || historyItems.length === 0) {
+            if (historyEmptyState) historyEmptyState.classList.remove('hidden');
+            if (quizHistoryTable) quizHistoryTable.classList.add('hidden');
+            if (historyCountBadge) historyCountBadge.textContent = '0 attempts';
+            return;
+        }
+
+        if (historyEmptyState) historyEmptyState.classList.add('hidden');
+        if (quizHistoryTable) quizHistoryTable.classList.remove('hidden');
+        if (historyCountBadge) historyCountBadge.textContent = `${historyItems.length} attempt${historyItems.length === 1 ? '' : 's'}`;
+
+        historyItems.forEach(item => {
+            const tr = document.createElement('tr');
+            const diff = (item.difficulty || 'medium').toLowerCase();
+            const diffIcon = diff === 'easy' ? '🌱' : diff === 'hard' ? '🔥' : '⚡';
+            const diffLabel = diff.charAt(0).toUpperCase() + diff.slice(1);
+            const scorePct = Math.round(parseFloat(item.percentage) || 0);
+            const scoreClass = getScoreBadgeClass(scorePct);
+            const formattedDate = formatQuizDate(item.created_at);
+
+            tr.innerHTML = `
+                <td class="td-date history-date">${formattedDate}</td>
+                <td class="td-doc">
+                    <div class="history-doc-wrap" title="${item.pdf_name || 'document.pdf'}">
+                        <span class="history-doc-icon">📄</span>
+                        <span class="history-doc-text">${item.pdf_name || 'document.pdf'}</span>
+                    </div>
+                </td>
+                <td class="td-questions">
+                    <span class="history-pill-questions">${item.total || 10} Qs</span>
+                </td>
+                <td class="td-difficulty">
+                    <span class="badge-diff ${diff}">${diffIcon} ${diffLabel}</span>
+                </td>
+                <td class="td-score">
+                    <span class="badge-score ${scoreClass}">
+                        <span class="score-fraction">${item.score}/${item.total}</span>
+                        <small class="score-pct-small">(${scorePct}%)</small>
+                    </span>
+                </td>
+            `;
+            quizHistoryTableBody.appendChild(tr);
+        });
+    }
+
+    // Update Gamer Rank Banner & Animated Progress Bar to next level
+    function updateRankBanner(stats) {
+        if (!gamerRankBanner) return;
+
+        const avg = typeof stats.average_score === 'number' ? stats.average_score : (parseFloat(stats.average_score) || 0);
+
+        // Clamped average score between 0% and 100% for the progress meter
+        const fillPercentage = Math.min(100, Math.max(0, avg));
+
+        // Level badge system:
+        // Beginner (<40%), Learner (40-60%), Scholar (60-80%), Master (80%+)
+        let levelTitle = 'Beginner';
+        let levelEmoji = '🌱';
+        let tierPillText = 'TIER 1';
+        let tierDesc = 'Starting your knowledge journey and building core foundational concepts.';
+        let nextRankMsg = '';
+
+        if (avg < 40) {
+            levelTitle = 'Beginner';
+            levelEmoji = '🌱';
+            tierPillText = 'TIER 1';
+            tierDesc = 'Starting your knowledge journey and building core foundational concepts.';
+            nextRankMsg = `${(40 - avg).toFixed(1)}% to unlock Learner ⚡`;
+        } else if (avg < 60) {
+            levelTitle = 'Learner';
+            levelEmoji = '⚡';
+            tierPillText = 'TIER 2';
+            tierDesc = 'Building strong conceptual understanding and practical comprehension.';
+            nextRankMsg = `${(60 - avg).toFixed(1)}% to unlock Scholar 🔮`;
+        } else if (avg < 80) {
+            levelTitle = 'Scholar';
+            levelEmoji = '🔮';
+            tierPillText = 'TIER 3';
+            tierDesc = 'Mastering complex technical nuances and analytical reasoning.';
+            nextRankMsg = `${(80 - avg).toFixed(1)}% to unlock Master 👑`;
+        } else if (avg < 100) {
+            levelTitle = 'Master';
+            levelEmoji = '👑';
+            tierPillText = 'TIER 4';
+            tierDesc = 'Apex Grandmaster! Exceptional retention and complete document mastery.';
+            nextRankMsg = `${(100 - avg).toFixed(1)}% to unlock Impossible ♾️`;
+        } else {
+            levelTitle = 'Impossible';
+            levelEmoji = '♾️';
+            tierPillText = 'TIER 5';
+            tierDesc = 'Transcendental Perfection! Flawless 100% accuracy — truly impossible mastery achieved!';
+            nextRankMsg = 'MAX RANK UNLOCKED · Flawless Impossible Godlike! ♾️';
+        }
+
+        if (rankBadgeEmoji) rankBadgeEmoji.textContent = levelEmoji;
+        if (rankTitle) rankTitle.textContent = levelTitle;
+        if (rankTierPill) rankTierPill.textContent = tierPillText;
+        if (rankDesc) rankDesc.textContent = tierDesc;
+        if (rankAvgScoreDisplay) rankAvgScoreDisplay.textContent = `${avg.toFixed(1)}%`;
+        if (nextRankLabel) nextRankLabel.textContent = nextRankMsg;
+
+        if (rankProgressBar) {
+            rankProgressBar.setAttribute('aria-valuenow', Math.round(fillPercentage));
+        }
+        if (rankProgressFill) {
+            // Directly bind fill width to average score with smooth transition
+            rankProgressFill.style.width = `${fillPercentage.toFixed(1)}%`;
+        }
+
+        // Highlight passed ticks on the 0-100 numeric scale
+        const scaleTicks = gamerRankBanner.querySelectorAll('.scale-tick');
+        scaleTicks.forEach(tick => {
+            const val = parseFloat(tick.dataset.val);
+            if (!isNaN(val)) {
+                if (val <= fillPercentage) {
+                    tick.classList.add('passed');
+                } else {
+                    tick.classList.remove('passed');
+                }
+            }
+        });
+
+        // Update active milestone step in the tier zones legend
+        const tiers = ['beginner', 'learner', 'scholar', 'master', 'impossible'];
+        const currentTierIndex = tiers.indexOf(levelTitle.toLowerCase());
+        const stepEls = [tierStepBeginner, tierStepLearner, tierStepScholar, tierStepMaster, tierStepImpossible];
+
+        stepEls.forEach((el, idx) => {
+            if (!el) return;
+            el.classList.remove('active-tier', 'completed-tier');
+            if (idx === currentTierIndex) {
+                el.classList.add('active-tier');
+            } else if (idx < currentTierIndex) {
+                el.classList.add('completed-tier');
+            }
+        });
+    }
+
+    // Update 5 Stats Overview Cards
+    function updateStatsCards(stats, historyItems) {
+        const totalQuizzes = stats.total_quizzes !== undefined ? stats.total_quizzes : historyItems.length;
+        const avgScore = typeof stats.average_score === 'number' ? stats.average_score : (parseFloat(stats.average_score) || 0);
+        const bestScore = stats.best_score || '0%';
+        const totalQuestions = stats.total_questions !== undefined ? stats.total_questions : 0;
+        const totalCorrect = stats.total_correct !== undefined ? stats.total_correct : 0;
+        const overallAccuracy = typeof stats.overall_accuracy === 'number' ? stats.overall_accuracy : (parseFloat(stats.overall_accuracy) || 0);
+
+        if (statCardTotalQuizzes) statCardTotalQuizzes.textContent = totalQuizzes;
+        if (statCardAverageScore) statCardAverageScore.textContent = `${avgScore.toFixed(1)}%`;
+        if (statCardBestScore) statCardBestScore.textContent = bestScore;
+        if (statCardTotalQuestions) statCardTotalQuestions.textContent = totalQuestions;
+        if (statCardCorrectRatio) statCardCorrectRatio.textContent = `${totalCorrect} correct answers`;
+        if (statCardOverallAccuracy) statCardOverallAccuracy.textContent = `${overallAccuracy.toFixed(1)}%`;
+    }
+
+    // Render Score Trend Chart using Chart.js
+    function renderScoreTrendChart(historyItems, chartType = 'line') {
+        if (!scoreTrendChartCanvas) return;
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js library is not available.');
+            return;
+        }
+
+        if (progressChartInstance) {
+            progressChartInstance.destroy();
+            progressChartInstance = null;
+        }
+
+        if (!historyItems || historyItems.length === 0) {
+            if (chartEmptyState) chartEmptyState.classList.remove('hidden');
+            scoreTrendChartCanvas.classList.add('hidden');
+            return;
+        }
+
+        if (chartEmptyState) chartEmptyState.classList.add('hidden');
+        scoreTrendChartCanvas.classList.remove('hidden');
+
+        // Chronological order: oldest first for score progression over time
+        const chronological = [...historyItems].reverse();
+
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+        const textColor = isDark ? '#c4b5fd' : '#4c1d95';
+        const gridColor = isDark ? 'rgba(168, 85, 247, 0.12)' : 'rgba(124, 58, 237, 0.1)';
+        const tooltipBg = isDark ? 'rgba(20, 13, 38, 0.95)' : 'rgba(255, 255, 255, 0.98)';
+        const tooltipText = isDark ? '#f8f6fe' : '#1e1b4b';
+
+        const labels = chronological.map((item, idx) => {
+            if (item.created_at) {
+                const parts = item.created_at.split(/[\s,]+/);
+                return parts[0] || `Quiz ${idx + 1}`;
+            }
+            return `Quiz ${idx + 1}`;
+        });
+
+        const dataPoints = chronological.map(item => parseFloat(item.percentage) || 0);
+
+        const ctx = scoreTrendChartCanvas.getContext('2d');
+        let gradientFill = null;
+        let gradientStroke = null;
+
+        try {
+            const h = scoreTrendChartCanvas.clientHeight || 280;
+            gradientFill = ctx.createLinearGradient(0, 0, 0, h);
+            gradientFill.addColorStop(0, 'rgba(168, 85, 247, 0.45)');
+            gradientFill.addColorStop(0.6, 'rgba(6, 182, 212, 0.15)');
+            gradientFill.addColorStop(1, 'rgba(12, 8, 23, 0.0)');
+
+            gradientStroke = ctx.createLinearGradient(0, 0, scoreTrendChartCanvas.clientWidth || 400, 0);
+            gradientStroke.addColorStop(0, '#a855f7');
+            gradientStroke.addColorStop(1, '#06b6d4');
+        } catch (e) {
+            gradientFill = 'rgba(168, 85, 247, 0.25)';
+            gradientStroke = '#a855f7';
+        }
+
+        progressChartInstance = new Chart(ctx, {
+            type: chartType,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Quiz Score (%)',
+                    data: dataPoints,
+                    borderColor: gradientStroke || '#a855f7',
+                    backgroundColor: chartType === 'line' ? gradientFill : 'rgba(168, 85, 247, 0.65)',
+                    borderWidth: 2.5,
+                    fill: chartType === 'line',
+                    tension: 0.35,
+                    pointBackgroundColor: '#22d3ee',
+                    pointBorderColor: isDark ? '#0c0817' : '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: chronological.length > 25 ? 3 : 5,
+                    pointHoverRadius: 8,
+                    pointHoverBackgroundColor: '#ffffff',
+                    pointHoverBorderColor: '#06b6d4',
+                    borderRadius: chartType === 'bar' ? 6 : 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 700,
+                    easing: 'easeOutQuart'
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: tooltipBg,
+                        titleColor: tooltipText,
+                        bodyColor: textColor,
+                        borderColor: 'rgba(168, 85, 247, 0.5)',
+                        borderWidth: 1,
+                        padding: 12,
+                        boxPadding: 6,
+                        usePointStyle: true,
+                        callbacks: {
+                            title: function(tooltipItems) {
+                                const idx = tooltipItems[0].dataIndex;
+                                const item = chronological[idx];
+                                return item ? (item.pdf_name || `Quiz Attempt #${idx + 1}`) : 'Quiz Attempt';
+                            },
+                            label: function(context) {
+                                const idx = context.dataIndex;
+                                const item = chronological[idx];
+                                const diff = item && item.difficulty ? ` · ${item.difficulty.toUpperCase()}` : '';
+                                return `Score: ${item.score}/${item.total} (${item.percentage}%)${diff}`;
+                            },
+                            afterLabel: function(context) {
+                                const idx = context.dataIndex;
+                                const item = chronological[idx];
+                                return item && item.created_at ? `Date: ${item.created_at}` : '';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: gridColor,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: textColor,
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                            maxRotation: 45
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        max: 100,
+                        grid: {
+                            color: gridColor,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: textColor,
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                            stepSize: 20,
+                            callback: function(val) {
+                                return val + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Load and Render Progress Data from SQLite & Backend
+    async function loadAndRenderProgressData() {
+        try {
+            const [historyRes, statsRes] = await Promise.all([
+                fetch('/quiz/history').then(r => r.json()).catch(() => ({ success: false })),
+                fetch('/quiz/stats').then(r => r.json()).catch(() => ({ success: false }))
+            ]);
+
+            const historyItems = (historyRes && historyRes.success && Array.isArray(historyRes.history))
+                ? historyRes.history
+                : [];
+            cachedQuizHistory = historyItems;
+
+            let stats = (statsRes && statsRes.success && statsRes.stats) ? statsRes.stats : null;
+            if (!stats) {
+                // Client-side fallback calculation if /quiz/stats is unavailable
+                const count = historyItems.length;
+                const totalQ = historyItems.reduce((acc, r) => acc + (parseInt(r.total, 10) || 10), 0);
+                const totalC = historyItems.reduce((acc, r) => acc + (parseInt(r.score, 10) || 0), 0);
+                const avg = count > 0 ? (historyItems.reduce((acc, r) => acc + (parseFloat(r.percentage) || 0), 0) / count) : 0;
+                const bestRow = count > 0 ? historyItems.reduce((best, r) => (parseFloat(r.percentage) > parseFloat(best.percentage) ? r : best), historyItems[0]) : null;
+                stats = {
+                    total_quizzes: count,
+                    average_score: avg,
+                    best_score: bestRow ? `${bestRow.percentage}% (${bestRow.score}/${bestRow.total})` : '0%',
+                    total_questions: totalQ,
+                    total_correct: totalC,
+                    overall_accuracy: totalQ > 0 ? (totalC / totalQ) * 100 : 0
+                };
+            }
+
+            updateRankBanner(stats);
+            updateStatsCards(stats, historyItems);
+            renderScoreTrendChart(historyItems, currentChartType);
+            renderQuizHistoryTable(historyItems);
+
+            // Render any LaTeX math notation present in the history or stats
+            renderMath(progressSection);
+
+        } catch (err) {
+            console.error('Failed to load progress dashboard data:', err);
+        }
+    }
+
+    // Open Progress Dashboard View
+    function openProgressDashboard() {
+        if (!quizSection.classList.contains('hidden')) {
+            previousViewBeforeProgress = 'quiz';
+        } else if (!resultsSection.classList.contains('hidden')) {
+            previousViewBeforeProgress = 'results';
+        } else {
+            previousViewBeforeProgress = 'upload';
+        }
+
+        uploadSection.classList.add('hidden');
+        resultsSection.classList.add('hidden');
+        quizSection.classList.add('hidden');
+        loadingSection.classList.add('hidden');
+        progressSection.classList.remove('hidden');
+
+        document.body.classList.add('progress-page-active');
+        if (myProgressBtn) myProgressBtn.classList.add('active');
+
+        loadAndRenderProgressData();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Close Progress Dashboard View & Return to Previous Screen
+    function closeProgressDashboard() {
+        progressSection.classList.add('hidden');
+        document.body.classList.remove('progress-page-active');
+        if (myProgressBtn) myProgressBtn.classList.remove('active');
+
+        if (previousViewBeforeProgress === 'results' && summariesData) {
+            resultsSection.classList.remove('hidden');
+        } else if (previousViewBeforeProgress === 'quiz' && quizQuestions.length > 0) {
+            quizSection.classList.remove('hidden');
+        } else {
+            uploadSection.classList.remove('hidden');
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Event Listeners for Progress Dashboard
+    if (myProgressBtn) {
+        myProgressBtn.addEventListener('click', openProgressDashboard);
+    }
+    if (quizViewProgressBtn) {
+        quizViewProgressBtn.addEventListener('click', openProgressDashboard);
+    }
+    if (backFromProgressBtn) {
+        backFromProgressBtn.addEventListener('click', closeProgressDashboard);
+    }
+    if (progressQuickQuizBtn) {
+        progressQuickQuizBtn.addEventListener('click', () => {
+            closeProgressDashboard();
+            if (selectedFile) {
+                openQuizConfigModal();
+            } else {
+                // Focus drop zone to pick a file
+                dropZone.classList.remove('pulse-highlight');
+                void dropZone.offsetWidth;
+                dropZone.classList.add('pulse-highlight');
+                setTimeout(() => dropZone.classList.remove('pulse-highlight'), 1200);
+            }
+        });
+    }
+    if (historyStartQuizBtn) {
+        historyStartQuizBtn.addEventListener('click', () => {
+            closeProgressDashboard();
+            if (selectedFile) {
+                openQuizConfigModal();
+            } else {
+                dropZone.classList.remove('pulse-highlight');
+                void dropZone.offsetWidth;
+                dropZone.classList.add('pulse-highlight');
+                setTimeout(() => dropZone.classList.remove('pulse-highlight'), 1200);
+            }
+        });
+    }
+
+    // Chart Type Toggles (Line vs Bar)
+    if (chartTypeLineBtn) {
+        chartTypeLineBtn.addEventListener('click', () => {
+            currentChartType = 'line';
+            chartTypeLineBtn.classList.add('active');
+            if (chartTypeBarBtn) chartTypeBarBtn.classList.remove('active');
+            renderScoreTrendChart(cachedQuizHistory, 'line');
+        });
+    }
+    if (chartTypeBarBtn) {
+        chartTypeBarBtn.addEventListener('click', () => {
+            currentChartType = 'bar';
+            chartTypeBarBtn.classList.add('active');
+            if (chartTypeLineBtn) chartTypeLineBtn.classList.remove('active');
+            renderScoreTrendChart(cachedQuizHistory, 'bar');
+        });
+    }
+
+    // ========================================================
+    // RESTART PROGRESS DATA & MODAL HANDLERS
+    // ========================================================
+    function openRestartModal() {
+        if (restartConfirmModal) {
+            restartConfirmModal.classList.remove('hidden');
+        }
+    }
+
+    function closeRestartModal() {
+        if (restartConfirmModal) {
+            restartConfirmModal.classList.add('hidden');
+        }
+    }
+
+    function showResetSuccessBanner(msg) {
+        if (!progressResetAlert) return;
+        const msgEl = progressResetAlert.querySelector('.alert-msg');
+        if (msgEl && msg) {
+            msgEl.textContent = msg;
+        }
+        progressResetAlert.classList.remove('hidden');
+        if (resetAlertTimeout) {
+            clearTimeout(resetAlertTimeout);
+        }
+        resetAlertTimeout = setTimeout(() => {
+            progressResetAlert.classList.add('hidden');
+        }, 6000);
+    }
+
+    async function handleRestartProgress() {
+        if (!confirmRestartBtn) return;
+        const origContent = confirmRestartBtn.innerHTML;
+        try {
+            confirmRestartBtn.disabled = true;
+            confirmRestartBtn.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">Restarting...</span>';
+
+            const res = await fetch('/quiz/reset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await res.json();
+            if (res.ok && data && data.success) {
+                closeRestartModal();
+                showResetSuccessBanner(data.message || 'Progress data has been restarted! You can now record fresh quiz attempts from starting.');
+                // Instantly re-fetch and render empty stats & clean dashboard
+                await loadAndRenderProgressData();
+            } else {
+                alert((data && data.error) || 'Failed to restart progress data. Please try again.');
+            }
+        } catch (err) {
+            console.error('Error resetting quiz progress:', err);
+            alert('A network error occurred while restarting progress. Please try again.');
+        } finally {
+            confirmRestartBtn.disabled = false;
+            confirmRestartBtn.innerHTML = origContent;
+        }
+    }
+
+    if (restartProgressBtn) {
+        restartProgressBtn.addEventListener('click', openRestartModal);
+    }
+    if (closeRestartModalBtn) {
+        closeRestartModalBtn.addEventListener('click', closeRestartModal);
+    }
+    if (cancelRestartModalBtn) {
+        cancelRestartModalBtn.addEventListener('click', closeRestartModal);
+    }
+    if (restartModalBackdrop) {
+        restartModalBackdrop.addEventListener('click', closeRestartModal);
+    }
+    if (confirmRestartBtn) {
+        confirmRestartBtn.addEventListener('click', handleRestartProgress);
+    }
+    if (dismissResetAlertBtn && progressResetAlert) {
+        dismissResetAlertBtn.addEventListener('click', () => {
+            progressResetAlert.classList.add('hidden');
+        });
+    }
+
+    // Close modals on Escape key
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (wordHelpModal && !wordHelpModal.classList.contains('hidden')) {
+                closeWordHelpModal();
+            } else if (restartConfirmModal && !restartConfirmModal.classList.contains('hidden')) {
+                closeRestartModal();
+            } else if (quizConfigModal && !quizConfigModal.classList.contains('hidden')) {
+                closeQuizConfigModal();
+            }
+        }
+    });
+
+    // ========================================================
+    // PHASE 4: WORD HELP QUICK TERM EXPLAINER LOGIC
+    // ========================================================
+
+    function showWordHelpAlert(msg, isDanger = false) {
+        if (!wordHelpAlert || !wordHelpAlertMsg) return;
+        wordHelpAlertMsg.textContent = msg;
+        if (isDanger) {
+            wordHelpAlert.classList.add('danger');
+        } else {
+            wordHelpAlert.classList.remove('danger');
+        }
+        wordHelpAlert.classList.remove('hidden');
+    }
+
+    function hideWordHelpAlert() {
+        if (!wordHelpAlert) return;
+        wordHelpAlert.classList.add('hidden');
+    }
+
+    function displayWordHelpResult(term, explanation, isNotFound) {
+        if (!wordHelpResult || !wordHelpAnswerBody || !wordHelpResultTerm) return;
+        wordHelpResultTerm.textContent = term;
+
+        if (isNotFound) {
+            wordHelpResult.classList.add('not-found');
+        } else {
+            wordHelpResult.classList.remove('not-found');
+        }
+
+        // Format markdown if marked is loaded, otherwise sanitize and format
+        let formattedHtml = '';
+        if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+            formattedHtml = marked.parse(explanation);
+        } else {
+            const escaped = explanation
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            formattedHtml = `<p>${escaped.replace(/\n/g, '<br>')}</p>`;
+        }
+
+        wordHelpAnswerBody.innerHTML = formattedHtml;
+
+        // Run KaTeX auto-render on the answer card
+        renderMath(wordHelpAnswerBody);
+
+        wordHelpResult.classList.remove('hidden');
+        wordHelpResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    async function handleWordHelp(e) {
+        if (e) e.preventDefault();
+        const term = wordHelpInput ? wordHelpInput.value.trim() : '';
+
+        // If no PDF is uploaded yet, show 'Please upload a PDF first'
+        if (!selectedFile) {
+            showWordHelpAlert('Please upload a PDF first');
+            return;
+        }
+
+        if (!term) {
+            showWordHelpAlert('Please enter a word or concept from your PDF to explain');
+            if (wordHelpInput) wordHelpInput.focus();
+            return;
+        }
+
+        hideWordHelpAlert();
+        if (wordHelpResult) wordHelpResult.classList.add('hidden');
+        if (wordHelpLoading) wordHelpLoading.classList.remove('hidden');
+
+        if (wordHelpSubmitBtn) wordHelpSubmitBtn.disabled = true;
+        if (wordHelpInput) wordHelpInput.disabled = true;
+
+        const formData = new FormData();
+        formData.append('pdf', selectedFile);
+        formData.append('term', term);
+
+        try {
+            const response = await fetch('/word-help', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                const errorMsg = data.error || 'Failed to explain term.';
+                if (response.status === 503 || errorMsg.includes('503') || errorMsg.toLowerCase().includes('busy')) {
+                    throw new Error('The service is busy right now, please try again in a minute.');
+                }
+                throw new Error(errorMsg);
+            }
+
+            displayWordHelpResult(data.term, data.explanation, data.not_found);
+
+        } catch (err) {
+            console.error('Word Help error:', err);
+            showWordHelpAlert(err.message || 'An error occurred while fetching explanation.', true);
+        } finally {
+            if (wordHelpLoading) wordHelpLoading.classList.add('hidden');
+            if (wordHelpSubmitBtn) wordHelpSubmitBtn.disabled = false;
+            if (wordHelpInput) {
+                wordHelpInput.disabled = false;
+                wordHelpInput.focus();
+            }
+        }
+    }
+
+    if (wordHelpInput) {
+        wordHelpInput.addEventListener('input', () => {
+            hideWordHelpAlert();
+            if (wordHelpClearBtn) {
+                if (wordHelpInput.value.trim().length > 0) {
+                    wordHelpClearBtn.classList.remove('hidden');
+                } else {
+                    wordHelpClearBtn.classList.add('hidden');
+                }
+            }
+        });
+
+        wordHelpInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleWordHelp(e);
+            }
+        });
+    }
+
+    if (wordHelpClearBtn && wordHelpInput) {
+        wordHelpClearBtn.addEventListener('click', () => {
+            wordHelpInput.value = '';
+            wordHelpClearBtn.classList.add('hidden');
+            hideWordHelpAlert();
+            wordHelpInput.focus();
+        });
+    }
+
+    if (wordHelpForm) {
+        wordHelpForm.addEventListener('submit', handleWordHelp);
+    }
+
+    if (wordHelpSubmitBtn) {
+        wordHelpSubmitBtn.addEventListener('click', handleWordHelp);
+    }
+
+    if (closeWordHelpResultBtn && wordHelpResult) {
+        closeWordHelpResultBtn.addEventListener('click', () => {
+            wordHelpResult.classList.add('hidden');
+        });
+    }
+
+    // Modal open/close handlers
+    function openWordHelpModal() {
+        if (wordHelpTargetFileName) {
+            wordHelpTargetFileName.textContent = selectedFile ? selectedFile.name : 'No PDF selected yet';
+        }
+        if (!selectedFile) {
+            showWordHelpAlert('Please upload a PDF first');
+        } else {
+            hideWordHelpAlert();
+        }
+        if (wordHelpModal) {
+            wordHelpModal.classList.remove('hidden');
+        }
+        if (wordHelpInput) {
+            setTimeout(() => {
+                wordHelpInput.focus();
+            }, 120);
+        }
+    }
+
+    function closeWordHelpModal() {
+        if (wordHelpModal) {
+            wordHelpModal.classList.add('hidden');
+        }
+    }
+
+    if (wordHelpTriggerBtn) {
+        wordHelpTriggerBtn.addEventListener('click', openWordHelpModal);
+    }
+    if (resultsWordHelpBtn) {
+        resultsWordHelpBtn.addEventListener('click', openWordHelpModal);
+    }
+    if (closeWordHelpModalBtn) {
+        closeWordHelpModalBtn.addEventListener('click', closeWordHelpModal);
+    }
+    if (cancelWordHelpModalBtn) {
+        cancelWordHelpModalBtn.addEventListener('click', closeWordHelpModal);
+    }
+    if (wordHelpModalBackdrop) {
+        wordHelpModalBackdrop.addEventListener('click', closeWordHelpModal);
     }
 
     // ========================================================
