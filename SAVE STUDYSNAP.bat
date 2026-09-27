@@ -1,7 +1,7 @@
 @echo off
 title SAVE STUDYSNAP
 color 0F
-mode con: cols=60 lines=8
+mode con: cols=60 lines=8 >nul 2>&1
 
 cls
 echo Saving...
