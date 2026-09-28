@@ -17,11 +17,15 @@ if errorlevel 1 (
 )
 
 echo.
-echo Connecting public secure tunnel (works on all devices)...
-echo You will see your public HTTPS link below:
+echo Starting public secure tunnel (Cloudflare)...
+echo Your public HTTPS link will appear below:
 echo =======================================================
 echo.
 
-ssh -R 80:127.0.0.1:5000 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 nokey@localhost.run
+if exist "tools\cloudflared.exe" (
+    tools\cloudflared.exe tunnel --url http://127.0.0.1:5000
+) else (
+    ssh -R 80:127.0.0.1:5000 -o StrictHostKeyChecking=no -o ServerAliveInterval=30 nokey@localhost.run
+)
 
 pause
