@@ -688,6 +688,7 @@ def file_too_large(e):
 
 
 if __name__ == '__main__':
-    # Run Flask local development server
-    print("[*] StudySnap is running on http://127.0.0.1:5000")
-    app.run(host='127.0.0.1', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+    print(f"[*] StudySnap is running on http://127.0.0.1:{port}")
+    app.run(host='0.0.0.0', port=port, debug=debug)

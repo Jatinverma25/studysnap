@@ -27,3 +27,7 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Tunnel tools & executables
+tools/
+*.exe
