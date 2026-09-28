@@ -208,8 +208,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(`Endpoint not found (404). Please verify your deployment URL and routing.`);
             }
             if (response.status === 500) {
+                const detailMsg = errorDetails ? ` (Server message: "${errorDetails}")` : '';
                 throw new Error(
-                    `Server Error (500). Please check your Render deployment logs and ensure GEMINI_API_KEY is configured in Environment settings.`
+                    `Server Error (500).${detailMsg} Please check your hosting dashboard logs and ensure GEMINI_API_KEY is configured in Environment settings.`
                 );
             }
             if (response.status === 413) {
@@ -2348,4 +2349,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize custom cursor
     initBouncyCursor();
+
+    // Proactively verify environment and API key health on startup
+    async function checkHealthStatus() {
+        try {
+            const res = await fetch('/health');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.api_key_configured === false) {
+                    showError(
+                        `⚠️ Notice: GEMINI_API_KEY is not detected. Please add GEMINI_API_KEY in your ${data.platform === 'vercel' ? 'Vercel' : 'Render'} dashboard under Environment variables and rebuild.`
+                    );
+                }
+            }
+        } catch (e) {
+            // Non-blocking background health check
+        }
+    }
+    checkHealthStatus();
 });

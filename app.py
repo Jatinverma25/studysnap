@@ -135,12 +135,45 @@ def get_gemini_client():
     return genai.Client(api_key=api_key)
 
 
-@app.route('/')
+@app.route('/health', methods=['GET'])
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    """Health check endpoint to verify hosting environment and API key availability."""
+    api_key = find_gemini_api_key()
+    has_key = bool(api_key and len(api_key) > 5)
+    platform = "local"
+    if os.environ.get("VERCEL"):
+        platform = "vercel"
+    elif os.environ.get("RENDER"):
+        platform = "render"
+
+    return jsonify({
+        "status": "ok",
+        "platform": platform,
+        "api_key_configured": has_key,
+        "key_prefix": (api_key[:4] + "..." + api_key[-4:]) if has_key else None,
+        "database_path": DB_PATH,
+        "message": "GEMINI_API_KEY is active and detected!" if has_key else "GEMINI_API_KEY is missing from environment"
+    })
+
+
+@app.route('/', methods=['GET'])
+@app.route('/api', methods=['GET'])
+@app.route('/api/', methods=['GET'])
+@app.route('/api/index', methods=['GET'])
+@app.route('/api/index.py', methods=['GET'])
 def index():
     return render_template('index.html')
 
 
+@app.route('/static/<path:filename>', methods=['GET'])
+def serve_static(filename):
+    from flask import send_from_directory
+    return send_from_directory(app.static_folder, filename)
+
+
 @app.route('/summarize', methods=['POST'])
+@app.route('/api/summarize', methods=['POST'])
 def summarize():
     # 1. Validate file presence
     if 'pdf' not in request.files:
@@ -279,6 +312,7 @@ def summarize():
 
 
 @app.route('/word-help', methods=['POST'])
+@app.route('/api/word-help', methods=['POST'])
 def word_help():
     """Explains a term ONLY in the context of the uploaded PDF using Gemini with retry logic."""
     term = request.form.get('term', '').strip()
@@ -377,6 +411,7 @@ def word_help():
 
 
 @app.route('/quiz/generate', methods=['POST'])
+@app.route('/api/quiz/generate', methods=['POST'])
 def generate_quiz():
     """Generates customized multiple-choice questions (10, 20, 30, 40, 50) and difficulty (easy, medium, hard) from the uploaded PDF content only."""
     # 1. Validate file presence
@@ -548,6 +583,7 @@ def generate_quiz():
 
 
 @app.route('/quiz/save', methods=['POST'])
+@app.route('/api/quiz/save', methods=['POST'])
 def save_quiz_result():
     """Saves a quiz score and metadata to SQLite database and JSON file."""
     try:
@@ -602,6 +638,7 @@ def save_quiz_result():
 
 
 @app.route('/quiz/history', methods=['GET'])
+@app.route('/api/quiz/history', methods=['GET'])
 def get_quiz_history():
     """Retrieves all past quiz attempts from SQLite database."""
     try:
@@ -617,6 +654,7 @@ def get_quiz_history():
 
 
 @app.route('/quiz/reset', methods=['POST'])
+@app.route('/api/quiz/reset', methods=['POST'])
 def reset_quiz_data():
     """Resets all quiz history and progress data so the user can start and record progress from scratch."""
     try:
@@ -644,6 +682,7 @@ def reset_quiz_data():
 
 
 @app.route('/quiz/stats', methods=['GET'])
+@app.route('/api/quiz/stats', methods=['GET'])
 def get_quiz_stats():
     """Computes aggregated quiz stats, average score, accuracy, and level progression."""
     try:
