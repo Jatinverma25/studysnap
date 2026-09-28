@@ -53,9 +53,13 @@ init_db()
 
 
 def get_gemini_client():
-    api_key = os.getenv("GEMINI_API_KEY")
+    # Read API key directly from environment variables (works both locally and on Render/cloud)
+    api_key = os.environ.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError("GEMINI_API_KEY not found in environment variables. Please check your .env file.")
+        raise ValueError(
+            "GEMINI_API_KEY is missing from environment variables. "
+            "If running on Render, go to your Dashboard -> Environment and add GEMINI_API_KEY."
+        )
     return genai.Client(api_key=api_key)
 
 
@@ -682,9 +686,46 @@ def get_quiz_stats():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
+@app.errorhandler(404)
+def handle_404(e):
+    return jsonify({
+        "error": "The requested API endpoint was not found (404).",
+        "success": False
+    }), 404
+
+
+@app.errorhandler(405)
+def handle_405(e):
+    return jsonify({
+        "error": "Method Not Allowed (405). Please check your HTTP request method.",
+        "success": False
+    }), 405
+
+
 @app.errorhandler(413)
-def file_too_large(e):
-    return jsonify({"success": False, "error": "File size exceeds the 30MB limit."}), 413
+def handle_413(e):
+    return jsonify({
+        "error": "File size exceeds the 30MB limit (413).",
+        "success": False
+    }), 413
+
+
+@app.errorhandler(500)
+def handle_500(e):
+    return jsonify({
+        "error": "Internal server error occurred on the server (500).",
+        "success": False
+    }), 500
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    # Log full traceback on the server
+    app.logger.error(f"Unhandled Server Error: {str(e)}", exc_info=True)
+    return jsonify({
+        "error": f"Server encountered an error: {str(e)}",
+        "success": False
+    }), 500
 
 
 if __name__ == '__main__':

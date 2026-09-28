@@ -183,6 +183,62 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
     }
 
+    // Helper: Safely parse JSON from API response, validating status & content-type
+    async function safeParseJsonResponse(response, actionDescription = 'request') {
+        const contentType = response.headers.get('content-type') || '';
+        const isJson = contentType.toLowerCase().includes('application/json');
+
+        if (!isJson) {
+            let errorDetails = '';
+            try {
+                const text = await response.text();
+                // Strip HTML tags to extract readable snippet if present
+                const cleanText = text.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+                errorDetails = cleanText.slice(0, 160);
+            } catch (e) {
+                errorDetails = '';
+            }
+
+            if (response.status === 504 || response.status === 502) {
+                throw new Error(
+                    `Server timeout (${response.status}). The AI model or document processing took too long to respond. Please try again or test with a smaller PDF.`
+                );
+            }
+            if (response.status === 404) {
+                throw new Error(`Endpoint not found (404). Please verify your deployment URL and routing.`);
+            }
+            if (response.status === 500) {
+                throw new Error(
+                    `Server Error (500). Please check your Render deployment logs and ensure GEMINI_API_KEY is configured in Environment settings.`
+                );
+            }
+            if (response.status === 413) {
+                throw new Error(`File size is too large (413). Please upload a PDF under 30MB.`);
+            }
+
+            throw new Error(
+                `Server returned an HTML error instead of JSON (${response.status}): ${errorDetails || 'Non-JSON response received.'}`
+            );
+        }
+
+        let data;
+        try {
+            data = await response.json();
+        } catch (jsonErr) {
+            throw new Error(`Unable to parse server response as valid JSON: ${jsonErr.message}`);
+        }
+
+        if (!response.ok || (data && data.success === false)) {
+            const errorMsg = (data && (data.error || data.message)) || `Failed during ${actionDescription}.`;
+            if (response.status === 503 || errorMsg.includes('503') || errorMsg.toLowerCase().includes('busy')) {
+                throw new Error('The service is busy right now, please try again in a minute.');
+            }
+            throw new Error(errorMsg);
+        }
+
+        return data;
+    }
+
     // File selection handler
     function handleFile(file) {
         if (!file) return;
@@ -432,15 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: formData
             });
 
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                const errorMsg = data.error || 'Failed to summarize the document.';
-                if (response.status === 503 || errorMsg.includes('503') || errorMsg.toLowerCase().includes('busy')) {
-                    throw new Error('The service is busy right now, please try again in a minute.');
-                }
-                throw new Error(errorMsg);
-            }
+            const data = await safeParseJsonResponse(response, 'summarizing document');
 
             summariesData = data.summaries;
             resultDocName.textContent = data.filename || selectedFile.name;
@@ -646,15 +694,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: formData
             });
 
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                const errorMsg = data.error || 'Failed to generate quiz questions.';
-                if (response.status === 503 || errorMsg.includes('503') || errorMsg.toLowerCase().includes('busy')) {
-                    throw new Error('The service is busy right now, please try again in a minute.');
-                }
-                throw new Error(errorMsg);
-            }
+            const data = await safeParseJsonResponse(response, 'generating quiz questions');
 
             if (!Array.isArray(data.questions) || data.questions.length === 0) {
                 throw new Error('No quiz questions were returned. Please try again.');
@@ -955,7 +995,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Save Quiz Result Endpoint
     async function saveQuizResultToDatabase(score, total, percentage, performanceMessage, difficulty = 'medium') {
         try {
-            await fetch('/quiz/save', {
+            const res = await fetch('/quiz/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -968,6 +1008,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     created_at: new Date().toLocaleString()
                 })
             });
+            await safeParseJsonResponse(res, 'saving quiz result');
         } catch (err) {
             console.warn('Failed to save quiz result to database:', err);
         }
@@ -1785,8 +1826,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadAndRenderProgressData() {
         try {
             const [historyRes, statsRes] = await Promise.all([
-                fetch('/quiz/history').then(r => r.json()).catch(() => ({ success: false })),
-                fetch('/quiz/stats').then(r => r.json()).catch(() => ({ success: false }))
+                fetch('/quiz/history').then(r => safeParseJsonResponse(r, 'loading quiz history')).catch(() => ({ success: false })),
+                fetch('/quiz/stats').then(r => safeParseJsonResponse(r, 'loading quiz statistics')).catch(() => ({ success: false }))
             ]);
 
             const historyItems = (historyRes && historyRes.success && Array.isArray(historyRes.history))
@@ -1964,18 +2005,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            const data = await res.json();
-            if (res.ok && data && data.success) {
-                closeRestartModal();
-                showResetSuccessBanner(data.message || 'Progress data has been restarted! You can now record fresh quiz attempts from starting.');
-                // Instantly re-fetch and render empty stats & clean dashboard
-                await loadAndRenderProgressData();
-            } else {
-                alert((data && data.error) || 'Failed to restart progress data. Please try again.');
-            }
+            const data = await safeParseJsonResponse(res, 'restarting progress');
+            closeRestartModal();
+            showResetSuccessBanner(data.message || 'Progress data has been restarted! You can now record fresh quiz attempts from starting.');
+            // Instantly re-fetch and render empty stats & clean dashboard
+            await loadAndRenderProgressData();
         } catch (err) {
             console.error('Error resetting quiz progress:', err);
-            alert('A network error occurred while restarting progress. Please try again.');
+            alert(err.message || 'A network error occurred while restarting progress. Please try again.');
         } finally {
             confirmRestartBtn.disabled = false;
             confirmRestartBtn.innerHTML = origContent;
@@ -2100,15 +2137,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: formData
             });
 
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                const errorMsg = data.error || 'Failed to explain term.';
-                if (response.status === 503 || errorMsg.includes('503') || errorMsg.toLowerCase().includes('busy')) {
-                    throw new Error('The service is busy right now, please try again in a minute.');
-                }
-                throw new Error(errorMsg);
-            }
+            const data = await safeParseJsonResponse(response, 'explaining term');
 
             displayWordHelpResult(data.term, data.explanation, data.not_found);
 
