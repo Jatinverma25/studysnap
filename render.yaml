@@ -6,4 +6,4 @@ services:
     startCommand: gunicorn --timeout 120 --workers 2 app:app
     envVars:
       - key: GEMINI_API_KEY
-        sync: false
+        sync: true

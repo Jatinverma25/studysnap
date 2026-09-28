@@ -14,51 +14,123 @@ from gemini_retry import (
     FRIENDLY_BUSY_MESSAGE,
 )
 
-# Load environment variables from .env
-load_dotenv()
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-app = Flask(__name__)
+# 1. Load environment variables from local .env and Render secret files (/etc/secrets/.env)
+load_dotenv()
+for extra_env in ['/etc/secrets/.env', os.path.join(BASE_DIR, '.env')]:
+    if os.path.exists(extra_env):
+        load_dotenv(extra_env, override=False)
+
+# 2. Configure Flask with explicit absolute paths for templates and static files (critical for Vercel)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(BASE_DIR, 'templates'),
+    static_folder=os.path.join(BASE_DIR, 'static'),
+    static_url_path='/static'
+)
 # Limit maximum upload size to 30 MB
 app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, 'quiz_history.db')
-JSON_PATH = os.path.join(BASE_DIR, 'quiz_history.json')
+# 3. Determine data directory: on Vercel / Serverless, project files are read-only, so use /tmp
+is_serverless = bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
+DATA_DIR = tempfile.gettempdir() if is_serverless else BASE_DIR
+
+DB_PATH = os.path.join(DATA_DIR, 'quiz_history.db')
+JSON_PATH = os.path.join(DATA_DIR, 'quiz_history.json')
+
 
 def init_db():
     """Initializes the SQLite database for quiz results tracking."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS quiz_results (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            pdf_name TEXT NOT NULL,
-            score INTEGER NOT NULL,
-            total INTEGER NOT NULL DEFAULT 10,
-            percentage REAL NOT NULL,
-            performance_message TEXT,
-            difficulty TEXT DEFAULT 'medium',
-            created_at TEXT NOT NULL
-        )
-    ''')
-    cursor.execute("PRAGMA table_info(quiz_results)")
-    columns = [row[1] for row in cursor.fetchall()]
-    if "difficulty" not in columns:
-        cursor.execute("ALTER TABLE quiz_results ADD COLUMN difficulty TEXT DEFAULT 'medium'")
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS quiz_results (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                pdf_name TEXT NOT NULL,
+                score INTEGER NOT NULL,
+                total INTEGER NOT NULL DEFAULT 10,
+                percentage REAL NOT NULL,
+                performance_message TEXT,
+                difficulty TEXT DEFAULT 'medium',
+                created_at TEXT NOT NULL
+            )
+        ''')
+        cursor.execute("PRAGMA table_info(quiz_results)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if "difficulty" not in columns:
+            cursor.execute("ALTER TABLE quiz_results ADD COLUMN difficulty TEXT DEFAULT 'medium'")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        app.logger.warning(f"Could not initialize SQLite DB at {DB_PATH}: {e}")
+
 
 # Initialize DB table on startup
 init_db()
 
 
+def find_gemini_api_key():
+    """
+    Robust API key resolution:
+    - Checks exact environment variables (GEMINI_API_KEY, GOOGLE_API_KEY, etc.)
+    - Case-insensitive & normalized search across all os.environ keys (solves Linux/Render case issues)
+    - Strips any accidental surrounding quotes or whitespace
+    - Checks Render secret files (/etc/secrets/.env) and local .env
+    """
+    # 1. Standard environment variable names
+    standard_keys = [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "GEMINI_KEY",
+        "GOOGLE_KEY",
+        "API_KEY",
+    ]
+    for key in standard_keys:
+        val = os.environ.get(key)
+        if val and val.strip():
+            return val.strip().strip('"').strip("'").strip()
+
+    # 2. Case-insensitive & normalized search across all os.environ keys
+    target_names = {"geminiapikey", "googleapikey", "geminikey", "googlekey", "apikey"}
+    for k, v in os.environ.items():
+        normalized_k = k.lower().replace("_", "").replace("-", "").strip()
+        if normalized_k in target_names and v and v.strip():
+            return v.strip().strip('"').strip("'").strip()
+
+    # 3. Check Render Secret Files path (/etc/secrets/.env) and local .env file
+    for env_file in ["/etc/secrets/.env", os.path.join(BASE_DIR, ".env")]:
+        if os.path.exists(env_file):
+            try:
+                with open(env_file, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            norm = k.strip().lower().replace("_", "").replace("-", "")
+                            if norm in target_names:
+                                clean_val = v.strip().strip('"').strip("'").strip()
+                                if clean_val:
+                                    return clean_val
+            except Exception:
+                pass
+
+    return None
+
+
 def get_gemini_client():
-    # Read API key directly from environment variables (works both locally and on Render/cloud)
-    api_key = os.environ.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+    api_key = find_gemini_api_key()
     if not api_key:
+        # Detect any similar keys to help diagnose typos on Render or Vercel
+        matched_keys = [
+            k for k in os.environ.keys()
+            if any(term in k.upper() for term in ["API", "KEY", "GEMINI", "GOOGLE"])
+        ]
+        key_hint = f" Found existing environment variables: {matched_keys}." if matched_keys else ""
         raise ValueError(
-            "GEMINI_API_KEY is missing from environment variables. "
-            "If running on Render, go to your Dashboard -> Environment and add GEMINI_API_KEY."
+            f"GEMINI_API_KEY is not detected in environment variables.{key_hint} "
+            "Please ensure the variable name is GEMINI_API_KEY (uppercase), and if on Render, click 'Save Changes' and wait for the redeploy to complete."
         )
     return genai.Client(api_key=api_key)
 
