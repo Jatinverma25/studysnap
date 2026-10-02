@@ -59,6 +59,10 @@
                     <h1 class="brand-title">Study<span class="gradient-text">Snap</span></h1>
                 </div>
                 <div class="header-right-actions">
+                    <div class="streak-badge-pill" id="studyStreakBadge" title="Consecutive daily study streak">
+                        <span class="streak-flame-icon">🔥</span>
+                        <span class="streak-text-val" id="streakCountVal">1 Day</span>
+                    </div>
                     <button type="button" id="myProgressBtn" class="btn btn-progress-nav btn-tactile-3d" title="View your study statistics and quiz rank" aria-label="Open My Progress Dashboard">
                         <span class="btn-icon">📊</span>
                         <span class="btn-text">My Progress</span>
@@ -194,6 +198,14 @@
                         <button type="button" id="resultsWordHelpBtn" class="btn btn-word-help-nav btn-tactile-3d" title="Confused by a term? Get a quick explanation from this PDF">
                             <span class="btn-icon">💡</span>
                             <span class="btn-text">Word Help</span>
+                        </button>
+                        <button type="button" id="resultsFlashcardsBtn" class="btn btn-flashcards-nav btn-tactile-3d" title="Study with interactive 3D Flip Flashcards">
+                            <span class="btn-icon">🎴</span>
+                            <span class="btn-text">Flashcards</span>
+                        </button>
+                        <button type="button" id="resultsCheatSheetBtn" class="btn btn-cheatsheet-nav btn-tactile-3d" title="Generate printable 1-page Exam Cram Sheet">
+                            <span class="btn-icon">📋</span>
+                            <span class="btn-text">Cheat Sheet</span>
                         </button>
                         <button type="button" id="resultsQuizBtn" class="btn btn-quiz btn-tactile-3d">
                             <span class="btn-icon">🎯</span>
@@ -624,6 +636,77 @@
                     </div>
                 </div>
 
+                <!-- ACHIEVEMENTS & TROPHIES SHOWCASE -->
+                <div class="achievements-card" id="achievementsCard">
+                    <div class="achievements-card-header">
+                        <div class="achievements-title-group">
+                            <div class="achievements-icon-box">🏆</div>
+                            <div>
+                                <h3 class="achievements-title">Achievements & Mastery Trophies</h3>
+                                <p class="achievements-subtitle">Unlock collectible badges by studying documents and mastering quizzes</p>
+                            </div>
+                        </div>
+                        <span class="achievements-unlocked-badge" id="achievementsUnlockedBadge">0 / 6 Unlocked</span>
+                    </div>
+
+                    <div class="achievements-grid" id="achievementsGrid">
+                        <!-- 1. First Quiz -->
+                        <div class="achievement-medal-item" id="achFirstQuiz" data-ach="first-quiz">
+                            <div class="medal-icon-ring">🎯</div>
+                            <div class="medal-info">
+                                <h4 class="medal-title">First Discovery</h4>
+                                <p class="medal-desc">Complete your very first quiz attempt</p>
+                                <span class="medal-status locked">Locked</span>
+                            </div>
+                        </div>
+                        <!-- 2. Sharp Scholar -->
+                        <div class="achievement-medal-item" id="achSharpScholar" data-ach="sharp-scholar">
+                            <div class="medal-icon-ring">⚡</div>
+                            <div class="medal-info">
+                                <h4 class="medal-title">Sharp Scholar</h4>
+                                <p class="medal-desc">Score 80% or higher on any quiz</p>
+                                <span class="medal-status locked">Locked</span>
+                            </div>
+                        </div>
+                        <!-- 3. Tier Ascendant -->
+                        <div class="achievement-medal-item" id="achTierAscendant" data-ach="tier-ascendant">
+                            <div class="medal-icon-ring">🔮</div>
+                            <div class="medal-info">
+                                <h4 class="medal-title">Tier Ascendant</h4>
+                                <p class="medal-desc">Level up to Tier 2 (Learner) or higher</p>
+                                <span class="medal-status locked">Locked</span>
+                            </div>
+                        </div>
+                        <!-- 4. Dedicated Mind -->
+                        <div class="achievement-medal-item" id="achDedicatedMind" data-ach="dedicated-mind">
+                            <div class="medal-icon-ring">📚</div>
+                            <div class="medal-info">
+                                <h4 class="medal-title">Dedicated Mind</h4>
+                                <p class="medal-desc">Answer 20 or more total quiz questions</p>
+                                <span class="medal-status locked">Locked</span>
+                            </div>
+                        </div>
+                        <!-- 5. Perfectionist -->
+                        <div class="achievement-medal-item" id="achPerfectionist" data-ach="perfectionist">
+                            <div class="medal-icon-ring">👑</div>
+                            <div class="medal-info">
+                                <h4 class="medal-title">Flawless 100%</h4>
+                                <p class="medal-desc">Achieve 100% accuracy on a quiz</p>
+                                <span class="medal-status locked">Locked</span>
+                            </div>
+                        </div>
+                        <!-- 6. Study Streak -->
+                        <div class="achievement-medal-item" id="achStreakMaster" data-ach="streak-master">
+                            <div class="medal-icon-ring">🔥</div>
+                            <div class="medal-info">
+                                <h4 class="medal-title">Study Streak</h4>
+                                <p class="medal-desc">Maintain an active daily study streak</p>
+                                <span class="medal-status locked">Locked</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- QUIZ HISTORY TABLE -->
                 <div class="quiz-history-card">
                     <div class="history-card-header">
@@ -905,6 +988,187 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v4"></script>
+    <!-- Flashcards Studio Modal (3D Interactive Flip Deck) -->
+    <div id="flashcardsModal" class="quiz-modal-container hidden" role="dialog" aria-modal="true" aria-labelledby="flashcardsModalTitle">
+        <div id="flashcardsModalBackdrop" class="quiz-modal-backdrop" aria-hidden="true"></div>
+        <div class="quiz-modal-dialog flashcards-modal-dialog">
+            <div class="quiz-modal-card flashcards-modal-card">
+                <div class="quiz-modal-header flashcards-modal-header">
+                    <div class="quiz-modal-title-box">
+                        <div class="quiz-modal-icon-badge flashcards-icon-badge">🎴</div>
+                        <div>
+                            <h3 id="flashcardsModalTitle" class="quiz-modal-title">Concept Flashcards</h3>
+                            <p class="quiz-modal-subtitle">Interactive 3D active recall deck tailored to your document</p>
+                        </div>
+                    </div>
+                    <div class="flashcards-top-meta">
+                        <span class="flashcards-progress-pill" id="flashcardsProgressPill">Card 1 of 8</span>
+                        <span class="flashcards-mastered-pill" id="flashcardsMasteredPill">0 Mastered</span>
+                        <button type="button" id="closeFlashcardsModalBtn" class="quiz-modal-close" aria-label="Close Flashcards modal">&times;</button>
+                    </div>
+                </div>
+
+                <div class="quiz-modal-body flashcards-modal-body">
+                    <!-- Progress Bar across deck -->
+                    <div class="flashcards-meter-track">
+                        <div class="flashcards-meter-fill" id="flashcardsMeterFill" style="width: 12.5%;"></div>
+                    </div>
+
+                    <!-- 3D Perspective Flip Card Container -->
+                    <div class="flashcard-3d-scene" id="flashcardScene">
+                        <div class="flashcard-3d-card" id="flashcardElement" tabindex="0" role="button" aria-label="Flip flashcard">
+                            <!-- FRONT OF CARD -->
+                            <div class="flashcard-face flashcard-front">
+                                <div class="flashcard-badge-row">
+                                    <span class="flashcard-cat-badge" id="cardCategoryBadge">KEY CONCEPT</span>
+                                    <span class="flashcard-flip-prompt">Click or press Space to Flip 🔄</span>
+                                </div>
+                                <div class="flashcard-content">
+                                    <h4 class="flashcard-prompt-text" id="cardPromptText">Loading concept...</h4>
+                                </div>
+                                <div class="flashcard-footer-hint">
+                                    <span class="hint-icon">💡</span>
+                                    <span class="hint-text">Test your memory before flipping!</span>
+                                </div>
+                            </div>
+
+                            <!-- BACK OF CARD -->
+                            <div class="flashcard-face flashcard-back">
+                                <div class="flashcard-badge-row">
+                                    <span class="flashcard-cat-badge answer">EXPLANATION</span>
+                                    <span class="flashcard-flip-prompt">Click to Flip Back 🔄</span>
+                                </div>
+                                <div class="flashcard-content">
+                                    <div class="flashcard-answer-text" id="cardAnswerText">Explanation details...</div>
+                                </div>
+                                <div class="flashcard-footer-hint">
+                                    <span class="hint-icon">🧠</span>
+                                    <span class="hint-text">Did you recall this correctly?</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flashcard Navigation & Rating Controls -->
+                    <div class="flashcard-controls-row">
+                        <button type="button" id="flashcardPrevBtn" class="btn btn-flashcard-nav" title="Previous Card (Left Arrow)">
+                            <span>◀</span>
+                            <span>Prev</span>
+                        </button>
+                        
+                        <div class="flashcard-review-actions">
+                            <button type="button" id="cardReviewAgainBtn" class="btn btn-rating review-btn" title="Mark for review">
+                                <span>🔴</span>
+                                <span>Still Learning</span>
+                            </button>
+                            <button type="button" id="flashcardFlipBtn" class="btn btn-rating flip-btn" title="Flip Card (Space)">
+                                <span>🔄</span>
+                                <span>Flip</span>
+                            </button>
+                            <button type="button" id="cardMasteredBtn" class="btn btn-rating master-btn" title="Mark as mastered">
+                                <span>🟢</span>
+                                <span>Mastered</span>
+                            </button>
+                        </div>
+
+                        <button type="button" id="flashcardNextBtn" class="btn btn-flashcard-nav" title="Next Card (Right Arrow)">
+                            <span>Next</span>
+                            <span>▶</span>
+                        </button>
+                    </div>
+
+                    <!-- Keyboard navigation guide -->
+                    <div class="flashcard-hotkeys-hint">
+                        <span>Shortcuts: <strong>Space</strong> to Flip · <strong>← / →</strong> for Next / Prev · <strong>1</strong> Learning · <strong>2</strong> Mastered</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Cheat Sheet Modal (1-Page Printable Cram Sheet) -->
+    <div id="cheatSheetModal" class="quiz-modal-container hidden" role="dialog" aria-modal="true" aria-labelledby="cheatSheetModalTitle">
+        <div id="cheatSheetModalBackdrop" class="quiz-modal-backdrop" aria-hidden="true"></div>
+        <div class="quiz-modal-dialog cheat-sheet-modal-dialog">
+            <div class="quiz-modal-card cheat-sheet-modal-card">
+                <div class="quiz-modal-header cheat-sheet-modal-header no-print">
+                    <div class="quiz-modal-title-box">
+                        <div class="quiz-modal-icon-badge cheat-sheet-icon-badge">📋</div>
+                        <div>
+                            <h3 id="cheatSheetModalTitle" class="quiz-modal-title">Exam Cram Sheet (1-Page Guide)</h3>
+                            <p class="quiz-modal-subtitle" id="cheatSheetDocSubtitle">Target Document</p>
+                        </div>
+                    </div>
+                    <div class="cheat-sheet-header-actions">
+                        <button type="button" id="printCheatSheetBtn" class="btn btn-primary btn-tactile-3d" title="Print or save as PDF">
+                            <span class="btn-icon">🖨️</span>
+                            <span class="btn-text">Print / Save PDF</span>
+                        </button>
+                        <button type="button" id="closeCheatSheetModalBtn" class="quiz-modal-close" aria-label="Close Cheat Sheet modal">&times;</button>
+                    </div>
+                </div>
+
+                <div class="quiz-modal-body cheat-sheet-modal-body" id="cheatSheetPrintArea">
+                    <!-- Printable Document Title & Meta -->
+                    <div class="cheat-sheet-print-header">
+                        <div class="cheat-sheet-brand-row">
+                            <span class="cheat-sheet-logo">StudySnap · Exam Cram Sheet</span>
+                            <span class="cheat-sheet-date" id="cheatSheetDate">October 2026</span>
+                        </div>
+                        <h2 class="cheat-sheet-doc-title" id="cheatSheetDocTitle">Document Name</h2>
+                    </div>
+
+                    <!-- Dense Multi-Column Cheat Sheet Grid -->
+                    <div class="cheat-sheet-grid">
+                        <!-- Column 1: Core Big Ideas & Highlights -->
+                        <div class="cheat-section-card big-ideas-card">
+                            <div class="cheat-section-header">
+                                <span class="cheat-icon">💡</span>
+                                <h4>Top 5 Exam Must-Knows</h4>
+                            </div>
+                            <div class="cheat-section-content" id="cheatSheetBigIdeas">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Formulas & Mathematical Formulations -->
+                        <div class="cheat-section-card formulas-card">
+                            <div class="cheat-section-header">
+                                <span class="cheat-icon">⚡</span>
+                                <h4>Key Formulas & Equations</h4>
+                            </div>
+                            <div class="cheat-section-content" id="cheatSheetFormulas">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Column 3: Must-Know Terminology -->
+                        <div class="cheat-section-card terms-card">
+                            <div class="cheat-section-header">
+                                <span class="cheat-icon">🔑</span>
+                                <h4>Essential Definitions</h4>
+                            </div>
+                            <div class="cheat-section-content" id="cheatSheetTerms">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Column 4: Exam Pitfalls & Traps -->
+                        <div class="cheat-section-card traps-card">
+                            <div class="cheat-section-header">
+                                <span class="cheat-icon">⚠️</span>
+                                <h4>Common Traps & Mistakes</h4>
+                            </div>
+                            <div class="cheat-section-content" id="cheatSheetTraps">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v5"></script>
 </body>
 </html>

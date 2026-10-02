@@ -149,6 +149,53 @@ document.addEventListener('DOMContentLoaded', () => {
     const wordHelpAnswerBody = document.getElementById('wordHelpAnswerBody');
     const closeWordHelpResultBtn = document.getElementById('closeWordHelpResultBtn');
 
+    // DOM Elements - Feature Addons (Flashcards, Cheat Sheet, Streak, Achievements)
+    const studyStreakBadge = document.getElementById('studyStreakBadge');
+    const streakCountVal = document.getElementById('streakCountVal');
+    const resultsFlashcardsBtn = document.getElementById('resultsFlashcardsBtn');
+    const resultsCheatSheetBtn = document.getElementById('resultsCheatSheetBtn');
+
+    // Achievements Showcase Elements
+    const achievementsCard = document.getElementById('achievementsCard');
+    const achievementsUnlockedBadge = document.getElementById('achievementsUnlockedBadge');
+    const achFirstQuiz = document.getElementById('achFirstQuiz');
+    const achSharpScholar = document.getElementById('achSharpScholar');
+    const achTierAscendant = document.getElementById('achTierAscendant');
+    const achDedicatedMind = document.getElementById('achDedicatedMind');
+    const achPerfectionist = document.getElementById('achPerfectionist');
+    const achStreakMaster = document.getElementById('achStreakMaster');
+
+    // Flashcards Modal Elements
+    const flashcardsModal = document.getElementById('flashcardsModal');
+    const flashcardsModalBackdrop = document.getElementById('flashcardsModalBackdrop');
+    const closeFlashcardsModalBtn = document.getElementById('closeFlashcardsModalBtn');
+    const flashcardDocSubtitle = document.getElementById('flashcardDocSubtitle');
+    const flashcardProgress = document.getElementById('flashcardProgress');
+    const flashcardsMeterFill = document.getElementById('flashcardsMeterFill');
+    const flashcardMasteredCount = document.getElementById('flashcardMasteredCount');
+    const flashcardCard = document.getElementById('flashcardCard');
+    const cardQuestionText = document.getElementById('cardQuestionText');
+    const cardAnswerText = document.getElementById('cardAnswerText');
+    const flashcardPrevBtn = document.getElementById('flashcardPrevBtn');
+    const flashcardNextBtn = document.getElementById('flashcardNextBtn');
+    const cardReviewAgainBtn = document.getElementById('cardReviewAgainBtn');
+    const flashcardFlipBtn = document.getElementById('flashcardFlipBtn');
+    const cardMasteredBtn = document.getElementById('cardMasteredBtn');
+
+    // Exam Cheat Sheet Modal Elements
+    const cheatSheetModal = document.getElementById('cheatSheetModal');
+    const cheatSheetModalBackdrop = document.getElementById('cheatSheetModalBackdrop');
+    const closeCheatSheetModalBtn = document.getElementById('closeCheatSheetModalBtn');
+    const cheatSheetDocSubtitle = document.getElementById('cheatSheetDocSubtitle');
+    const printCheatSheetBtn = document.getElementById('printCheatSheetBtn');
+    const cheatSheetPrintArea = document.getElementById('cheatSheetPrintArea');
+    const cheatSheetDate = document.getElementById('cheatSheetDate');
+    const cheatSheetDocTitle = document.getElementById('cheatSheetDocTitle');
+    const cheatSheetBigIdeas = document.getElementById('cheatSheetBigIdeas');
+    const cheatSheetFormulas = document.getElementById('cheatSheetFormulas');
+    const cheatSheetTerms = document.getElementById('cheatSheetTerms');
+    const cheatSheetTraps = document.getElementById('cheatSheetTraps');
+
     // Progress Dashboard State
     let progressChartInstance = null;
     let currentChartType = 'line';
@@ -518,6 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingSection.classList.add('hidden');
             resultsSection.classList.remove('hidden');
             switchMode('easy');
+            recordStudyActivity();
 
         } catch (err) {
             console.error(err);
@@ -1011,6 +1059,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Automatically persist quiz result to SQLite / JSON
         saveQuizResultToDatabase(quizScore, totalQ, accuracyPct, `${title} - ${message}`, activeQuizDifficulty);
+        recordStudyActivity();
     }
 
     // Save Quiz Result Endpoint
@@ -2018,6 +2067,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Failed to render quiz history table:', err);
         }
+        try {
+            updateAchievements(stats, historyItems);
+        } catch (err) {
+            console.error('Failed to update achievements:', err);
+        }
 
         // Render any LaTeX math notation present in the history or stats
         try {
@@ -2204,7 +2258,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Close modals on Escape key
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (wordHelpModal && !wordHelpModal.classList.contains('hidden')) {
+            if (flashcardsModal && !flashcardsModal.classList.contains('hidden')) {
+                closeFlashcardsModal();
+            } else if (cheatSheetModal && !cheatSheetModal.classList.contains('hidden')) {
+                closeCheatSheetModal();
+            } else if (wordHelpModal && !wordHelpModal.classList.contains('hidden')) {
                 closeWordHelpModal();
             } else if (restartConfirmModal && !restartConfirmModal.classList.contains('hidden')) {
                 closeRestartModal();
@@ -2401,6 +2459,600 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ========================================================
+    // FEATURE ADDON 1: DAILY STUDY STREAK ENGINE
+    // ========================================================
+    const STREAK_STORAGE_KEY = 'studysnap_streak_data_v1';
+
+    function getStreakData() {
+        try {
+            const raw = localStorage.getItem(STREAK_STORAGE_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {
+            console.warn('Failed to parse streak storage:', e);
+        }
+        return { lastStudyDate: null, currentStreak: 0, bestStreak: 0 };
+    }
+
+    function saveStreakData(data) {
+        try {
+            localStorage.setItem(STREAK_STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.warn('Failed to save streak storage:', e);
+        }
+    }
+
+    function getTodayDateString() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
+
+    function initStudyStreak() {
+        const streakData = getStreakData();
+        const today = getTodayDateString();
+        let displayStreak = streakData.currentStreak || 0;
+
+        if (streakData.lastStudyDate) {
+            const last = new Date(streakData.lastStudyDate);
+            const curr = new Date(today);
+            const diffDays = Math.round((curr - last) / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 1) {
+                // Streak broken if gap is more than 1 day
+                displayStreak = 0;
+                streakData.currentStreak = 0;
+                saveStreakData(streakData);
+            }
+        }
+
+        if (streakCountVal) {
+            streakCountVal.textContent = displayStreak;
+        }
+        return displayStreak;
+    }
+
+    function recordStudyActivity() {
+        const streakData = getStreakData();
+        const today = getTodayDateString();
+
+        if (streakData.lastStudyDate === today) {
+            // Already active today
+            return streakData.currentStreak;
+        }
+
+        if (!streakData.lastStudyDate) {
+            streakData.currentStreak = 1;
+        } else {
+            const last = new Date(streakData.lastStudyDate);
+            const curr = new Date(today);
+            const diffDays = Math.round((curr - last) / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 1) {
+                streakData.currentStreak += 1;
+            } else {
+                streakData.currentStreak = 1;
+            }
+        }
+
+        streakData.lastStudyDate = today;
+        streakData.bestStreak = Math.max(streakData.bestStreak || 0, streakData.currentStreak);
+        saveStreakData(streakData);
+
+        if (streakCountVal) {
+            streakCountVal.textContent = streakData.currentStreak;
+        }
+        return streakData.currentStreak;
+    }
+
+    // ========================================================
+    // FEATURE ADDON 2: GAMIFIED ACHIEVEMENT MEDALS ENGINE
+    // ========================================================
+    function updateAchievements(stats, historyItems) {
+        if (!achievementsCard) return;
+
+        const totalQuizzes = stats ? (parseInt(stats.total_quizzes, 10) || 0) : 0;
+        const totalQuestions = stats ? (parseInt(stats.total_questions, 10) || 0) : 0;
+        const avgScore = stats ? (parseFloat(stats.average_score) || 0) : 0;
+        const streak = getStreakData().currentStreak || 0;
+
+        let hasHighQuiz = false;
+        let hasFlawlessQuiz = false;
+
+        if (Array.isArray(historyItems)) {
+            for (const h of historyItems) {
+                const pct = parseFloat(h.percentage) || 0;
+                if (pct >= 80) hasHighQuiz = true;
+                if (pct >= 100) hasFlawlessQuiz = true;
+            }
+        }
+
+        const achievementsList = [
+            { el: achFirstQuiz, unlocked: totalQuizzes >= 1 },
+            { el: achSharpScholar, unlocked: hasHighQuiz },
+            { el: achTierAscendant, unlocked: avgScore >= 40 },
+            { el: achDedicatedMind, unlocked: totalQuestions >= 20 },
+            { el: achPerfectionist, unlocked: hasFlawlessQuiz },
+            { el: achStreakMaster, unlocked: streak >= 2 }
+        ];
+
+        let unlockedCount = 0;
+        achievementsList.forEach(item => {
+            if (!item.el) return;
+            const statusEl = item.el.querySelector('.medal-status');
+            if (item.unlocked) {
+                unlockedCount++;
+                item.el.classList.add('unlocked');
+                if (statusEl) {
+                    statusEl.textContent = 'Unlocked 🏆';
+                    statusEl.className = 'medal-status unlocked';
+                }
+            } else {
+                item.el.classList.remove('unlocked');
+                if (statusEl) {
+                    statusEl.textContent = 'Locked';
+                    statusEl.className = 'medal-status locked';
+                }
+            }
+        });
+
+        if (achievementsUnlockedBadge) {
+            achievementsUnlockedBadge.textContent = `${unlockedCount} / 6 Unlocked`;
+        }
+    }
+
+    // ========================================================
+    // FEATURE ADDON 3: 3D FLIP CONCEPT FLASHCARDS STUDIO
+    // ========================================================
+    let flashcardDeck = [];
+    let currentCardIndex = 0;
+    const masteredCardIndices = new Set();
+
+    function extractFlashcardsFromSummary() {
+        const cards = [];
+        if (!summariesData) {
+            return [
+                {
+                    question: "What is Active Recall?",
+                    answer: "Active recall is the testing effect where you stimulate memory retrieval during learning, boosting long-term memory retention by up to 200% compared to passive reading."
+                },
+                {
+                    question: "How does StudySnap synthesize documents?",
+                    answer: "StudySnap analyzes complex PDFs using advanced AI to generate Easy, Deep, and Fun conceptual explanations, customizable quizzes, and automated exam cheat sheets."
+                },
+                {
+                    question: "How does the Spaced Repetition study streak work?",
+                    answer: "Reviewing documents and completing quizzes on consecutive days locks in memory curves and levels up your gamer achievement trophies from Beginner to Impossible Tier!"
+                }
+            ];
+        }
+
+        const sourceTexts = [
+            summariesData.deep || '',
+            summariesData.easy || '',
+            summariesData.fun || ''
+        ].join('\n\n');
+
+        const lines = sourceTexts.split('\n');
+
+        // Pattern 1: Bold term followed by colon: - **Term**: Explanation
+        const termRegex = /^[\s*-]*\*\*([^*:\n]{3,60})\*\*\s*[:–-]\s*(.+)$/;
+
+        // Pattern 2: Heading 2/3/4
+        const headingRegex = /^#{2,4}\s+(.+)$/;
+
+        let currentHeading = null;
+        let currentHeadingBody = [];
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+
+            const termMatch = line.match(termRegex);
+            if (termMatch) {
+                const term = termMatch[1].trim();
+                const explanation = termMatch[2].replace(/[*_]/g, '').trim();
+                if (term.length >= 3 && explanation.length >= 10) {
+                    cards.push({
+                        question: `What is ${term}?`,
+                        answer: explanation
+                    });
+                }
+                continue;
+            }
+
+            const headMatch = line.match(headingRegex);
+            if (headMatch) {
+                if (currentHeading && currentHeadingBody.length > 0) {
+                    const ans = currentHeadingBody.join(' ').replace(/[*_]/g, '').trim();
+                    if (ans.length >= 20 && ans.length <= 400) {
+                        cards.push({
+                            question: `Explain: ${currentHeading}`,
+                            answer: ans
+                        });
+                    }
+                }
+                currentHeading = headMatch[1].replace(/[*#]/g, '').trim();
+                currentHeadingBody = [];
+                continue;
+            }
+
+            if (currentHeading && currentHeadingBody.length < 3) {
+                if (!line.startsWith('#') && line.length > 15) {
+                    currentHeadingBody.push(line.replace(/^[-*•]\s*/, ''));
+                }
+            }
+        }
+
+        if (currentHeading && currentHeadingBody.length > 0) {
+            const ans = currentHeadingBody.join(' ').replace(/[*_]/g, '').trim();
+            if (ans.length >= 20 && ans.length <= 400) {
+                cards.push({
+                    question: `Explain: ${currentHeading}`,
+                    answer: ans
+                });
+            }
+        }
+
+        // Extract any LaTeX equations
+        const mathMatches = sourceTexts.matchAll(/\$\$([\s\S]+?)\$\$|\$([^\$\n]+?)\$/g);
+        for (const match of mathMatches) {
+            const formula = (match[1] || match[2] || '').trim();
+            if (formula.length >= 4 && formula.length <= 80 && !cards.some(c => c.answer.includes(formula))) {
+                cards.push({
+                    question: "Identify and explain this formula:",
+                    answer: `$$\n${formula}\n$$`
+                });
+            }
+            if (cards.length >= 15) break;
+        }
+
+        // De-duplicate
+        const seen = new Set();
+        const uniqueCards = [];
+        for (const card of cards) {
+            const key = card.question.toLowerCase().trim();
+            if (!seen.has(key)) {
+                seen.add(key);
+                uniqueCards.push(card);
+            }
+        }
+
+        // Fallback if few cards extracted
+        if (uniqueCards.length < 3 && summariesData.easy) {
+            const cleanEasy = summariesData.easy.replace(/[*#]/g, '').split('. ');
+            for (let i = 0; i < Math.min(5, cleanEasy.length); i++) {
+                const sent = cleanEasy[i].trim();
+                if (sent.length > 25) {
+                    uniqueCards.push({
+                        question: `Core Takeaway #${i + 1}`,
+                        answer: sent + (sent.endsWith('.') ? '' : '.')
+                    });
+                }
+            }
+        }
+
+        return uniqueCards.length > 0 ? uniqueCards : [
+            {
+                question: "Key Concept in Document",
+                answer: summariesData.easy ? summariesData.easy.slice(0, 200) + '...' : "Review the main summary sections for key ideas."
+            }
+        ];
+    }
+
+    function renderCurrentFlashcard() {
+        if (!flashcardDeck || flashcardDeck.length === 0) return;
+        if (currentCardIndex < 0) currentCardIndex = 0;
+        if (currentCardIndex >= flashcardDeck.length) currentCardIndex = flashcardDeck.length - 1;
+
+        const card = flashcardDeck[currentCardIndex];
+        if (flashcardCard) {
+            flashcardCard.classList.remove('flipped');
+        }
+
+        if (cardQuestionText) {
+            cardQuestionText.textContent = card.question;
+        }
+        if (cardAnswerText) {
+            cardAnswerText.textContent = card.answer;
+        }
+
+        if (flashcardProgress) {
+            flashcardProgress.textContent = `Card ${currentCardIndex + 1} of ${flashcardDeck.length}`;
+        }
+        if (flashcardsMeterFill) {
+            const pct = Math.round(((currentCardIndex + 1) / flashcardDeck.length) * 100);
+            flashcardsMeterFill.style.width = `${pct}%`;
+        }
+        if (flashcardMasteredCount) {
+            flashcardMasteredCount.textContent = `${masteredCardIndices.size} Mastered`;
+        }
+
+        if (flashcardPrevBtn) {
+            flashcardPrevBtn.disabled = (currentCardIndex === 0);
+        }
+        if (flashcardNextBtn) {
+            flashcardNextBtn.disabled = (currentCardIndex === flashcardDeck.length - 1);
+        }
+
+        if (flashcardCard) {
+            renderMath(flashcardCard);
+        }
+    }
+
+    function toggleFlashcardFlip() {
+        if (flashcardCard) {
+            flashcardCard.classList.toggle('flipped');
+        }
+    }
+
+    function markCardMastered() {
+        masteredCardIndices.add(currentCardIndex);
+        if (currentCardIndex < flashcardDeck.length - 1) {
+            currentCardIndex++;
+            renderCurrentFlashcard();
+        } else {
+            renderCurrentFlashcard();
+        }
+    }
+
+    function markCardReviewAgain() {
+        masteredCardIndices.delete(currentCardIndex);
+        if (currentCardIndex < flashcardDeck.length - 1) {
+            currentCardIndex++;
+            renderCurrentFlashcard();
+        } else {
+            renderCurrentFlashcard();
+        }
+    }
+
+    function openFlashcardsModal() {
+        flashcardDeck = extractFlashcardsFromSummary();
+        currentCardIndex = 0;
+        masteredCardIndices.clear();
+
+        if (flashcardDocSubtitle) {
+            flashcardDocSubtitle.textContent = selectedFile ? selectedFile.name : (resultDocName ? resultDocName.textContent : 'Concept Flashcards');
+        }
+
+        renderCurrentFlashcard();
+        if (flashcardsModal) {
+            flashcardsModal.classList.remove('hidden');
+        }
+    }
+
+    function closeFlashcardsModal() {
+        if (flashcardsModal) {
+            flashcardsModal.classList.add('hidden');
+        }
+        if (flashcardCard) {
+            flashcardCard.classList.remove('flipped');
+        }
+    }
+
+    // ========================================================
+    // FEATURE ADDON 4: 1-PAGE EXAM CRAM / CHEAT SHEET GENERATOR
+    // ========================================================
+    function populateCheatSheetContent() {
+        if (!summariesData) {
+            if (cheatSheetBigIdeas) {
+                cheatSheetBigIdeas.innerHTML = '<ol class="cheat-list"><li>Upload a document and synthesize summaries to generate your customized exam cram sheet.</li><li>StudySnap identifies core principles, math equations, and key vocabulary automatically.</li></ol>';
+            }
+            if (cheatSheetFormulas) {
+                cheatSheetFormulas.innerHTML = '<p class="cheat-empty">Formulas and equations from your document will appear here.</p>';
+            }
+            if (cheatSheetTerms) {
+                cheatSheetTerms.innerHTML = '<p class="cheat-empty">Key defined terms and concepts will appear here.</p>';
+            }
+            if (cheatSheetTraps) {
+                cheatSheetTraps.innerHTML = '<p class="cheat-empty">Common exam pitfalls and distinctions will appear here.</p>';
+            }
+            return;
+        }
+
+        const fullText = [summariesData.deep || '', summariesData.easy || '', summariesData.fun || ''].join('\n\n');
+        const lines = fullText.split('\n');
+
+        // 1. Top 5 Must-Knows
+        const takeaways = [];
+        for (const line of lines) {
+            const clean = line.replace(/^[-*•\d.]+\s*/, '').trim();
+            if (clean.length > 35 && clean.length < 220 && !clean.startsWith('#')) {
+                takeaways.push(clean.replace(/[*_]/g, ''));
+                if (takeaways.length >= 5) break;
+            }
+        }
+        if (cheatSheetBigIdeas) {
+            if (takeaways.length > 0) {
+                cheatSheetBigIdeas.innerHTML = '<ol class="cheat-list">' + takeaways.map(t => `<li>${t}</li>`).join('') + '</ol>';
+            } else {
+                cheatSheetBigIdeas.innerHTML = '<p class="cheat-empty">Review primary summary for core takeaways.</p>';
+            }
+        }
+
+        // 2. Formulas & Equations
+        const formulas = [];
+        const mathRegex = /\$\$([\s\S]+?)\$\$|\$([^\$\n]+?)\$/g;
+        let match;
+        while ((match = mathRegex.exec(fullText)) !== null) {
+            const expr = (match[1] || match[2] || '').trim();
+            if (expr.length >= 3 && expr.length <= 120 && !formulas.includes(expr)) {
+                formulas.push(expr);
+                if (formulas.length >= 4) break;
+            }
+        }
+        if (cheatSheetFormulas) {
+            if (formulas.length > 0) {
+                cheatSheetFormulas.innerHTML = '<div class="cheat-formula-list">' + formulas.map(f => `<div class="cheat-formula-box">$$${f}$$</div>`).join('') + '</div>';
+            } else {
+                cheatSheetFormulas.innerHTML = '<p class="cheat-empty">No explicit mathematical formulas detected in this document.</p>';
+            }
+        }
+
+        // 3. Essential Definitions
+        const terms = [];
+        const termRegex = /^[\s*-]*\*\*([^*:\n]{3,60})\*\*\s*[:–-]\s*(.+)$/;
+        for (const line of lines) {
+            const tMatch = line.trim().match(termRegex);
+            if (tMatch) {
+                const term = tMatch[1].trim();
+                const def = tMatch[2].replace(/[*_]/g, '').trim();
+                if (term.length >= 3 && def.length >= 10 && !terms.some(x => x.term.toLowerCase() === term.toLowerCase())) {
+                    terms.push({ term, def });
+                    if (terms.length >= 5) break;
+                }
+            }
+        }
+        if (cheatSheetTerms) {
+            if (terms.length > 0) {
+                cheatSheetTerms.innerHTML = '<ul class="cheat-list">' + terms.map(t => `<li><strong>${t.term}</strong>: ${t.def}</li>`).join('') + '</ul>';
+            } else {
+                cheatSheetTerms.innerHTML = '<p class="cheat-empty">Key terminology will populate from structured summaries.</p>';
+            }
+        }
+
+        // 4. Common Traps & Pitfalls
+        const traps = [];
+        const trapKeywords = ['however', 'unlike', 'contrast', 'caution', 'mistake', 'trap', 'crucial', 'note', 'pitfall', 'warning', 'critical'];
+        for (const line of lines) {
+            const lower = line.toLowerCase();
+            if (trapKeywords.some(kw => lower.includes(kw)) && !line.startsWith('#')) {
+                const clean = line.replace(/^[-*•\d.]+\s*/, '').replace(/[*_]/g, '').trim();
+                if (clean.length > 30 && clean.length < 240 && !traps.includes(clean)) {
+                    traps.push(clean);
+                    if (traps.length >= 4) break;
+                }
+            }
+        }
+        if (cheatSheetTraps) {
+            if (traps.length > 0) {
+                cheatSheetTraps.innerHTML = '<ul class="cheat-list">' + traps.map(tr => `<li>⚠️ ${tr}</li>`).join('') + '</ul>';
+            } else {
+                cheatSheetTraps.innerHTML = '<ul class="cheat-list"><li>Pay close attention to boundary conditions and exceptions.</li><li>Avoid confusing related terminology and check assumptions.</li></ul>';
+            }
+        }
+    }
+
+    function openCheatSheetModal() {
+        const docTitle = selectedFile ? selectedFile.name : (resultDocName ? resultDocName.textContent : 'StudySnap Document');
+        if (cheatSheetDocTitle) {
+            cheatSheetDocTitle.textContent = docTitle;
+        }
+        if (cheatSheetDocSubtitle) {
+            cheatSheetDocSubtitle.textContent = docTitle;
+        }
+        if (cheatSheetDate) {
+            cheatSheetDate.textContent = new Date().toLocaleDateString(undefined, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        populateCheatSheetContent();
+
+        if (cheatSheetModal) {
+            cheatSheetModal.classList.remove('hidden');
+            renderMath(cheatSheetModal);
+        }
+    }
+
+    function closeCheatSheetModal() {
+        if (cheatSheetModal) {
+            cheatSheetModal.classList.add('hidden');
+        }
+    }
+
+    // ========================================================
+    // FEATURE ADDON EVENT LISTENERS & SHORTCUTS
+    // ========================================================
+    if (studyStreakBadge) {
+        studyStreakBadge.addEventListener('click', openProgressDashboard);
+    }
+    if (resultsFlashcardsBtn) {
+        resultsFlashcardsBtn.addEventListener('click', openFlashcardsModal);
+    }
+    if (resultsCheatSheetBtn) {
+        resultsCheatSheetBtn.addEventListener('click', openCheatSheetModal);
+    }
+    if (closeFlashcardsModalBtn) {
+        closeFlashcardsModalBtn.addEventListener('click', closeFlashcardsModal);
+    }
+    if (flashcardsModalBackdrop) {
+        flashcardsModalBackdrop.addEventListener('click', closeFlashcardsModal);
+    }
+    if (closeCheatSheetModalBtn) {
+        closeCheatSheetModalBtn.addEventListener('click', closeCheatSheetModal);
+    }
+    if (cheatSheetModalBackdrop) {
+        cheatSheetModalBackdrop.addEventListener('click', closeCheatSheetModal);
+    }
+
+    if (printCheatSheetBtn) {
+        printCheatSheetBtn.addEventListener('click', () => {
+            window.print();
+        });
+    }
+
+    if (flashcardCard) {
+        flashcardCard.addEventListener('click', toggleFlashcardFlip);
+    }
+    if (flashcardFlipBtn) {
+        flashcardFlipBtn.addEventListener('click', toggleFlashcardFlip);
+    }
+    if (flashcardPrevBtn) {
+        flashcardPrevBtn.addEventListener('click', () => {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                renderCurrentFlashcard();
+            }
+        });
+    }
+    if (flashcardNextBtn) {
+        flashcardNextBtn.addEventListener('click', () => {
+            if (currentCardIndex < flashcardDeck.length - 1) {
+                currentCardIndex++;
+                renderCurrentFlashcard();
+            }
+        });
+    }
+    if (cardReviewAgainBtn) {
+        cardReviewAgainBtn.addEventListener('click', markCardReviewAgain);
+    }
+    if (cardMasteredBtn) {
+        cardMasteredBtn.addEventListener('click', markCardMastered);
+    }
+
+    // Keyboard navigation for 3D Flashcards
+    window.addEventListener('keydown', (e) => {
+        if (!flashcardsModal || flashcardsModal.classList.contains('hidden')) return;
+
+        if (e.code === 'Space') {
+            e.preventDefault();
+            toggleFlashcardFlip();
+        } else if (e.key === 'ArrowRight') {
+            e.preventDefault();
+            if (currentCardIndex < flashcardDeck.length - 1) {
+                currentCardIndex++;
+                renderCurrentFlashcard();
+            }
+        } else if (e.key === 'ArrowLeft') {
+            e.preventDefault();
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                renderCurrentFlashcard();
+            }
+        } else if (e.key === '1') {
+            e.preventDefault();
+            markCardReviewAgain();
+        } else if (e.key === '2') {
+            e.preventDefault();
+            markCardMastered();
+        }
+    });
+
+    // ========================================================
     // SMALL CIRCULAR FLEXIBLE BLACK CURSOR (UNIFORM & STABLE)
     // ========================================================
     function initBouncyCursor() {
@@ -2507,8 +3159,9 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(animateCursor);
     }
 
-    // Initialize custom cursor
+    // Initialize custom cursor and study streak
     initBouncyCursor();
+    initStudyStreak();
 
     // Proactively verify environment and API key health on startup
     async function checkHealthStatus() {
