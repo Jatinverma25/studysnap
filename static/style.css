@@ -6928,6 +6928,520 @@ body.progress-page-active .progress-section {
     text-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
 }
 
+/* ========================================================
+   LIGHT THEME OVERRIDES FOR NEW ADDITIONS
+   (Study Streak, Achievements, Flashcards, Cram Sheet, Streak Calendar)
+   ======================================================== */
+
+/* 1. Study Streak Badge in Header */
+[data-theme="light"] .streak-badge-pill {
+    background: #fff7ed;
+    border: 1.5px solid #f97316;
+    box-shadow: 0 2px 10px rgba(249, 115, 22, 0.2);
+}
+
+[data-theme="light"] .streak-badge-pill:hover {
+    background: #ffedd5;
+    border-color: #ea580c;
+    box-shadow: 0 4px 16px rgba(249, 115, 22, 0.35);
+}
+
+[data-theme="light"] .streak-text-val {
+    color: #c2410c;
+    font-weight: 800;
+}
+
+/* 2. Action Navigation Buttons (Flashcards & Cheat Sheet) */
+[data-theme="light"] .btn-flashcards-nav {
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    color: #ffffff;
+    box-shadow: 0 4px 0 #1d4ed8, 0 6px 16px rgba(37, 99, 235, 0.25);
+}
+
+[data-theme="light"] .btn-flashcards-nav:hover {
+    box-shadow: 0 6px 0 #1d4ed8, 0 10px 20px rgba(37, 99, 235, 0.35);
+}
+
+[data-theme="light"] .btn-flashcards-nav:active {
+    box-shadow: 0 2px 0 #1d4ed8;
+}
+
+[data-theme="light"] .btn-cheatsheet-nav {
+    background: linear-gradient(135deg, #059669, #047857);
+    color: #ffffff;
+    box-shadow: 0 4px 0 #065f46, 0 6px 16px rgba(5, 150, 105, 0.25);
+}
+
+[data-theme="light"] .btn-cheatsheet-nav:hover {
+    box-shadow: 0 6px 0 #065f46, 0 10px 20px rgba(5, 150, 105, 0.35);
+}
+
+[data-theme="light"] .btn-cheatsheet-nav:active {
+    box-shadow: 0 2px 0 #065f46;
+}
+
+/* 3. Achievements Showcase (Progress Section) */
+[data-theme="light"] .achievements-card {
+    background: #ffffff;
+    border: 1px solid #ddd6fe;
+    box-shadow: 0 10px 30px -5px rgba(124, 58, 237, 0.08);
+}
+
+[data-theme="light"] .achievements-icon-box {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.2);
+}
+
+[data-theme="light"] .achievements-title {
+    color: #1e143b;
+}
+
+[data-theme="light"] .achievements-subtitle {
+    color: #6b5c8b;
+}
+
+[data-theme="light"] .achievements-unlocked-badge {
+    background: #fef3c7;
+    border: 1.5px solid #f59e0b;
+    color: #b45309;
+}
+
+[data-theme="light"] .achievement-medal-item {
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .achievement-medal-item:hover {
+    border-color: #c4b5fd;
+    background: #fdfcff;
+    box-shadow: 0 6px 16px rgba(124, 58, 237, 0.1);
+}
+
+[data-theme="light"] .achievement-medal-item.unlocked {
+    background: linear-gradient(145deg, #fffdfa, #fef3c7);
+    border-color: #f59e0b;
+    box-shadow: 0 4px 16px rgba(245, 158, 11, 0.18);
+}
+
+[data-theme="light"] .medal-icon-ring {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+}
+
+[data-theme="light"] .achievement-medal-item.unlocked .medal-icon-ring {
+    background: linear-gradient(135deg, #fef08a, #fde68a);
+    border-color: #d97706;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="light"] .medal-title {
+    color: #0f172a;
+}
+
+[data-theme="light"] .medal-desc {
+    color: #475569;
+}
+
+[data-theme="light"] .medal-status.locked {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+}
+
+[data-theme="light"] .medal-status.unlocked {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #10b981;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);
+}
+
+/* 4. 3D Flashcards Studio Modal */
+[data-theme="light"] .flashcards-modal-card {
+    background: #ffffff !important;
+    border: 1.5px solid #c4b5fd !important;
+    box-shadow: 0 25px 65px -10px rgba(76, 29, 149, 0.3) !important;
+}
+
+[data-theme="light"] .flashcards-modal-header {
+    background: #f8f6fe !important;
+    border-bottom: 1px solid #e9d5ff !important;
+}
+
+[data-theme="light"] .flashcards-icon-badge {
+    background: #f3e8ff;
+    border: 1.5px solid #c084fc;
+}
+
+[data-theme="light"] .flashcards-progress-pill {
+    background: #ecfeff;
+    border: 1.5px solid #06b6d4;
+    color: #0e7490;
+}
+
+[data-theme="light"] .flashcards-mastered-pill {
+    background: #ecfdf5;
+    border: 1.5px solid #10b981;
+    color: #047857;
+}
+
+[data-theme="light"] .flashcards-meter-track {
+    background: #e2e8f0;
+}
+
+[data-theme="light"] .flashcards-meter-fill {
+    background: linear-gradient(90deg, #0284c7, #7c3aed);
+    box-shadow: 0 0 8px rgba(2, 132, 199, 0.4);
+}
+
+[data-theme="light"] .flashcard-face {
+    box-shadow: 0 14px 36px -8px rgba(91, 33, 182, 0.15), 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .flashcard-front {
+    background: linear-gradient(155deg, #ffffff 0%, #faf8ff 60%, #f3eeff 100%);
+    border: 2px solid #c4b5fd;
+}
+
+[data-theme="light"] .flashcard-back {
+    background: linear-gradient(155deg, #ffffff 0%, #f0fdfa 60%, #e0f2fe 100%);
+    border: 2px solid #67e8f9;
+}
+
+[data-theme="light"] .flashcard-cat-badge {
+    background: #ede9fe;
+    color: #6d28d9;
+    border: 1.5px solid #c4b5fd;
+}
+
+[data-theme="light"] .flashcard-cat-badge.answer {
+    background: #cffafe;
+    color: #0891b2;
+    border: 1.5px solid #67e8f9;
+}
+
+[data-theme="light"] .flashcard-flip-prompt {
+    color: #64748b;
+}
+
+[data-theme="light"] .flashcard-prompt-text {
+    color: #1e1b4b !important;
+}
+
+[data-theme="light"] .flashcard-answer-text {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .flashcard-answer-text strong {
+    color: #090d16;
+}
+
+[data-theme="light"] .flashcard-footer-hint {
+    color: #64748b;
+}
+
+[data-theme="light"] .btn-flashcard-nav {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .btn-flashcard-nav:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+}
+
+[data-theme="light"] .btn-rating.flip-btn {
+    background: linear-gradient(135deg, #7c3aed, #9333ea);
+    color: #ffffff;
+    box-shadow: 0 3px 0 #5b21b6;
+}
+
+[data-theme="light"] .btn-rating.review-btn {
+    background: #fef2f2;
+    border: 1.5px solid #fca5a5;
+    color: #dc2626;
+}
+
+[data-theme="light"] .btn-rating.review-btn:hover {
+    background: #fee2e2;
+}
+
+[data-theme="light"] .btn-rating.master-btn {
+    background: #ecfdf5;
+    border: 1.5px solid #86efac;
+    color: #059669;
+}
+
+[data-theme="light"] .btn-rating.master-btn:hover {
+    background: #d1fae5;
+}
+
+[data-theme="light"] .flashcard-hotkeys-hint {
+    color: #64748b;
+}
+
+/* 5. Exam Cheat Sheet Modal */
+[data-theme="light"] .cheat-sheet-modal-card {
+    background: #ffffff !important;
+    border: 1.5px solid #c4b5fd !important;
+    box-shadow: 0 25px 65px -10px rgba(76, 29, 149, 0.3) !important;
+}
+
+[data-theme="light"] .cheat-sheet-modal-header {
+    background: #f8f6fe !important;
+    border-bottom: 1px solid #e9d5ff !important;
+}
+
+[data-theme="light"] .cheat-sheet-icon-badge {
+    background: #ecfdf5;
+    border: 1.5px solid #6ee7b7;
+}
+
+[data-theme="light"] .cheat-sheet-modal-body {
+    background: #ffffff;
+}
+
+[data-theme="light"] .cheat-sheet-print-header {
+    border-bottom: 2px solid #ddd6fe;
+}
+
+[data-theme="light"] .cheat-sheet-brand-row {
+    color: #64748b;
+}
+
+[data-theme="light"] .cheat-sheet-doc-title {
+    color: #1e1b4b;
+}
+
+[data-theme="light"] .cheat-section-card {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .cheat-section-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .cheat-section-header {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .cheat-section-header h4 {
+    color: #0f172a !important;
+    font-weight: 800;
+}
+
+[data-theme="light"] .cheat-section-content {
+    color: #334155 !important;
+}
+
+[data-theme="light"] .cheat-section-content strong {
+    color: #0f172a;
+}
+
+[data-theme="light"] .cheat-section-content code {
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    color: #7c3aed;
+}
+
+/* 6. Study Streak Calendar Modal */
+[data-theme="light"] .streak-calendar-card {
+    background: #ffffff !important;
+    border: 1.5px solid #fed7aa !important;
+    box-shadow: 0 25px 65px -10px rgba(194, 65, 12, 0.25), 0 0 35px rgba(245, 158, 11, 0.15) !important;
+}
+
+[data-theme="light"] .streak-calendar-header {
+    background: #fffbeb !important;
+    border-bottom: 1px solid #fed7aa !important;
+}
+
+[data-theme="light"] .streak-fire-icon-badge {
+    background: #fef3c7;
+    border: 1.5px solid #f59e0b;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+[data-theme="light"] .streak-hero-banner {
+    background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%);
+    border: 1.5px solid #fed7aa;
+    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.08);
+}
+
+[data-theme="light"] .streak-hero-flame-orb {
+    background: radial-gradient(circle, #fef3c7 0%, #fee2e2 75%, transparent 100%);
+    border-color: #f97316;
+    box-shadow: 0 0 12px rgba(249, 115, 22, 0.3);
+}
+
+[data-theme="light"] .streak-hero-number {
+    background: linear-gradient(135deg, #d97706, #dc2626);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: none;
+}
+
+[data-theme="light"] .streak-hero-label {
+    color: #9a3412 !important;
+}
+
+[data-theme="light"] .streak-hero-status {
+    color: #78350f !important;
+}
+
+[data-theme="light"] .streak-metric-chip {
+    background: #ffffff;
+    border: 1px solid #fed7aa;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .chip-label {
+    color: #9a3412;
+}
+
+[data-theme="light"] .chip-value {
+    color: #0f172a;
+}
+
+[data-theme="light"] .streak-cal-month-title {
+    color: #0f172a !important;
+}
+
+[data-theme="light"] .btn-streak-cal-nav {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+}
+
+[data-theme="light"] .btn-streak-cal-nav:hover {
+    background: #fef3c7;
+    border-color: #f59e0b;
+    color: #b45309;
+}
+
+[data-theme="light"] .btn-streak-cal-today {
+    background: #ecfeff;
+    border: 1.5px solid #06b6d4;
+    color: #0891b2;
+}
+
+[data-theme="light"] .btn-streak-cal-today:hover {
+    background: #cffafe;
+    border-color: #0891b2;
+}
+
+[data-theme="light"] .streak-calendar-wrapper {
+    background: #fafaf9;
+    border: 1.5px solid #e7e5e4;
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .streak-weekdays-row {
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .streak-day-cell {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .streak-day-cell:hover:not(.other-month) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+[data-theme="light"] .streak-day-cell .day-number {
+    color: #64748b;
+}
+
+/* Worked Day: Glows in Light Theme with rich warm amber */
+[data-theme="light"] .streak-day-cell.worked {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border: 1.5px solid #f59e0b;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+
+[data-theme="light"] .streak-day-cell.worked .day-number {
+    color: #b45309 !important;
+    font-weight: 900;
+    text-shadow: 0 0 6px rgba(245, 158, 11, 0.4), 0 0 12px rgba(245, 158, 11, 0.2);
+    filter: none;
+}
+
+[data-theme="light"] .streak-day-cell.worked:hover {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-color: #d97706;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="light"] .streak-day-cell.worked:hover .day-number {
+    color: #92400e !important;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+/* Today Indicator in Light Theme */
+[data-theme="light"] .streak-day-cell.is-today {
+    border: 2px solid #06b6d4 !important;
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.45) !important;
+}
+
+[data-theme="light"] .streak-day-cell.is-today:not(.worked) .day-number {
+    color: #0891b2 !important;
+    font-weight: 800;
+    text-shadow: none;
+}
+
+/* Other Month Trailing Days in Light Theme */
+[data-theme="light"] .streak-day-cell.other-month {
+    opacity: 0.3;
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+[data-theme="light"] .streak-day-cell.other-month .day-number {
+    color: #cbd5e1;
+}
+
+/* Legend in Light Theme */
+[data-theme="light"] .streak-calendar-legend {
+    border-top: 1px solid #e2e8f0;
+}
+
+[data-theme="light"] .streak-calendar-legend .legend-item {
+    color: #475569;
+    font-weight: 600;
+}
+
+[data-theme="light"] .legend-num-badge.worked-badge {
+    background: #fef3c7;
+    border: 1.5px solid #f59e0b;
+    color: #b45309;
+    text-shadow: 0 0 4px rgba(245, 158, 11, 0.4);
+    box-shadow: 0 1px 4px rgba(245, 158, 11, 0.2);
+}
+
+[data-theme="light"] .legend-num-badge.empty-badge {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+}
+
+[data-theme="light"] .legend-num-badge.today-badge {
+    background: #ecfeff;
+    border: 1.5px solid #06b6d4;
+    color: #0891b2;
+    box-shadow: 0 1px 4px rgba(6, 182, 212, 0.25);
+}
+
 
 
 
