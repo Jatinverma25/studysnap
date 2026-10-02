@@ -998,7 +998,7 @@
                         <div class="quiz-modal-icon-badge flashcards-icon-badge">🎴</div>
                         <div>
                             <h3 id="flashcardsModalTitle" class="quiz-modal-title">Concept Flashcards</h3>
-                            <p class="quiz-modal-subtitle">Interactive 3D active recall deck tailored to your document</p>
+                            <p class="quiz-modal-subtitle" id="flashcardDocSubtitle">Interactive 3D active recall deck tailored to your document</p>
                         </div>
                     </div>
                     <div class="flashcards-top-meta">
@@ -1024,7 +1024,7 @@
                                     <span class="flashcard-flip-prompt">Click or press Space to Flip 🔄</span>
                                 </div>
                                 <div class="flashcard-content">
-                                    <h4 class="flashcard-prompt-text" id="cardPromptText">Loading concept...</h4>
+                                    <h4 class="flashcard-prompt-text" id="cardPromptText">Flashcard Concept</h4>
                                 </div>
                                 <div class="flashcard-footer-hint">
                                     <span class="hint-icon">💡</span>
@@ -1169,6 +1169,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v5"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v6"></script>
 </body>
 </html>

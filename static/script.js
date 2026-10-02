@@ -169,13 +169,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const flashcardsModal = document.getElementById('flashcardsModal');
     const flashcardsModalBackdrop = document.getElementById('flashcardsModalBackdrop');
     const closeFlashcardsModalBtn = document.getElementById('closeFlashcardsModalBtn');
-    const flashcardDocSubtitle = document.getElementById('flashcardDocSubtitle');
-    const flashcardProgress = document.getElementById('flashcardProgress');
+    const flashcardDocSubtitle = document.getElementById('flashcardDocSubtitle') || document.querySelector('.flashcards-modal-header .quiz-modal-subtitle');
+    const flashcardProgress = document.getElementById('flashcardsProgressPill') || document.getElementById('flashcardProgress');
     const flashcardsMeterFill = document.getElementById('flashcardsMeterFill');
-    const flashcardMasteredCount = document.getElementById('flashcardMasteredCount');
-    const flashcardCard = document.getElementById('flashcardCard');
-    const cardQuestionText = document.getElementById('cardQuestionText');
+    const flashcardMasteredCount = document.getElementById('flashcardsMasteredPill') || document.getElementById('flashcardMasteredCount');
+    const flashcardCard = document.getElementById('flashcardElement') || document.getElementById('flashcardCard');
+    const cardQuestionText = document.getElementById('cardPromptText') || document.getElementById('cardQuestionText');
     const cardAnswerText = document.getElementById('cardAnswerText');
+    const cardCategoryBadge = document.getElementById('cardCategoryBadge');
     const flashcardPrevBtn = document.getElementById('flashcardPrevBtn');
     const flashcardNextBtn = document.getElementById('flashcardNextBtn');
     const cardReviewAgainBtn = document.getElementById('cardReviewAgainBtn');
@@ -2614,16 +2615,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!summariesData) {
             return [
                 {
-                    question: "What is Active Recall?",
-                    answer: "Active recall is the testing effect where you stimulate memory retrieval during learning, boosting long-term memory retention by up to 200% compared to passive reading."
+                    category: "ACTIVE RECALL 🧠",
+                    question: "What is Active Recall and why is it effective?",
+                    answer: "Active recall is the practice of stimulating memory retrieval during learning. Testing yourself boosts long-term retention by up to 200% compared to passive rereading."
                 },
                 {
+                    category: "STUDYSNAP AI ⚡",
                     question: "How does StudySnap synthesize documents?",
-                    answer: "StudySnap analyzes complex PDFs using advanced AI to generate Easy, Deep, and Fun conceptual explanations, customizable quizzes, and automated exam cheat sheets."
+                    answer: "StudySnap analyzes complex PDFs using advanced AI to generate Easy, Deep, and Fun explanations, customizable quizzes, and automated exam cram cheat sheets."
                 },
                 {
-                    question: "How does the Spaced Repetition study streak work?",
-                    answer: "Reviewing documents and completing quizzes on consecutive days locks in memory curves and levels up your gamer achievement trophies from Beginner to Impossible Tier!"
+                    category: "SPACED REPETITION 🔥",
+                    question: "How does the daily study streak help learning?",
+                    answer: "Reviewing documents and completing quizzes on consecutive days locks in memory curves, keeps your streak alive, and levels up your gamer achievement trophies!"
                 }
             ];
         }
@@ -2637,7 +2641,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const lines = sourceTexts.split('\n');
 
         // Pattern 1: Bold term followed by colon: - **Term**: Explanation
-        const termRegex = /^[\s*-]*\*\*([^*:\n]{3,60})\*\*\s*[:–-]\s*(.+)$/;
+        const termRegex = /^[\s*-•]*\*\*([^*:\n]{2,60})\*\*\s*[:–-]\s*(.+)$/;
 
         // Pattern 2: Heading 2/3/4
         const headingRegex = /^#{2,4}\s+(.+)$/;
@@ -2653,8 +2657,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (termMatch) {
                 const term = termMatch[1].trim();
                 const explanation = termMatch[2].replace(/[*_]/g, '').trim();
-                if (term.length >= 3 && explanation.length >= 10) {
+                if (term.length >= 2 && explanation.length >= 10) {
                     cards.push({
+                        category: "DEFINITION 🔑",
                         question: `What is ${term}?`,
                         answer: explanation
                     });
@@ -2668,6 +2673,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ans = currentHeadingBody.join(' ').replace(/[*_]/g, '').trim();
                     if (ans.length >= 20 && ans.length <= 400) {
                         cards.push({
+                            category: "KEY CONCEPT 💡",
                             question: `Explain: ${currentHeading}`,
                             answer: ans
                         });
@@ -2689,26 +2695,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const ans = currentHeadingBody.join(' ').replace(/[*_]/g, '').trim();
             if (ans.length >= 20 && ans.length <= 400) {
                 cards.push({
+                    category: "KEY CONCEPT 💡",
                     question: `Explain: ${currentHeading}`,
                     answer: ans
                 });
             }
         }
 
-        // Extract any LaTeX equations
-        const mathMatches = sourceTexts.matchAll(/\$\$([\s\S]+?)\$\$|\$([^\$\n]+?)\$/g);
+        // Extract LaTeX equations (safely bounded)
+        let formulaCount = 0;
+        const mathMatches = sourceTexts.matchAll(/\$\$([^$]+?)\$\$|\$([^$\n]{2,80})\$/g);
         for (const match of mathMatches) {
             const formula = (match[1] || match[2] || '').trim();
-            if (formula.length >= 4 && formula.length <= 80 && !cards.some(c => c.answer.includes(formula))) {
+            if (formula.length >= 3 && formula.length <= 80 && !cards.some(c => c.answer.includes(formula))) {
                 cards.push({
-                    question: "Identify and explain this formula:",
+                    category: "FORMULA ⚡",
+                    question: "Identify and formulate this equation:",
                     answer: `$$\n${formula}\n$$`
                 });
+                formulaCount++;
+                if (formulaCount >= 5) break;
             }
-            if (cards.length >= 15) break;
         }
 
-        // De-duplicate
+        // De-duplicate by question
         const seen = new Set();
         const uniqueCards = [];
         for (const card of cards) {
@@ -2720,23 +2730,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Fallback if few cards extracted
-        if (uniqueCards.length < 3 && summariesData.easy) {
-            const cleanEasy = summariesData.easy.replace(/[*#]/g, '').split('. ');
-            for (let i = 0; i < Math.min(5, cleanEasy.length); i++) {
-                const sent = cleanEasy[i].trim();
-                if (sent.length > 25) {
-                    uniqueCards.push({
-                        question: `Core Takeaway #${i + 1}`,
-                        answer: sent + (sent.endsWith('.') ? '' : '.')
-                    });
+        if (uniqueCards.length < 4) {
+            const paragraphs = sourceTexts.split(/\n\s*\n/);
+            for (const p of paragraphs) {
+                const clean = p.replace(/[*#]/g, '').trim();
+                if (clean.length > 40 && clean.length < 350 && !clean.startsWith('-')) {
+                    const firstPeriod = clean.indexOf('. ');
+                    if (firstPeriod > 15 && firstPeriod < 120) {
+                        const qPart = clean.slice(0, firstPeriod + 1);
+                        const aPart = clean.slice(firstPeriod + 2);
+                        if (aPart.length > 20) {
+                            uniqueCards.push({
+                                category: "TAKEAWAY 🎯",
+                                question: `Core Takeaway: ${qPart}`,
+                                answer: aPart
+                            });
+                        }
+                    }
                 }
+                if (uniqueCards.length >= 8) break;
             }
         }
 
         return uniqueCards.length > 0 ? uniqueCards : [
             {
-                question: "Key Concept in Document",
-                answer: summariesData.easy ? summariesData.easy.slice(0, 200) + '...' : "Review the main summary sections for key ideas."
+                category: "KEY CONCEPT 💡",
+                question: "Core Document Overview",
+                answer: summariesData.easy ? summariesData.easy.slice(0, 240) + '...' : "Review the main summary sections for key ideas."
             }
         ];
     }
@@ -2755,7 +2775,14 @@ document.addEventListener('DOMContentLoaded', () => {
             cardQuestionText.textContent = card.question;
         }
         if (cardAnswerText) {
-            cardAnswerText.textContent = card.answer;
+            if (typeof marked !== 'undefined' && typeof marked.parse === 'function' && (card.answer.includes('*') || card.answer.includes('\n'))) {
+                cardAnswerText.innerHTML = marked.parse(card.answer);
+            } else {
+                cardAnswerText.textContent = card.answer;
+            }
+        }
+        if (cardCategoryBadge) {
+            cardCategoryBadge.textContent = card.category || 'KEY CONCEPT';
         }
 
         if (flashcardProgress) {
