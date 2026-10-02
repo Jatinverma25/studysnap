@@ -4,15 +4,39 @@ Tests for StudySnap Quiz Mode routes (/quiz/generate, /quiz/save, /quiz/history)
 
 import io
 import json
+import os
+import tempfile
 import unittest
 from unittest.mock import patch, MagicMock
-from app import app, DB_PATH, JSON_PATH
+import app as app_module
+from app import app, DB_PATH, JSON_PATH, init_db
 
 
 class TestQuizRoutes(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        # Remember production paths so tests never touch real user data.
+        # (These tests used to call /quiz/reset against quiz_history.db.)
+        cls._real_db_path = app_module.DB_PATH
+        cls._real_json_path = app_module.JSON_PATH
+
+    @classmethod
+    def tearDownClass(cls):
+        app_module.DB_PATH = cls._real_db_path
+        app_module.JSON_PATH = cls._real_json_path
+        init_db()
+
     def setUp(self):
         self.client = app.test_client()
+        # Isolate every test in its own temp database.
+        self._tmpdir = tempfile.TemporaryDirectory()
+        app_module.DB_PATH = os.path.join(self._tmpdir.name, 'quiz_history.db')
+        app_module.JSON_PATH = os.path.join(self._tmpdir.name, 'quiz_history.json')
+        init_db()
+
+    def tearDown(self):
+        self._tmpdir.cleanup()
 
     @patch("app.get_gemini_client")
     @patch("app.call_gemini_with_retry")
@@ -112,11 +136,26 @@ class TestQuizRoutes(unittest.TestCase):
 
     def test_quiz_stats_endpoint(self):
         """Tests /quiz/stats returns aggregated metrics and level progression."""
+        # Seed one record: each test runs against an isolated temp database.
+        seed = {
+            "pdf_name": "stats_seed.pdf",
+            "score": 7,
+            "total": 10,
+            "percentage": 70.0,
+            "performance_message": "Solid Understanding!",
+            "difficulty": "medium",
+            "created_at": "2026-09-27 12:00:00"
+        }
+        seed_res = self.client.post("/quiz/save", data=json.dumps(seed), content_type="application/json")
+        self.assertEqual(seed_res.status_code, 200)
+
         response = self.client.get("/quiz/stats")
         self.assertEqual(response.status_code, 200)
         data = response.get_json()
         self.assertTrue(data["success"])
         self.assertIn("stats", data)
+        self.assertIn("history", data)
+        self.assertGreaterEqual(len(data["history"]), 1)
         stats = data["stats"]
         self.assertIn("total_quizzes", stats)
         self.assertIn("average_score", stats)
@@ -127,6 +166,14 @@ class TestQuizRoutes(unittest.TestCase):
         self.assertIn(stats["level"], ["Beginner", "Learner", "Scholar", "Master", "Impossible"])
         self.assertIn("progress_to_next", stats)
         self.assertGreaterEqual(stats["total_quizzes"], 1)
+
+        # Also test the unified /quiz/progress endpoint
+        progress_res = self.client.get("/quiz/progress")
+        self.assertEqual(progress_res.status_code, 200)
+        progress_data = progress_res.get_json()
+        self.assertTrue(progress_data["success"])
+        self.assertIn("stats", progress_data)
+        self.assertIn("history", progress_data)
 
     def test_impossible_tier_at_100_percent(self):
         """Tests that reaching 100% average score unlocks Tier 5: Impossible."""

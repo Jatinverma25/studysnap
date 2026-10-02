@@ -3,6 +3,7 @@ import json
 import sqlite3
 import datetime
 import tempfile
+import time
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 from google import genai
@@ -33,17 +34,81 @@ app = Flask(
 app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024
 
 # 3. Determine data directory: on Vercel / Serverless, project files are read-only, so use /tmp
+# NOTE on persistence: /tmp is ephemeral (wiped on cold start/redeploy) and each
+# serverless instance / gunicorn worker can see a different copy. SQLite history
+# therefore cannot stay consistent across instances. For production persistence,
+# mount a persistent disk and set STUDY_SNAP_DATA_DIR to it (or migrate to an
+# external DB like Postgres). Single worker is also required for SQLite.
 is_serverless = bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
-DATA_DIR = tempfile.gettempdir() if is_serverless else BASE_DIR
+DATA_DIR = os.environ.get("STUDY_SNAP_DATA_DIR") or (tempfile.gettempdir() if is_serverless else BASE_DIR)
 
 DB_PATH = os.path.join(DATA_DIR, 'quiz_history.db')
 JSON_PATH = os.path.join(DATA_DIR, 'quiz_history.json')
+
+SQLITE_TIMEOUT_SECONDS = 30.0
+
+
+def get_db_connection():
+    """Opens a SQLite connection hardened for concurrent web use.
+
+    Enables WAL mode + NORMAL synchronous + a generous busy timeout so that a
+    read arriving while a quiz result is being saved waits instead of failing
+    with "database is locked" (which previously made My Progress show stats
+    but no history, or vice versa).
+    """
+    conn = sqlite3.connect(DB_PATH, timeout=SQLITE_TIMEOUT_SECONDS, check_same_thread=False)
+    conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute(f"PRAGMA busy_timeout={int(SQLITE_TIMEOUT_SECONDS * 1000)};")
+        conn.execute("PRAGMA synchronous=NORMAL;")
+    except Exception:
+        pass
+    return conn
+
+
+def _is_locked_error(exc):
+    return isinstance(exc, sqlite3.OperationalError) and "locked" in str(exc).lower()
+
+
+def execute_db_with_retry(operation, attempts=4):
+    """Runs a DB operation, retrying with backoff on 'database is locked'."""
+    last_error = None
+    for i in range(attempts):
+        try:
+            return operation()
+        except Exception as e:
+            last_error = e
+            if _is_locked_error(e) and i < attempts - 1:
+                time.sleep(0.15 * (i + 1))
+                continue
+            raise
+    raise last_error
+
+
+def atomic_write_json(path, data):
+    """Writes JSON atomically (temp file + rename) so concurrent quiz saves
+    can never leave a half-written, corrupt history file behind."""
+    parent = os.path.dirname(path) or "."
+    os.makedirs(parent, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(dir=parent, suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp_path, path)
+    except Exception:
+        try:
+            os.remove(tmp_path)
+        except Exception:
+            pass
+        raise
 
 
 def init_db():
     """Initializes the SQLite database for quiz results tracking."""
     try:
-        conn = sqlite3.connect(DB_PATH)
+        os.makedirs(DATA_DIR, exist_ok=True)
+        conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS quiz_results (
@@ -147,12 +212,24 @@ def health_check():
     elif os.environ.get("RENDER"):
         platform = "render"
 
+    db_ok = False
+    db_error = None
+    try:
+        conn = get_db_connection()
+        conn.execute("SELECT 1")
+        conn.close()
+        db_ok = True
+    except Exception as e:
+        db_error = str(e)
+
     return jsonify({
         "status": "ok",
         "platform": platform,
         "api_key_configured": has_key,
         "key_prefix": (api_key[:4] + "..." + api_key[-4:]) if has_key else None,
         "database_path": DB_PATH,
+        "database_ok": db_ok,
+        "database_error": db_error,
         "message": "GEMINI_API_KEY is active and detected!" if has_key else "GEMINI_API_KEY is missing from environment"
     })
 
@@ -596,19 +673,25 @@ def save_quiz_result():
         difficulty = str(data.get("difficulty", "medium")).lower().strip()
         created_at = data.get("created_at") or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-        # 1. Save to SQLite database
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            INSERT INTO quiz_results (pdf_name, score, total, percentage, performance_message, difficulty, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """,
-            (pdf_name, score, total, percentage, performance_message, difficulty, created_at)
-        )
-        record_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
+        # 1. Save to SQLite database (retries on 'database is locked')
+        def _insert():
+            conn = get_db_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    INSERT INTO quiz_results (pdf_name, score, total, percentage, performance_message, difficulty, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (pdf_name, score, total, percentage, performance_message, difficulty, created_at)
+                )
+                record_id = cursor.lastrowid
+                conn.commit()
+                return record_id
+            finally:
+                conn.close()
+
+        record_id = execute_db_with_retry(_insert)
 
         # 2. Also append to JSON file for easy data export / inspection
         history_entry = {
@@ -629,11 +712,12 @@ def save_quiz_result():
             except Exception:
                 history = []
         history.append(history_entry)
-        with open(JSON_PATH, "w", encoding="utf-8") as f:
-            json.dump(history, f, indent=2)
+        atomic_write_json(JSON_PATH, history)
 
         return jsonify({"success": True, "id": record_id, "saved_at": created_at})
     except Exception as e:
+        if _is_locked_error(e):
+            return jsonify({"success": False, "error": "Database is busy, please try again."}), 503
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -642,14 +726,20 @@ def save_quiz_result():
 def get_quiz_history():
     """Retrieves all past quiz attempts from SQLite database."""
     try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM quiz_results ORDER BY id DESC")
-        rows = [dict(row) for row in cursor.fetchall()]
-        conn.close()
+        def _fetch():
+            conn = get_db_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM quiz_results ORDER BY id DESC")
+                return [dict(row) for row in cursor.fetchall()]
+            finally:
+                conn.close()
+
+        rows = execute_db_with_retry(_fetch)
         return jsonify({"success": True, "history": rows})
     except Exception as e:
+        if _is_locked_error(e):
+            return jsonify({"success": False, "error": "Database is busy, please try again."}), 503
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -659,44 +749,57 @@ def reset_quiz_data():
     """Resets all quiz history and progress data so the user can start and record progress from scratch."""
     try:
         # 1. Clear SQLite table
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM quiz_results")
-        try:
-            cursor.execute("DELETE FROM sqlite_sequence WHERE name='quiz_results'")
-        except Exception:
-            pass
-        conn.commit()
-        conn.close()
+        def _clear():
+            conn = get_db_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM quiz_results")
+                try:
+                    cursor.execute("DELETE FROM sqlite_sequence WHERE name='quiz_results'")
+                except Exception:
+                    pass
+                conn.commit()
+            finally:
+                conn.close()
+
+        execute_db_with_retry(_clear)
 
         # 2. Reset JSON backup file to an empty list
-        with open(JSON_PATH, "w", encoding="utf-8") as f:
-            json.dump([], f, indent=2)
+        atomic_write_json(JSON_PATH, [])
 
         return jsonify({
             "success": True,
             "message": "All progress data and quiz history have been reset successfully."
         })
     except Exception as e:
+        if _is_locked_error(e):
+            return jsonify({"success": False, "error": "Database is busy, please try again."}), 503
         return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route('/quiz/stats', methods=['GET'])
 @app.route('/api/quiz/stats', methods=['GET'])
+@app.route('/quiz/progress', methods=['GET'])
+@app.route('/api/quiz/progress', methods=['GET'])
 def get_quiz_stats():
-    """Computes aggregated quiz stats, average score, accuracy, and level progression."""
+    """Computes aggregated quiz stats, average score, accuracy, and returns full history in one atomic query."""
     try:
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM quiz_results ORDER BY id DESC")
-        rows = [dict(row) for row in cursor.fetchall()]
-        conn.close()
+        def _fetch():
+            conn = get_db_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT * FROM quiz_results ORDER BY id DESC")
+                return [dict(row) for row in cursor.fetchall()]
+            finally:
+                conn.close()
+
+        rows = execute_db_with_retry(_fetch)
 
         total_quizzes = len(rows)
         if total_quizzes == 0:
             return jsonify({
                 "success": True,
+                "history": [],
                 "stats": {
                     "total_quizzes": 0,
                     "average_score": 0.0,
@@ -773,6 +876,7 @@ def get_quiz_stats():
 
         return jsonify({
             "success": True,
+            "history": rows,
             "stats": {
                 "total_quizzes": total_quizzes,
                 "average_score": avg_pct,
@@ -794,6 +898,8 @@ def get_quiz_stats():
             }
         })
     except Exception as e:
+        if _is_locked_error(e):
+            return jsonify({"success": False, "error": "Database is busy, please try again."}), 503
         return jsonify({"success": False, "error": str(e)}), 500
 
 

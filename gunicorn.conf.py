@@ -5,7 +5,9 @@ import os
 
 port = os.environ.get("PORT", "5000")
 bind = f"0.0.0.0:{port}"
-workers = 2
+# Single worker: quiz history uses SQLite, which cannot stay consistent across
+# multiple processes (each worker would lock/diverge on the same file).
+workers = 1
 timeout = 180  # 180 seconds (3 minutes) for PDF extraction and Gemini AI processing
 keepalive = 5
 graceful_timeout = 30

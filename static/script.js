@@ -240,6 +240,26 @@ document.addEventListener('DOMContentLoaded', () => {
         return data;
     }
 
+    // Helper: fetch JSON with one automatic retry. The Progress dashboard loads
+    // history and stats as two separate requests; without a retry a single
+    // transient failure (e.g. brief "database is locked") leaves the stat cards
+    // showing data while the chart/history show empty, or vice versa.
+    async function fetchJsonWithRetry(url, actionDescription, retries = 1) {
+        let lastErr = null;
+        for (let attempt = 0; attempt <= retries; attempt++) {
+            try {
+                const r = await fetch(url);
+                return await safeParseJsonResponse(r, actionDescription);
+            } catch (err) {
+                lastErr = err;
+                if (attempt < retries) {
+                    await new Promise(res => setTimeout(res, 600));
+                }
+            }
+        }
+        throw lastErr;
+    }
+
     // File selection handler
     function handleFile(file) {
         if (!file) return;
@@ -1504,25 +1524,76 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'score-beginner';
     }
 
-    // Render Quiz History Table (Newest first)
-    function renderQuizHistoryTable(historyItems) {
+    // Helpers: swap an empty-state panel to an error message and back.
+    // Original heading/body/icon are cached on first use so a later successful
+    // load restores the default text instead of keeping a stale error.
+    function setPanelMessage(panel, iconText, headingText, bodyText) {
+        if (!panel) return;
+        if (iconText === null && headingText === null && bodyText === null) return;
+        const iconEl = panel.querySelector('.history-empty-icon, .empty-icon');
+        const headEl = panel.querySelector('h4');
+        const bodyEl = panel.querySelector('p');
+        // Cache originals as text (never replace innerHTML: the history empty
+        // state contains the Start Quiz button with a live event listener).
+        if (iconEl) {
+            if (panel.dataset.origIcon === undefined) panel.dataset.origIcon = iconEl.textContent;
+            if (iconText) iconEl.textContent = iconText;
+        }
+        if (headEl) {
+            if (panel.dataset.origHead === undefined) panel.dataset.origHead = headEl.textContent;
+            if (headingText) headEl.textContent = headingText;
+        }
+        if (bodyEl) {
+            if (panel.dataset.origBody === undefined) panel.dataset.origBody = bodyEl.textContent;
+            if (bodyText) bodyEl.textContent = bodyText;
+        }
+    }
+
+    function restorePanelMessage(panel) {
+        if (!panel) return;
+        const iconEl = panel.querySelector('.history-empty-icon, .empty-icon');
+        const headEl = panel.querySelector('h4');
+        const bodyEl = panel.querySelector('p');
+        if (iconEl && panel.dataset.origIcon !== undefined) iconEl.textContent = panel.dataset.origIcon;
+        if (headEl && panel.dataset.origHead !== undefined) headEl.textContent = panel.dataset.origHead;
+        if (bodyEl && panel.dataset.origBody !== undefined) bodyEl.textContent = panel.dataset.origBody;
+        delete panel.dataset.origIcon;
+        delete panel.dataset.origHead;
+        delete panel.dataset.origBody;
+    }
+
+    // Render Quiz History Table (Newest first). loadError, when provided, is
+    // shown in the empty state instead of silently displaying "no quizzes".
+    function renderQuizHistoryTable(historyItems, loadError = null) {
         if (!quizHistoryTableBody) return;
         quizHistoryTableBody.innerHTML = '';
 
         if (!historyItems || historyItems.length === 0) {
-            if (historyEmptyState) historyEmptyState.classList.remove('hidden');
+            if (historyEmptyState) {
+                setPanelMessage(
+                    historyEmptyState,
+                    loadError ? '⚠️' : null,
+                    loadError ? "Couldn't Load History" : null,
+                    loadError ? `History failed to load (${loadError}). Reopen My Progress to retry — your saved quizzes are not lost.` : null
+                );
+                historyEmptyState.classList.remove('hidden');
+            }
             if (quizHistoryTable) quizHistoryTable.classList.add('hidden');
-            if (historyCountBadge) historyCountBadge.textContent = '0 attempts';
+            if (historyCountBadge) historyCountBadge.textContent = loadError ? 'load failed' : '0 attempts';
             return;
         }
 
-        if (historyEmptyState) historyEmptyState.classList.add('hidden');
+        if (historyEmptyState) {
+            restorePanelMessage(historyEmptyState);
+            historyEmptyState.classList.add('hidden');
+        }
         if (quizHistoryTable) quizHistoryTable.classList.remove('hidden');
         if (historyCountBadge) historyCountBadge.textContent = `${historyItems.length} attempt${historyItems.length === 1 ? '' : 's'}`;
 
         historyItems.forEach(item => {
+            if (!item) return;
             const tr = document.createElement('tr');
-            const diff = (item.difficulty || 'medium').toLowerCase();
+            const diff = String(item.difficulty || 'medium').toLowerCase();
             const diffIcon = diff === 'easy' ? '🌱' : diff === 'hard' ? '🔥' : '⚡';
             const diffLabel = diff.charAt(0).toUpperCase() + diff.slice(1);
             const scorePct = Math.round(parseFloat(item.percentage) || 0);
@@ -1664,11 +1735,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statCardOverallAccuracy) statCardOverallAccuracy.textContent = `${overallAccuracy.toFixed(1)}%`;
     }
 
-    // Render Score Trend Chart using Chart.js
-    function renderScoreTrendChart(historyItems, chartType = 'line') {
+    // Render Score Trend Chart using Chart.js. loadError, when provided, is
+    // shown in the chart panel instead of leaving it silently blank.
+    function renderScoreTrendChart(historyItems, chartType = 'line', loadError = null) {
         if (!scoreTrendChartCanvas) return;
         if (typeof Chart === 'undefined') {
             console.warn('Chart.js library is not available.');
+            if (chartEmptyState) {
+                setPanelMessage(
+                    chartEmptyState,
+                    '⚠️',
+                    null,
+                    'Chart library failed to load (check connection or ad-blocker). Your stats and history below are unaffected — reload to retry.'
+                );
+                chartEmptyState.classList.remove('hidden');
+            }
+            scoreTrendChartCanvas.classList.add('hidden');
             return;
         }
 
@@ -1678,12 +1760,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!historyItems || historyItems.length === 0) {
-            if (chartEmptyState) chartEmptyState.classList.remove('hidden');
+            if (chartEmptyState) {
+                if (loadError) {
+                    setPanelMessage(
+                        chartEmptyState,
+                        '⚠️',
+                        null,
+                        `Trend data failed to load (${loadError}). Reopen My Progress to retry — your saved quizzes are not lost.`
+                    );
+                } else {
+                    restorePanelMessage(chartEmptyState);
+                }
+                chartEmptyState.classList.remove('hidden');
+            }
             scoreTrendChartCanvas.classList.add('hidden');
             return;
         }
 
-        if (chartEmptyState) chartEmptyState.classList.add('hidden');
+        if (chartEmptyState) {
+            restorePanelMessage(chartEmptyState);
+            chartEmptyState.classList.add('hidden');
+        }
         scoreTrendChartCanvas.classList.remove('hidden');
 
         // Chronological order: oldest first for score progression over time
@@ -1696,27 +1793,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const tooltipText = isDark ? '#f8f6fe' : '#1e1b4b';
 
         const labels = chronological.map((item, idx) => {
-            if (item.created_at) {
-                const parts = item.created_at.split(/[\s,]+/);
+            if (item && item.created_at) {
+                const parts = String(item.created_at).split(/[\s,]+/);
                 return parts[0] || `Quiz ${idx + 1}`;
             }
             return `Quiz ${idx + 1}`;
         });
 
-        const dataPoints = chronological.map(item => parseFloat(item.percentage) || 0);
+        const dataPoints = chronological.map(item => parseFloat(item && item.percentage) || 0);
 
         const ctx = scoreTrendChartCanvas.getContext('2d');
         let gradientFill = null;
         let gradientStroke = null;
 
         try {
-            const h = scoreTrendChartCanvas.clientHeight || 280;
+            const h = Math.max(scoreTrendChartCanvas.clientHeight || 280, 200);
+            const w = Math.max(scoreTrendChartCanvas.clientWidth || 400, 300);
             gradientFill = ctx.createLinearGradient(0, 0, 0, h);
             gradientFill.addColorStop(0, 'rgba(168, 85, 247, 0.45)');
             gradientFill.addColorStop(0.6, 'rgba(6, 182, 212, 0.15)');
             gradientFill.addColorStop(1, 'rgba(12, 8, 23, 0.0)');
 
-            gradientStroke = ctx.createLinearGradient(0, 0, scoreTrendChartCanvas.clientWidth || 400, 0);
+            gradientStroke = ctx.createLinearGradient(0, 0, w, 0);
             gradientStroke.addColorStop(0, '#a855f7');
             gradientStroke.addColorStop(1, '#06b6d4');
         } catch (e) {
@@ -1779,7 +1877,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             label: function(context) {
                                 const idx = context.dataIndex;
                                 const item = chronological[idx];
-                                const diff = item && item.difficulty ? ` · ${item.difficulty.toUpperCase()}` : '';
+                                const diff = item && item.difficulty ? ` · ${String(item.difficulty).toUpperCase()}` : '';
                                 return `Score: ${item.score}/${item.total} (${item.percentage}%)${diff}`;
                             },
                             afterLabel: function(context) {
@@ -1823,47 +1921,109 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Load and Render Progress Data from SQLite & Backend
+    // Load and Render Progress Data from SQLite & Backend.
+    // Uses the unified /quiz/progress endpoint so stats AND history arrive in ONE atomic response.
+    // Falls back gracefully if needed, ensuring stats and history can never get out of sync.
     async function loadAndRenderProgressData() {
+        let historyItems = Array.isArray(cachedQuizHistory) ? cachedQuizHistory : [];
+        let stats = null;
+        let progressErr = null;
+
         try {
-            const [historyRes, statsRes] = await Promise.all([
-                fetch('/quiz/history').then(r => safeParseJsonResponse(r, 'loading quiz history')).catch(() => ({ success: false })),
-                fetch('/quiz/stats').then(r => safeParseJsonResponse(r, 'loading quiz statistics')).catch(() => ({ success: false }))
-            ]);
+            // Primary: Unified endpoint providing BOTH stats and history in a single atomic DB query
+            const res = await fetchJsonWithRetry('/quiz/progress', 'loading quiz progress', 1);
+            if (res && res.success) {
+                if (res.stats) stats = res.stats;
+                if (Array.isArray(res.history)) {
+                    historyItems = res.history;
+                    cachedQuizHistory = historyItems;
+                }
+            } else {
+                throw new Error((res && res.error) || 'Unsuccessful progress response');
+            }
+        } catch (err) {
+            console.warn('Unified progress fetch failed, trying fallbacks:', err);
+            progressErr = (err && err.message) || 'unknown network error';
 
-            const historyItems = (historyRes && historyRes.success && Array.isArray(historyRes.history))
-                ? historyRes.history
-                : [];
-            cachedQuizHistory = historyItems;
-
-            let stats = (statsRes && statsRes.success && statsRes.stats) ? statsRes.stats : null;
-            if (!stats) {
-                // Client-side fallback calculation if /quiz/stats is unavailable
-                const count = historyItems.length;
-                const totalQ = historyItems.reduce((acc, r) => acc + (parseInt(r.total, 10) || 10), 0);
-                const totalC = historyItems.reduce((acc, r) => acc + (parseInt(r.score, 10) || 0), 0);
-                const avg = count > 0 ? (historyItems.reduce((acc, r) => acc + (parseFloat(r.percentage) || 0), 0) / count) : 0;
-                const bestRow = count > 0 ? historyItems.reduce((best, r) => (parseFloat(r.percentage) > parseFloat(best.percentage) ? r : best), historyItems[0]) : null;
-                stats = {
-                    total_quizzes: count,
-                    average_score: avg,
-                    best_score: bestRow ? `${bestRow.percentage}% (${bestRow.score}/${bestRow.total})` : '0%',
-                    total_questions: totalQ,
-                    total_correct: totalC,
-                    overall_accuracy: totalQ > 0 ? (totalC / totalQ) * 100 : 0
-                };
+            // Fallback 1: Try /quiz/stats
+            try {
+                const statsRes = await fetchJsonWithRetry('/quiz/stats', 'loading quiz statistics', 1);
+                if (statsRes && statsRes.success) {
+                    if (statsRes.stats) stats = statsRes.stats;
+                    if (Array.isArray(statsRes.history)) {
+                        historyItems = statsRes.history;
+                        cachedQuizHistory = historyItems;
+                    }
+                }
+            } catch (sErr) {
+                console.error('Fallback /quiz/stats failed:', sErr);
             }
 
+            // Fallback 2: Try /quiz/history if history not yet obtained
+            if (!historyItems || historyItems.length === 0) {
+                try {
+                    const histRes = await fetchJsonWithRetry('/quiz/history', 'loading quiz history', 1);
+                    if (histRes && histRes.success && Array.isArray(histRes.history)) {
+                        historyItems = histRes.history;
+                        cachedQuizHistory = historyItems;
+                    }
+                } catch (hErr) {
+                    console.error('Fallback /quiz/history failed:', hErr);
+                }
+            }
+        }
+
+        if (!stats) {
+            // Client-side fallback calculation if /quiz/stats is unavailable
+            const count = historyItems.length;
+            const totalQ = historyItems.reduce((acc, r) => acc + (parseInt(r.total, 10) || 10), 0);
+            const totalC = historyItems.reduce((acc, r) => acc + (parseInt(r.score, 10) || 0), 0);
+            const avg = count > 0 ? (historyItems.reduce((acc, r) => acc + (parseFloat(r.percentage) || 0), 0) / count) : 0;
+            const bestRow = count > 0 ? historyItems.reduce((best, r) => (parseFloat(r.percentage) > parseFloat(best.percentage) ? r : best), historyItems[0]) : null;
+            stats = {
+                total_quizzes: count,
+                average_score: avg,
+                best_score: bestRow ? `${bestRow.percentage}% (${bestRow.score}/${bestRow.total})` : '0%',
+                total_questions: totalQ,
+                total_correct: totalC,
+                overall_accuracy: totalQ > 0 ? (totalC / totalQ) * 100 : 0
+            };
+            if (progressErr && count === 0) {
+                console.warn('Showing zeroed stats because both stats and history failed to load.');
+            }
+        }
+
+        try {
             updateRankBanner(stats);
-            updateStatsCards(stats, historyItems);
-            renderScoreTrendChart(historyItems, currentChartType);
-            renderQuizHistoryTable(historyItems);
-
-            // Render any LaTeX math notation present in the history or stats
-            renderMath(progressSection);
-
         } catch (err) {
-            console.error('Failed to load progress dashboard data:', err);
+            console.error('Failed to render rank banner:', err);
+        }
+        try {
+            updateStatsCards(stats, historyItems);
+        } catch (err) {
+            console.error('Failed to render stats cards:', err);
+        }
+        try {
+            renderScoreTrendChart(historyItems, currentChartType, progressErr);
+        } catch (err) {
+            console.error('Failed to render score trend chart:', err);
+            if (chartEmptyState) {
+                setPanelMessage(chartEmptyState, '⚠️', null, 'Chart failed to render. Reopen My Progress to retry.');
+                chartEmptyState.classList.remove('hidden');
+            }
+            if (scoreTrendChartCanvas) scoreTrendChartCanvas.classList.add('hidden');
+        }
+        try {
+            renderQuizHistoryTable(historyItems, progressErr);
+        } catch (err) {
+            console.error('Failed to render quiz history table:', err);
+        }
+
+        // Render any LaTeX math notation present in the history or stats
+        try {
+            renderMath(progressSection);
+        } catch (err) {
+            console.error('Failed to render math in progress section:', err);
         }
     }
 

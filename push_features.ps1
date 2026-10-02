@@ -23,7 +23,7 @@ Write-Host "`n>>> Pushing to remote repository (main)..." -ForegroundColor Cyan
 git push origin main
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "`n✔ Successfully pushed feature updates to remote repository!" -ForegroundColor Green
+    Write-Host "`n[OK] Successfully pushed feature updates to remote repository!" -ForegroundColor Green
 } else {
-    Write-Host "`n✖ Push failed. Ensure remote 'origin' is configured (git remote -v)." -ForegroundColor Red
+    Write-Host "`n[ERROR] Push failed. Ensure remote 'origin' is configured (git remote -v)." -ForegroundColor Red
 }
