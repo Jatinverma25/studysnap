@@ -2642,12 +2642,11 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `
                 <div class="streak-day-cell other-month">
                     <span class="day-number">${d}</span>
-                    <span class="day-dot other-dot"></span>
                 </div>
             `;
         }
 
-        // Current month days
+        // Current month days with glowing numbers for worked days
         for (let day = 1; day <= daysInMonth; day++) {
             const mStr = String(currentCalMonth + 1).padStart(2, '0');
             const dStr = String(day).padStart(2, '0');
@@ -2670,8 +2669,6 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `
                 <div class="${cellClasses.join(' ')}" title="${tooltip}" data-date="${dateKey}">
                     <span class="day-number">${day}</span>
-                    <span class="day-dot ${isWorked ? 'filled-dot' : 'empty-dot'}"></span>
-                    ${isWorked ? '<span class="worked-sparkle" aria-hidden="true">🔥</span>' : ''}
                 </div>
             `;
         }
@@ -2683,7 +2680,6 @@ document.addEventListener('DOMContentLoaded', () => {
             html += `
                 <div class="streak-day-cell other-month">
                     <span class="day-number">${day}</span>
-                    <span class="day-dot other-dot"></span>
                 </div>
             `;
         }

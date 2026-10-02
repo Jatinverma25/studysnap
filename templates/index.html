@@ -20,7 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <!-- Chart.js for score trend analytics and progression tracking -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v4">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v9">
 </head>
 <body>
     <!-- Animated Circular Flexible Small Black Circle Cursor -->
@@ -1061,7 +1061,7 @@
                             <span>Sat</span>
                         </div>
 
-                        <!-- 7-Column Days Grid with Dotted Indicators -->
+                        <!-- 7-Column Days Grid with Glowing Numbers -->
                         <div class="streak-days-grid" id="streakDaysGrid">
                             <!-- Populated dynamically with .streak-day-cell -->
                         </div>
@@ -1070,15 +1070,15 @@
                     <!-- Legend & Explanation -->
                     <div class="streak-calendar-legend">
                         <div class="legend-item">
-                            <span class="legend-dot active-dot"></span>
-                            <span>Worked Day (Summary / Quiz)</span>
+                            <span class="legend-num-badge worked-badge">12</span>
+                            <span>Worked Day (Glowing)</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-dot inactive-dot"></span>
+                            <span class="legend-num-badge empty-badge">12</span>
                             <span>Rest Day</span>
                         </div>
                         <div class="legend-item">
-                            <span class="legend-dot today-dot"></span>
+                            <span class="legend-num-badge today-badge">12</span>
                             <span>Today</span>
                         </div>
                     </div>
@@ -1268,6 +1268,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v8"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v9"></script>
 </body>
 </html>

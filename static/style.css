@@ -6790,95 +6790,88 @@ body.progress-page-active .progress-section {
 .streak-day-cell {
     position: relative;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 38px;
-    padding: 3px 1px;
-    border-radius: 8px;
+    height: 38px;
+    padding: 0;
+    border-radius: 9px;
     background: rgba(255, 255, 255, 0.02);
-    border: 1px solid transparent;
-    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: default;
     user-select: none;
 }
 
 .streak-day-cell:hover:not(.other-month) {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.15);
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px) scale(1.04);
 }
 
 .streak-day-cell .day-number {
-    font-size: 0.74rem;
+    font-size: 0.8rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: rgba(226, 232, 240, 0.45);
     line-height: 1;
-    margin-bottom: 3px;
-}
-
-.streak-day-cell .day-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
     transition: all 0.2s ease;
 }
 
-/* Worked Day (Filled Glowing Dot) */
+/* Worked Day: Date number glows with fiery gold/amber neon */
 .streak-day-cell.worked {
-    background: linear-gradient(145deg, rgba(245, 158, 11, 0.12), rgba(239, 68, 68, 0.08));
-    border-color: rgba(245, 158, 11, 0.35);
-    box-shadow: 0 0 10px -2px rgba(245, 158, 11, 0.25);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.16), rgba(239, 68, 68, 0.12));
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    box-shadow: 0 0 12px -2px rgba(245, 158, 11, 0.3), inset 0 0 8px rgba(245, 158, 11, 0.08);
 }
 
 .streak-day-cell.worked .day-number {
     color: #fef08a;
+    font-size: 0.88rem;
     font-weight: 800;
+    text-shadow: 
+        0 0 6px rgba(245, 158, 11, 1),
+        0 0 14px rgba(245, 158, 11, 0.85),
+        0 0 24px rgba(239, 68, 68, 0.6);
+    filter: drop-shadow(0 0 2px rgba(254, 240, 138, 0.7));
 }
 
-.streak-day-cell.worked .day-dot.filled-dot {
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
-    box-shadow: 0 0 8px rgba(245, 158, 11, 0.9), 0 0 3px #ef4444;
-    transform: scale(1.15);
+.streak-day-cell.worked:hover {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.2));
+    border-color: rgba(245, 158, 11, 0.8);
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.5), inset 0 0 10px rgba(245, 158, 11, 0.15);
 }
 
-.streak-day-cell .worked-sparkle {
-    position: absolute;
-    top: 1px;
-    right: 2px;
-    font-size: 0.55rem;
-    line-height: 1;
-    opacity: 0.9;
+.streak-day-cell.worked:hover .day-number {
+    text-shadow: 
+        0 0 8px rgba(245, 158, 11, 1),
+        0 0 18px rgba(245, 158, 11, 0.95),
+        0 0 30px rgba(239, 68, 68, 0.85);
 }
 
-/* Rest Day (Empty Hollow Dot) */
-.streak-day-cell.empty .day-dot.empty-dot {
-    background: transparent;
-    border: 1.5px dashed rgba(255, 255, 255, 0.25);
-}
-
-/* Today Indicator */
+/* Today Indicator: Electric Cyan Halo */
 .streak-day-cell.is-today {
     border-color: #22d3ee !important;
-    box-shadow: 0 0 10px rgba(6, 182, 212, 0.45) !important;
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.55), inset 0 0 6px rgba(6, 182, 212, 0.2) !important;
 }
 
-.streak-day-cell.is-today .day-number {
+.streak-day-cell.is-today:not(.worked) .day-number {
     color: #38bdf8;
     font-weight: 800;
+    text-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
 }
 
 /* Other Month (Dimmed) */
 .streak-day-cell.other-month {
-    opacity: 0.2;
+    opacity: 0.18;
     pointer-events: none;
+    border-color: transparent;
 }
 
-.streak-day-cell.other-month .day-dot.other-dot {
-    background: rgba(255, 255, 255, 0.08);
+.streak-day-cell.other-month .day-number {
+    color: rgba(255, 255, 255, 0.25);
 }
 
-/* Legend */
+/* Legend with Number Badges */
 .streak-calendar-legend {
     display: flex;
     align-items: center;
@@ -6893,32 +6886,46 @@ body.progress-page-active .progress-section {
 .streak-calendar-legend .legend-item {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.7rem;
+    gap: 7px;
+    font-size: 0.72rem;
     color: var(--text-muted);
 }
 
-.legend-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    display: inline-block;
+.legend-num-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    line-height: 1;
+    user-select: none;
 }
 
-.legend-dot.active-dot {
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
-    box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+.legend-num-badge.worked-badge {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(239, 68, 68, 0.16));
+    border: 1px solid rgba(245, 158, 11, 0.55);
+    color: #fef08a;
+    font-weight: 800;
+    text-shadow: 0 0 6px rgba(245, 158, 11, 1), 0 0 12px rgba(239, 68, 68, 0.7);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
 }
 
-.legend-dot.inactive-dot {
-    background: transparent;
-    border: 1.5px dashed rgba(255, 255, 255, 0.35);
+.legend-num-badge.empty-badge {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(226, 232, 240, 0.45);
+    font-weight: 500;
 }
 
-.legend-dot.today-dot {
-    background: transparent;
+.legend-num-badge.today-badge {
+    background: rgba(6, 182, 212, 0.12);
     border: 1.5px solid #22d3ee;
-    box-shadow: 0 0 5px rgba(6, 182, 212, 0.8);
+    color: #38bdf8;
+    font-weight: 800;
+    box-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+    text-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
 }
 
 
