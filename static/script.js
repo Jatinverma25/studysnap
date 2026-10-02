@@ -1229,266 +1229,198 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // ========================================================
-    // REACT BITS: DOTGRID INTERACTIVE CANVAS ENGINE
+    // PARTICLE DRIFT: ASCII & LASER BEAM CANVAS ENGINE
     // ========================================================
-    function initDotGrid(canvas, wrapper, options = {}) {
+    function initParticleDrift(canvas, wrapper, options = {}) {
         if (!canvas || !wrapper) return null;
 
-        const config = {
-            dotSize: options.dotSize ?? 10,
-            gap: options.gap ?? 22,
-            baseColor: options.baseColor ?? '#251642',
-            activeColor: options.activeColor ?? '#c084fc',
-            proximity: options.proximity ?? 130,
-            speedTrigger: options.speedTrigger ?? 100,
-            shockRadius: options.shockRadius ?? 250,
-            shockStrength: options.shockStrength ?? 5,
-            maxSpeed: options.maxSpeed ?? 5000,
-            resistance: options.resistance ?? 750,
-            returnDuration: options.returnDuration ?? 1.5,
-            ...options
-        };
+        let currentTheme = options.theme || document.documentElement.getAttribute('data-theme') || 'dark';
 
-        function hexToRgb(hex) {
-            const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
-            if (!m) return { r: 82, g: 39, b: 255 };
+        let width = 0;
+        let height = 0;
+        let nodes = [];
+        let beams = [];
+        const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%&*()'.split('');
+        const mouse = { x: -1000, y: -1000 };
+        let rafId = null;
+
+        function getColors() {
+            const isLight = currentTheme === 'light';
             return {
-                r: parseInt(m[1], 16),
-                g: parseInt(m[2], 16),
-                b: parseInt(m[3], 16)
+                isLight,
+                accentRgb: isLight ? '37, 99, 235' : '96, 165, 250',
+                accentHex: isLight ? '#2563EB' : '#60A5FA',
+                mutedRgb: isLight ? '36, 48, 68' : '156, 163, 175',
+                proximityAlpha: isLight ? 0.22 : 0.15,
+                textAlpha: isLight ? 0.55 : 0.4
             };
         }
 
-        let baseRgb = hexToRgb(config.baseColor);
-        let activeRgb = hexToRgb(config.activeColor);
+        let colors = getColors();
 
-        let circlePath = null;
-        if (typeof window !== 'undefined' && window.Path2D) {
-            circlePath = new Path2D();
-            circlePath.arc(0, 0, config.dotSize / 2, 0, Math.PI * 2);
-        }
-
-        let dots = [];
-        const pointer = {
-            x: -9999,
-            y: -9999,
-            vx: 0,
-            vy: 0,
-            speed: 0,
-            lastTime: 0,
-            lastX: 0,
-            lastY: 0
-        };
-
-        function buildGrid() {
-            const width = wrapper.clientWidth || window.innerWidth;
-            const height = wrapper.clientHeight || window.innerHeight;
+        function resize() {
+            width = wrapper.clientWidth || window.innerWidth;
+            height = wrapper.clientHeight || window.innerHeight;
             const dpr = window.devicePixelRatio || 1;
-
-            canvas.width = width * dpr;
-            canvas.height = height * dpr;
+            canvas.width = Math.floor(width * dpr);
+            canvas.height = Math.floor(height * dpr);
             canvas.style.width = `${width}px`;
             canvas.style.height = `${height}px`;
 
             const ctx = canvas.getContext('2d');
             if (ctx) ctx.scale(dpr, dpr);
-
-            const cell = config.dotSize + config.gap;
-            const cols = Math.floor((width + config.gap) / cell);
-            const rows = Math.floor((height + config.gap) / cell);
-
-            const gridW = cell * cols - config.gap;
-            const gridH = cell * rows - config.gap;
-
-            const extraX = width - gridW;
-            const extraY = height - gridH;
-
-            const startX = extraX / 2 + config.dotSize / 2;
-            const startY = extraY / 2 + config.dotSize / 2;
-
-            dots = [];
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    const cx = startX + x * cell;
-                    const cy = startY + y * cell;
-                    dots.push({ cx, cy, xOffset: 0, yOffset: 0, _inertiaApplied: false });
-                }
-            }
         }
 
-        let rafId;
-        const proxSq = config.proximity * config.proximity;
+        function initParticles() {
+            const density = options.density ?? 1;
+            const nodeCount = Math.max(12, Math.round(90 * density));
+            const beamCount = Math.max(4, Math.round(25 * density));
+
+            nodes = Array.from({ length: nodeCount }).map(() => ({
+                x: Math.random() * (width || window.innerWidth),
+                y: Math.random() * (height || window.innerHeight),
+                vy: (Math.random() * 0.4) + 0.1,
+                char: chars[Math.floor(Math.random() * chars.length)]
+            }));
+
+            beams = Array.from({ length: beamCount }).map(() => ({
+                x: Math.random() * (width || window.innerWidth),
+                y: Math.random() * (height || window.innerHeight),
+                length: (Math.random() * 100 + 50) * (options.length ?? 1),
+                speed: (Math.random() * 6) + 3,
+                opacity: Math.random() * 0.5 + 0.3
+            }));
+        }
+
+        function onMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = e.clientX - rect.left;
+            mouse.y = e.clientY - rect.top;
+        }
+
+        function onMouseLeave() {
+            mouse.x = -1000;
+            mouse.y = -1000;
+        }
 
         function draw() {
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, width, height);
 
-            const px = pointer.x;
-            const py = pointer.y;
-
-            for (let i = 0; i < dots.length; i++) {
-                const dot = dots[i];
-                const ox = dot.cx + dot.xOffset;
-                const oy = dot.cy + dot.yOffset;
-                const dx = dot.cx - px;
-                const dy = dot.cy - py;
-                const dsq = dx * dx + dy * dy;
-
-                let fill = config.baseColor;
-                if (dsq <= proxSq) {
-                    const dist = Math.sqrt(dsq);
-                    const t = 1 - dist / config.proximity;
-                    const r = Math.round(baseRgb.r + (activeRgb.r - baseRgb.r) * t);
-                    const g = Math.round(baseRgb.g + (activeRgb.g - baseRgb.g) * t);
-                    const b = Math.round(baseRgb.b + (activeRgb.b - baseRgb.b) * t);
-                    fill = `rgb(${r},${g},${b})`;
+            // 1. Upward Beams (Laser / Particle Trails)
+            const speedMod = options.speed ?? 1;
+            beams.forEach(b => {
+                b.y -= b.speed * speedMod;
+                if (b.y + b.length < 0) {
+                    b.y = height + 100;
+                    b.x = Math.random() * width;
                 }
+                const g = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.length);
+                g.addColorStop(0, `rgba(${colors.accentRgb}, ${b.opacity})`);
+                g.addColorStop(1, 'transparent');
+                ctx.strokeStyle = g;
+                ctx.lineWidth = 1.5 * (options.size ?? 1);
+                ctx.beginPath();
+                ctx.moveTo(b.x, b.y);
+                ctx.lineTo(b.x, b.y + b.length);
+                ctx.stroke();
+            });
 
-                ctx.save();
-                ctx.translate(ox, oy);
-                ctx.fillStyle = fill;
-                if (circlePath) {
-                    ctx.fill(circlePath);
-                } else {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, config.dotSize / 2, 0, Math.PI * 2);
-                    ctx.fill();
+            // 2. Interactive ASCII Nodes & Constellation Lines
+            ctx.font = '12px "JetBrains Mono", Menlo, Monaco, Consolas, monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Proximity Lines between nodes
+            ctx.lineWidth = 0.5;
+            const maxLink = Math.round(120 * (options.length ?? 1));
+            for (let i = 0; i < nodes.length; i++) {
+                const n1 = nodes[i];
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const n2 = nodes[j];
+                    const d = Math.hypot(n1.x - n2.x, n1.y - n2.y);
+                    if (d < maxLink) {
+                        ctx.strokeStyle = `rgba(${colors.mutedRgb}, ${colors.proximityAlpha * (1 - d / maxLink)})`;
+                        ctx.beginPath();
+                        ctx.moveTo(n1.x, n1.y);
+                        ctx.lineTo(n2.x, n2.y);
+                        ctx.stroke();
+                    }
                 }
-                ctx.restore();
             }
+
+            nodes.forEach(n => {
+                n.y += n.vy * speedMod; // Slow drift
+                if (n.y > height + 20) {
+                    n.y = -20;
+                    n.x = Math.random() * width;
+                }
+
+                const dist = Math.hypot(mouse.x - n.x, mouse.y - n.y);
+
+                // Dynamic Character Swap
+                if (dist < 180 || Math.random() > 0.985) {
+                    n.char = chars[Math.floor(Math.random() * chars.length)];
+                }
+
+                // Mouse Connection Line
+                if (dist < 180) {
+                    ctx.strokeStyle = `rgba(${colors.accentRgb}, ${0.5 * (1 - dist / 180)})`;
+                    ctx.beginPath();
+                    ctx.moveTo(n.x, n.y);
+                    ctx.lineTo(mouse.x, mouse.y);
+                    ctx.stroke();
+                }
+
+                ctx.fillStyle = dist < 180 ? colors.accentHex : `rgba(${colors.mutedRgb}, ${colors.textAlpha})`;
+                ctx.fillText(n.char, n.x, n.y);
+            });
 
             rafId = requestAnimationFrame(draw);
         }
 
-        function applyMotion(dot, pushX, pushY) {
-            dot._inertiaApplied = true;
-            if (window.gsap) {
-                gsap.killTweensOf(dot);
-                gsap.to(dot, {
-                    xOffset: pushX * 0.45,
-                    yOffset: pushY * 0.45,
-                    duration: 0.2,
-                    ease: 'power2.out',
-                    onComplete: () => {
-                        gsap.to(dot, {
-                            xOffset: 0,
-                            yOffset: 0,
-                            duration: config.returnDuration,
-                            ease: 'elastic.out(1, 0.75)',
-                            onComplete: () => {
-                                dot._inertiaApplied = false;
-                            }
-                        });
-                    }
-                });
-            } else {
-                dot._inertiaApplied = false;
-            }
-        }
-
-        function onMouseMove(e) {
-            const now = performance.now();
-            const dt = pointer.lastTime ? now - pointer.lastTime : 16;
-            const dx = e.clientX - pointer.lastX;
-            const dy = e.clientY - pointer.lastY;
-            let vx = (dx / dt) * 1000;
-            let vy = (dy / dt) * 1000;
-            let speed = Math.hypot(vx, vy);
-            if (speed > config.maxSpeed) {
-                const scale = config.maxSpeed / speed;
-                vx *= scale;
-                vy *= scale;
-                speed = config.maxSpeed;
-            }
-            pointer.lastTime = now;
-            pointer.lastX = e.clientX;
-            pointer.lastY = e.clientY;
-            pointer.vx = vx;
-            pointer.vy = vy;
-            pointer.speed = speed;
-
-            const rect = canvas.getBoundingClientRect();
-            pointer.x = e.clientX - rect.left;
-            pointer.y = e.clientY - rect.top;
-
-            if (speed > config.speedTrigger) {
-                for (let i = 0; i < dots.length; i++) {
-                    const dot = dots[i];
-                    const dist = Math.hypot(dot.cx - pointer.x, dot.cy - pointer.y);
-                    if (dist < config.proximity && !dot._inertiaApplied) {
-                        const pushX = dot.cx - pointer.x + vx * 0.005;
-                        const pushY = dot.cy - pointer.y + vy * 0.005;
-                        applyMotion(dot, pushX, pushY);
-                    }
-                }
-            }
-        }
-
-        function onClick(e) {
-            const rect = canvas.getBoundingClientRect();
-            const cx = e.clientX - rect.left;
-            const cy = e.clientY - rect.top;
-            for (let i = 0; i < dots.length; i++) {
-                const dot = dots[i];
-                const dist = Math.hypot(dot.cx - cx, dot.cy - cy);
-                if (dist < config.shockRadius && !dot._inertiaApplied) {
-                    const falloff = Math.max(0, 1 - dist / config.shockRadius);
-                    const pushX = (dot.cx - cx) * config.shockStrength * falloff;
-                    const pushY = (dot.cy - cy) * config.shockStrength * falloff;
-                    applyMotion(dot, pushX, pushY);
-                }
-            }
-        }
-
-        buildGrid();
+        resize();
+        initParticles();
         draw();
 
         let ro = null;
         if ('ResizeObserver' in window) {
-            ro = new ResizeObserver(buildGrid);
+            ro = new ResizeObserver(() => {
+                resize();
+            });
             ro.observe(wrapper);
         } else {
-            window.addEventListener('resize', buildGrid);
+            window.addEventListener('resize', resize);
         }
 
         window.addEventListener('mousemove', onMouseMove, { passive: true });
-        window.addEventListener('click', onClick);
+        document.addEventListener('mouseleave', onMouseLeave);
 
         return {
-            setColors(base, active) {
-                config.baseColor = base;
-                config.activeColor = active;
-                baseRgb = hexToRgb(base);
-                activeRgb = hexToRgb(active);
+            setTheme(newTheme) {
+                currentTheme = newTheme;
+                colors = getColors();
             },
             destroy() {
-                cancelAnimationFrame(rafId);
+                if (rafId) cancelAnimationFrame(rafId);
                 if (ro) ro.disconnect();
-                window.removeEventListener('resize', buildGrid);
+                window.removeEventListener('resize', resize);
                 window.removeEventListener('mousemove', onMouseMove);
-                window.removeEventListener('click', onClick);
+                document.removeEventListener('mouseleave', onMouseLeave);
             }
         };
     }
 
-    // Initialize React Bits DotGrid interactive background instance
-    const dotGridWrapper = document.getElementById('dotGridBackground');
-    const dotGridCanvas = document.getElementById('dotGridCanvas');
-    let dotGridInstance = null;
+    // Initialize Particle Drift Interactive Background System
+    const particleWrapper = document.getElementById('particleDriftBackground');
+    const particleCanvas = document.getElementById('particle-canvas');
+    let particleInstance = null;
 
-    if (dotGridWrapper && dotGridCanvas) {
+    if (particleWrapper && particleCanvas) {
         const initialTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-        dotGridInstance = initDotGrid(dotGridCanvas, dotGridWrapper, {
-            dotSize: 10,
-            gap: 22,
-            baseColor: initialTheme === 'dark' ? '#251642' : '#e0d5f5',
-            activeColor: initialTheme === 'dark' ? '#c084fc' : '#7c3aed',
-            proximity: 130,
-            shockRadius: 240,
-            shockStrength: 5,
-            resistance: 750,
-            returnDuration: 1.5
+        particleInstance = initParticleDrift(particleCanvas, particleWrapper, {
+            theme: initialTheme
         });
     }
 
@@ -1522,12 +1454,8 @@ document.addEventListener('DOMContentLoaded', () => {
             themeToggleBtn.setAttribute('aria-label', `Switch to ${nextMode} mode`);
             themeToggleBtn.setAttribute('title', `Switch to ${nextMode} mode`);
         }
-        if (dotGridInstance) {
-            if (theme === 'dark') {
-                dotGridInstance.setColors('#251642', '#c084fc');
-            } else {
-                dotGridInstance.setColors('#e0d5f5', '#7c3aed');
-            }
+        if (particleInstance) {
+            particleInstance.setTheme(theme);
         }
     }
 

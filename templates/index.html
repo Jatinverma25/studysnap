@@ -20,7 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <!-- Chart.js for score trend analytics and progression tracking -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v11">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v12">
 </head>
 <body>
     <!-- Animated Circular Flexible Small Black Circle Cursor -->
@@ -36,11 +36,10 @@
         <div class="background-glow orb-4 bottom-left"></div>
     </div>
 
-    <!-- Interactive React Bits DotGrid Background Canvas -->
-    <div id="dotGridBackground" class="dot-grid ambient-dot-grid" aria-hidden="true">
-        <div class="dot-grid__wrap">
-            <canvas id="dotGridCanvas" class="dot-grid__canvas"></canvas>
-        </div>
+    <!-- Particle Drift Interactive Background System (ASCII + Laser Beams) -->
+    <div id="particleDriftBackground" class="particle-drift-bg" aria-hidden="true">
+        <canvas id="particle-canvas" class="particle-drift-canvas"></canvas>
+        <div class="particle-drift-noise"></div>
     </div>
 
     <div class="app-container">
@@ -1269,6 +1268,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v11"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v12"></script>
 </body>
 </html>

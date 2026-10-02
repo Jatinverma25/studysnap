@@ -1,17 +1,9 @@
-import { GithubCalendar } from "@/components/ui/retro-space-shooter-git-hub-calendar";
+import ParticleDrift from "@/components/ui/particle-drift";
 
-const settings = {
-  cellSize: 15,
-  cellGap: 4,
-};
-
-export default function GithubCalendarPreview(props: Partial<typeof settings>) {
-  const s = { ...settings, ...props };
+export default function ParticleDriftDemo() {
   return (
-    <GithubCalendar
-      username="Jahirul077"
-      cellSize={s.cellSize}
-      cellGap={s.cellGap}
-    />
+    <div className="h-[650px] w-full overflow-hidden rounded-3xl">
+      <ParticleDrift className="h-full w-full" />
+    </div>
   );
 }
