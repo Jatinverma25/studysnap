@@ -169,7 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const streakCalTodayBtn = document.getElementById('streakCalTodayBtn');
     const streakCalNextMonthBtn = document.getElementById('streakCalNextMonthBtn');
     const streakDaysGrid = document.getElementById('streakDaysGrid');
-    const streakViewProgressBtn = document.getElementById('streakViewProgressBtn');
 
     // Achievements Showcase Elements
     const achievementsCard = document.getElementById('achievementsCard');
@@ -3220,12 +3219,6 @@ document.addEventListener('DOMContentLoaded', () => {
             currentCalYear = new Date().getFullYear();
             currentCalMonth = new Date().getMonth();
             renderStreakCalendarGrid();
-        });
-    }
-    if (streakViewProgressBtn) {
-        streakViewProgressBtn.addEventListener('click', () => {
-            closeStreakCalendarModal();
-            openProgressDashboard();
         });
     }
     if (resultsFlashcardsBtn) {
