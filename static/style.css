@@ -2360,11 +2360,11 @@ button:focus,
     .mode-desc {
         display: none;
     }
-    .upload-actions-row, .results-header-actions {
+    .upload-actions-row {
         flex-direction: column;
         width: 100%;
     }
-    .upload-actions-row .btn, .results-header-actions .btn {
+    .upload-actions-row .btn {
         width: 100%;
     }
     .quiz-cta-banner {
@@ -7440,6 +7440,533 @@ body.progress-page-active .progress-section {
     border: 1.5px solid #06b6d4;
     color: #0891b2;
     box-shadow: 0 1px 4px rgba(6, 182, 212, 0.25);
+}
+
+/* ========================================================
+   MOBILE PHONE RESPONSIVE STYLES
+   (Study Streak, Results Actions, Achievements, Flashcards, Cram Sheet, Streak Calendar)
+   ======================================================== */
+
+@media (max-width: 640px) {
+    /* 1. Global Modal Dialogs on Phone */
+    .quiz-modal-container {
+        padding: 8px 6px;
+    }
+
+    .quiz-modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .quiz-modal-card {
+        border-radius: 16px;
+        max-height: calc(100vh - 16px);
+    }
+
+    /* 2. Header & Streak Pill on Phone */
+    .header-top {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .header-right-actions {
+        width: 100%;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .streak-badge-pill {
+        padding: 5px 11px;
+        gap: 5px;
+    }
+
+    .streak-flame-icon {
+        font-size: 1.05rem;
+    }
+
+    .streak-text-val {
+        font-size: 0.78rem;
+    }
+
+    .btn-progress-nav {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+
+    /* 3. Summary Results Action Bar on Phone (2x2 Grid + Upload) */
+    .results-header-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        width: 100%;
+    }
+
+    .results-header-actions .btn {
+        width: 100%;
+        padding: 9px 8px;
+        font-size: 0.82rem;
+        justify-content: center;
+    }
+
+    .results-header-actions #newUploadBtn {
+        grid-column: span 2;
+    }
+
+    /* 4. Achievements Showcase on Phone */
+    .achievements-card {
+        padding: 16px 12px;
+        gap: 12px;
+    }
+
+    .achievements-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .achievements-title-group {
+        gap: 10px;
+    }
+
+    .achievements-icon-box {
+        width: 36px;
+        height: 36px;
+        font-size: 1.15rem;
+        border-radius: 10px;
+    }
+
+    .achievements-title {
+        font-size: 1.05rem;
+    }
+
+    .achievements-subtitle {
+        font-size: 0.76rem;
+    }
+
+    .achievements-unlocked-badge {
+        font-size: 0.74rem;
+        padding: 3px 9px;
+        align-self: flex-start;
+    }
+
+    .achievements-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .achievement-medal-item {
+        padding: 12px 10px;
+        gap: 10px;
+        border-radius: 10px;
+    }
+
+    .medal-icon-ring {
+        width: 38px;
+        height: 38px;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+    }
+
+    .medal-title {
+        font-size: 0.86rem;
+    }
+
+    .medal-desc {
+        font-size: 0.72rem;
+        line-height: 1.35;
+    }
+
+    .medal-status {
+        font-size: 0.64rem;
+        padding: 2px 6px;
+        margin-top: 2px;
+    }
+
+    /* 5. 3D Flashcards Studio Modal on Phone */
+    .flashcards-modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .flashcards-modal-header {
+        padding: 12px 14px 10px;
+        gap: 8px;
+    }
+
+    .flashcards-top-meta {
+        gap: 6px;
+    }
+
+    .flashcards-progress-pill,
+    .flashcards-mastered-pill {
+        font-size: 0.68rem;
+        padding: 3px 7px;
+    }
+
+    .flashcards-meter-track {
+        margin-bottom: 12px;
+        height: 5px;
+    }
+
+    .flashcard-3d-scene {
+        min-height: 240px;
+        height: 240px;
+        margin-bottom: 12px;
+    }
+
+    .flashcard-3d-card {
+        min-height: 240px;
+        height: 240px;
+        border-radius: 16px;
+    }
+
+    .flashcard-face {
+        padding: 14px 12px;
+        border-radius: 16px;
+    }
+
+    .flashcard-cat-badge {
+        font-size: 0.66rem;
+        padding: 2px 6px;
+    }
+
+    .flashcard-flip-prompt {
+        font-size: 0.66rem;
+    }
+
+    .flashcard-content {
+        padding: 8px 0;
+        overflow-y: auto;
+        max-height: 140px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .flashcard-prompt-text {
+        font-size: 1.05rem;
+        line-height: 1.38;
+    }
+
+    .flashcard-answer-text {
+        font-size: 0.86rem;
+        line-height: 1.45;
+    }
+
+    .flashcard-footer-hint {
+        font-size: 0.68rem;
+        gap: 4px;
+    }
+
+    /* Flashcard touch-optimized controls */
+    .flashcard-controls-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+    }
+
+    #flashcardPrevBtn {
+        order: 1;
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+        padding: 9px 8px;
+        font-size: 0.82rem;
+    }
+
+    #flashcardNextBtn {
+        order: 2;
+        flex: 1;
+        min-width: 0;
+        justify-content: center;
+        padding: 9px 8px;
+        font-size: 0.82rem;
+    }
+
+    .flashcard-review-actions {
+        order: 3;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1.2fr 1fr;
+        gap: 6px;
+    }
+
+    .flashcard-review-actions .btn-rating {
+        padding: 9px 4px;
+        font-size: 0.74rem;
+        justify-content: center;
+        text-align: center;
+        min-height: 40px;
+        min-width: 0;
+        white-space: nowrap;
+    }
+
+    .flashcard-review-actions .btn-rating span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .flashcard-hotkeys-hint {
+        margin-top: 8px;
+        font-size: 0.68rem;
+    }
+
+    .flashcard-hotkeys-hint .desktop-hotkeys {
+        display: none;
+    }
+
+    .flashcard-hotkeys-hint .mobile-touch-hint {
+        display: inline;
+    }
+
+    /* 6. Exam Cheat Sheet Modal on Phone */
+    .cheat-sheet-modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .cheat-sheet-modal-header {
+        padding: 12px 14px 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .cheat-sheet-header-actions {
+        gap: 8px;
+    }
+
+    .cheat-sheet-header-actions #printCheatSheetBtn {
+        padding: 6px 10px;
+        font-size: 0.76rem;
+    }
+
+    .cheat-sheet-print-header {
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+    }
+
+    .cheat-sheet-brand-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        font-size: 0.7rem;
+    }
+
+    .cheat-sheet-doc-title {
+        font-size: 1.05rem;
+        word-break: break-word;
+    }
+
+    .cheat-sheet-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+    }
+
+    .cheat-section-card {
+        padding: 12px 10px;
+        gap: 6px;
+    }
+
+    .cheat-section-header {
+        padding-bottom: 5px;
+    }
+
+    .cheat-section-header h4 {
+        font-size: 0.86rem;
+    }
+
+    .cheat-section-content {
+        font-size: 0.78rem;
+        line-height: 1.45;
+    }
+
+    .cheat-section-content ul {
+        padding-left: 14px;
+    }
+
+    .cheat-section-content li {
+        margin-bottom: 3px;
+    }
+
+    /* 7. Study Streak Glowing Calendar Modal on Phone */
+    .streak-calendar-dialog {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+    }
+
+    .streak-calendar-header {
+        padding: 10px 14px 8px;
+    }
+
+    .streak-calendar-body {
+        padding: 10px 10px 14px;
+    }
+
+    .streak-hero-banner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        padding: 8px 10px;
+        margin-bottom: 8px;
+    }
+
+    .streak-hero-left {
+        gap: 8px;
+    }
+
+    .streak-hero-flame-orb {
+        width: 34px;
+        height: 34px;
+    }
+
+    .hero-flame-icon {
+        font-size: 1.15rem;
+    }
+
+    .streak-hero-number {
+        font-size: 1.45rem;
+    }
+
+    .streak-hero-label {
+        font-size: 0.84rem;
+    }
+
+    .streak-hero-status {
+        font-size: 0.68rem;
+    }
+
+    .streak-hero-pills {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        width: 100%;
+        gap: 4px;
+    }
+
+    .streak-metric-chip {
+        min-width: 0;
+        padding: 3px 2px;
+        width: 100%;
+    }
+
+    .chip-label {
+        font-size: 0.52rem;
+    }
+
+    .chip-value {
+        font-size: 0.76rem;
+    }
+
+    .streak-calendar-nav-bar {
+        margin-bottom: 6px;
+    }
+
+    .streak-cal-month-title {
+        font-size: 0.86rem;
+    }
+
+    .btn-streak-cal-nav {
+        width: 28px;
+        height: 28px;
+    }
+
+    .btn-streak-cal-today {
+        padding: 3px 7px;
+        font-size: 0.66rem;
+    }
+
+    .streak-calendar-wrapper {
+        padding: 8px 4px;
+    }
+
+    .streak-weekdays-row {
+        font-size: 0.62rem;
+        padding-bottom: 4px;
+        margin-bottom: 4px;
+    }
+
+    .streak-days-grid {
+        gap: 3px;
+    }
+
+    .streak-day-cell {
+        min-height: 32px;
+        height: 32px;
+        border-radius: 6px;
+    }
+
+    .streak-day-cell .day-number {
+        font-size: 0.72rem;
+    }
+
+    .streak-day-cell.worked .day-number {
+        font-size: 0.78rem;
+    }
+
+    .streak-calendar-legend {
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 6px;
+    }
+
+    .streak-calendar-legend .legend-item {
+        font-size: 0.66rem;
+        gap: 4px;
+    }
+
+    .legend-num-badge {
+        width: 18px;
+        height: 18px;
+        font-size: 0.64rem;
+        border-radius: 4px;
+    }
+}
+
+/* 8. Small Phone Viewport Fallbacks (iPhone SE, Galaxy A, <= 380px) */
+@media (max-width: 380px) {
+    .results-header-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .results-header-actions #newUploadBtn {
+        grid-column: span 1;
+    }
+
+    .flashcard-3d-scene,
+    .flashcard-3d-card {
+        min-height: 220px;
+        height: 220px;
+    }
+
+    .flashcard-prompt-text {
+        font-size: 0.95rem;
+    }
+
+    .streak-day-cell {
+        min-height: 28px;
+        height: 28px;
+    }
+
+    .streak-day-cell .day-number {
+        font-size: 0.66rem;
+    }
+
+    .streak-calendar-legend {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
+
+@media (min-width: 641px) {
+    .flashcard-hotkeys-hint .mobile-touch-hint {
+        display: none;
+    }
 }
 
 

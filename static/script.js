@@ -3244,6 +3244,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (flashcardCard) {
         flashcardCard.addEventListener('click', toggleFlashcardFlip);
+
+        // Touch swipe gestures for mobile phones (Swipe left: Next, Swipe right: Prev)
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isTouchSwipe = false;
+
+        flashcardCard.addEventListener('touchstart', (e) => {
+            if (!e.changedTouches || e.changedTouches.length === 0) return;
+            touchStartX = e.changedTouches[0].clientX;
+            touchStartY = e.changedTouches[0].clientY;
+            isTouchSwipe = true;
+        }, { passive: true });
+
+        flashcardCard.addEventListener('touchend', (e) => {
+            if (!isTouchSwipe || !e.changedTouches || e.changedTouches.length === 0) return;
+            isTouchSwipe = false;
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            // Swipe threshold of 45px, dominant over vertical scrolling
+            if (Math.abs(diffX) > 45 && Math.abs(diffX) > Math.abs(diffY) * 1.3) {
+                if (diffX < 0) {
+                    // Swiped Left -> Next Card
+                    if (currentCardIndex < flashcardDeck.length - 1) {
+                        currentCardIndex++;
+                        renderCurrentFlashcard();
+                    }
+                } else {
+                    // Swiped Right -> Previous Card
+                    if (currentCardIndex > 0) {
+                        currentCardIndex--;
+                        renderCurrentFlashcard();
+                    }
+                }
+            }
+        }, { passive: true });
     }
     if (flashcardFlipBtn) {
         flashcardFlipBtn.addEventListener('click', toggleFlashcardFlip);
