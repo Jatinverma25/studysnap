@@ -155,6 +155,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultsFlashcardsBtn = document.getElementById('resultsFlashcardsBtn');
     const resultsCheatSheetBtn = document.getElementById('resultsCheatSheetBtn');
 
+    // Streak Calendar Modal Elements
+    const streakCalendarModal = document.getElementById('streakCalendarModal');
+    const streakCalendarModalBackdrop = document.getElementById('streakCalendarModalBackdrop');
+    const closeStreakCalendarModalBtn = document.getElementById('closeStreakCalendarModalBtn');
+    const streakModalHeroCount = document.getElementById('streakModalHeroCount');
+    const streakModalHeroStatus = document.getElementById('streakModalHeroStatus');
+    const streakModalBestCount = document.getElementById('streakModalBestCount');
+    const streakModalTotalWorked = document.getElementById('streakModalTotalWorked');
+    const streakModalMonthWorked = document.getElementById('streakModalMonthWorked');
+    const streakCalMonthTitle = document.getElementById('streakCalMonthTitle');
+    const streakCalPrevMonthBtn = document.getElementById('streakCalPrevMonthBtn');
+    const streakCalTodayBtn = document.getElementById('streakCalTodayBtn');
+    const streakCalNextMonthBtn = document.getElementById('streakCalNextMonthBtn');
+    const streakDaysGrid = document.getElementById('streakDaysGrid');
+    const streakViewProgressBtn = document.getElementById('streakViewProgressBtn');
+
     // Achievements Showcase Elements
     const achievementsCard = document.getElementById('achievementsCard');
     const achievementsUnlockedBadge = document.getElementById('achievementsUnlockedBadge');
@@ -2069,9 +2085,10 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Failed to render quiz history table:', err);
         }
         try {
+            syncQuizHistoryDates(historyItems);
             updateAchievements(stats, historyItems);
         } catch (err) {
-            console.error('Failed to update achievements:', err);
+            console.error('Failed to update achievements or sync streak dates:', err);
         }
 
         // Render any LaTeX math notation present in the history or stats
@@ -2259,7 +2276,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Close modals on Escape key
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (flashcardsModal && !flashcardsModal.classList.contains('hidden')) {
+            if (streakCalendarModal && !streakCalendarModal.classList.contains('hidden')) {
+                closeStreakCalendarModal();
+            } else if (flashcardsModal && !flashcardsModal.classList.contains('hidden')) {
                 closeFlashcardsModal();
             } else if (cheatSheetModal && !cheatSheetModal.classList.contains('hidden')) {
                 closeCheatSheetModal();
@@ -2460,18 +2479,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ========================================================
-    // FEATURE ADDON 1: DAILY STUDY STREAK ENGINE
+    // FEATURE ADDON 1: DAILY STUDY STREAK & DOTTED CALENDAR ENGINE
     // ========================================================
     const STREAK_STORAGE_KEY = 'studysnap_streak_data_v1';
 
     function getStreakData() {
         try {
             const raw = localStorage.getItem(STREAK_STORAGE_KEY);
-            if (raw) return JSON.parse(raw);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed.studyDates)) {
+                    parsed.studyDates = parsed.lastStudyDate ? [parsed.lastStudyDate] : [];
+                }
+                return parsed;
+            }
         } catch (e) {
             console.warn('Failed to parse streak storage:', e);
         }
-        return { lastStudyDate: null, currentStreak: 0, bestStreak: 0 };
+        return { lastStudyDate: null, currentStreak: 0, bestStreak: 0, studyDates: [] };
     }
 
     function saveStreakData(data) {
@@ -2488,6 +2513,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const m = String(now.getMonth() + 1).padStart(2, '0');
         const d = String(now.getDate()).padStart(2, '0');
         return `${y}-${m}-${d}`;
+    }
+
+    function syncQuizHistoryDates(historyItems) {
+        if (!Array.isArray(historyItems) || historyItems.length === 0) return;
+        const streakData = getStreakData();
+        if (!Array.isArray(streakData.studyDates)) streakData.studyDates = [];
+        let added = false;
+        for (const item of historyItems) {
+            if (item.created_at) {
+                try {
+                    const d = new Date(item.created_at);
+                    if (!isNaN(d.getTime())) {
+                        const y = d.getFullYear();
+                        const m = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const key = `${y}-${m}-${day}`;
+                        if (!streakData.studyDates.includes(key)) {
+                            streakData.studyDates.push(key);
+                            added = true;
+                        }
+                    }
+                } catch (e) {
+                    // Ignore date parse
+                }
+            }
+        }
+        if (added) {
+            saveStreakData(streakData);
+        }
     }
 
     function initStudyStreak() {
@@ -2509,7 +2563,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (streakCountVal) {
-            streakCountVal.textContent = displayStreak;
+            streakCountVal.textContent = `${displayStreak} ${displayStreak === 1 ? 'Day' : 'Days'}`;
         }
         return displayStreak;
     }
@@ -2518,8 +2572,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const streakData = getStreakData();
         const today = getTodayDateString();
 
+        if (!Array.isArray(streakData.studyDates)) {
+            streakData.studyDates = [];
+        }
+        if (!streakData.studyDates.includes(today)) {
+            streakData.studyDates.push(today);
+        }
+
         if (streakData.lastStudyDate === today) {
             // Already active today
+            saveStreakData(streakData);
             return streakData.currentStreak;
         }
 
@@ -2542,9 +2604,133 @@ document.addEventListener('DOMContentLoaded', () => {
         saveStreakData(streakData);
 
         if (streakCountVal) {
-            streakCountVal.textContent = streakData.currentStreak;
+            streakCountVal.textContent = `${streakData.currentStreak} ${streakData.currentStreak === 1 ? 'Day' : 'Days'}`;
         }
         return streakData.currentStreak;
+    }
+
+    // ========================================================
+    // DOTTED STREAK ACTIVITY CALENDAR RENDERER
+    // ========================================================
+    let currentCalYear = new Date().getFullYear();
+    let currentCalMonth = new Date().getMonth();
+
+    function renderStreakCalendarGrid() {
+        const monthNames = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'
+        ];
+        if (streakCalMonthTitle) {
+            streakCalMonthTitle.textContent = `${monthNames[currentCalMonth]} ${currentCalYear}`;
+        }
+
+        const firstDayIndex = new Date(currentCalYear, currentCalMonth, 1).getDay();
+        const daysInMonth = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+        const daysInPrevMonth = new Date(currentCalYear, currentCalMonth, 0).getDate();
+
+        const streakData = getStreakData();
+        const studySet = new Set(streakData.studyDates || []);
+        if (streakData.lastStudyDate) studySet.add(streakData.lastStudyDate);
+
+        const todayStr = getTodayDateString();
+        let monthWorkedCount = 0;
+
+        let html = '';
+
+        // Previous month trailing days
+        for (let i = firstDayIndex - 1; i >= 0; i--) {
+            const d = daysInPrevMonth - i;
+            html += `
+                <div class="streak-day-cell other-month">
+                    <span class="day-number">${d}</span>
+                    <span class="day-dot other-dot"></span>
+                </div>
+            `;
+        }
+
+        // Current month days
+        for (let day = 1; day <= daysInMonth; day++) {
+            const mStr = String(currentCalMonth + 1).padStart(2, '0');
+            const dStr = String(day).padStart(2, '0');
+            const dateKey = `${currentCalYear}-${mStr}-${dStr}`;
+
+            const isWorked = studySet.has(dateKey);
+            const isToday = (dateKey === todayStr);
+
+            if (isWorked) monthWorkedCount++;
+
+            const cellClasses = ['streak-day-cell'];
+            if (isWorked) cellClasses.push('worked');
+            else cellClasses.push('empty');
+            if (isToday) cellClasses.push('is-today');
+
+            const tooltip = isWorked
+                ? `🔥 Active Study Day (${dateKey})`
+                : (isToday ? `⭐ Today (${dateKey})` : `⚪ Rest Day (${dateKey})`);
+
+            html += `
+                <div class="${cellClasses.join(' ')}" title="${tooltip}" data-date="${dateKey}">
+                    <span class="day-number">${day}</span>
+                    <span class="day-dot ${isWorked ? 'filled-dot' : 'empty-dot'}"></span>
+                    ${isWorked ? '<span class="worked-sparkle" aria-hidden="true">🔥</span>' : ''}
+                </div>
+            `;
+        }
+
+        // Next month trailing days to complete 7-col grid
+        const totalRendered = firstDayIndex + daysInMonth;
+        const remaining = (7 - (totalRendered % 7)) % 7;
+        for (let day = 1; day <= remaining; day++) {
+            html += `
+                <div class="streak-day-cell other-month">
+                    <span class="day-number">${day}</span>
+                    <span class="day-dot other-dot"></span>
+                </div>
+            `;
+        }
+
+        if (streakDaysGrid) {
+            streakDaysGrid.innerHTML = html;
+        }
+
+        // Update hero banner counts
+        if (streakModalHeroCount) {
+            streakModalHeroCount.textContent = streakData.currentStreak || 0;
+        }
+        if (streakModalBestCount) {
+            streakModalBestCount.textContent = `${streakData.bestStreak || streakData.currentStreak || 0} Days`;
+        }
+        if (streakModalTotalWorked) {
+            streakModalTotalWorked.textContent = `${studySet.size} Days`;
+        }
+        if (streakModalMonthWorked) {
+            streakModalMonthWorked.textContent = `${monthWorkedCount} Days`;
+        }
+        if (streakModalHeroStatus) {
+            if (studySet.has(todayStr)) {
+                streakModalHeroStatus.textContent = "🔥 You studied today! Streak is safely preserved.";
+            } else {
+                streakModalHeroStatus.textContent = "⚡ Study or take a quiz today to keep your streak glowing!";
+            }
+        }
+    }
+
+    function openStreakCalendarModal() {
+        if (cachedQuizHistory && cachedQuizHistory.length > 0) {
+            syncQuizHistoryDates(cachedQuizHistory);
+        }
+        currentCalYear = new Date().getFullYear();
+        currentCalMonth = new Date().getMonth();
+        renderStreakCalendarGrid();
+        if (streakCalendarModal) {
+            streakCalendarModal.classList.remove('hidden');
+        }
+    }
+
+    function closeStreakCalendarModal() {
+        if (streakCalendarModal) {
+            streakCalendarModal.classList.add('hidden');
+        }
     }
 
     // ========================================================
@@ -2995,7 +3181,52 @@ document.addEventListener('DOMContentLoaded', () => {
     // FEATURE ADDON EVENT LISTENERS & SHORTCUTS
     // ========================================================
     if (studyStreakBadge) {
-        studyStreakBadge.addEventListener('click', openProgressDashboard);
+        studyStreakBadge.addEventListener('click', openStreakCalendarModal);
+        studyStreakBadge.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openStreakCalendarModal();
+            }
+        });
+    }
+    if (closeStreakCalendarModalBtn) {
+        closeStreakCalendarModalBtn.addEventListener('click', closeStreakCalendarModal);
+    }
+    if (streakCalendarModalBackdrop) {
+        streakCalendarModalBackdrop.addEventListener('click', closeStreakCalendarModal);
+    }
+    if (streakCalPrevMonthBtn) {
+        streakCalPrevMonthBtn.addEventListener('click', () => {
+            currentCalMonth--;
+            if (currentCalMonth < 0) {
+                currentCalMonth = 11;
+                currentCalYear--;
+            }
+            renderStreakCalendarGrid();
+        });
+    }
+    if (streakCalNextMonthBtn) {
+        streakCalNextMonthBtn.addEventListener('click', () => {
+            currentCalMonth++;
+            if (currentCalMonth > 11) {
+                currentCalMonth = 0;
+                currentCalYear++;
+            }
+            renderStreakCalendarGrid();
+        });
+    }
+    if (streakCalTodayBtn) {
+        streakCalTodayBtn.addEventListener('click', () => {
+            currentCalYear = new Date().getFullYear();
+            currentCalMonth = new Date().getMonth();
+            renderStreakCalendarGrid();
+        });
+    }
+    if (streakViewProgressBtn) {
+        streakViewProgressBtn.addEventListener('click', () => {
+            closeStreakCalendarModal();
+            openProgressDashboard();
+        });
     }
     if (resultsFlashcardsBtn) {
         resultsFlashcardsBtn.addEventListener('click', openFlashcardsModal);

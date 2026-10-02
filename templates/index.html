@@ -59,7 +59,7 @@
                     <h1 class="brand-title">Study<span class="gradient-text">Snap</span></h1>
                 </div>
                 <div class="header-right-actions">
-                    <div class="streak-badge-pill" id="studyStreakBadge" title="Consecutive daily study streak">
+                    <div class="streak-badge-pill" id="studyStreakBadge" title="Click to view your Study Streak Activity Calendar" role="button" tabindex="0">
                         <span class="streak-flame-icon">🔥</span>
                         <span class="streak-text-val" id="streakCountVal">1 Day</span>
                     </div>
@@ -988,6 +988,113 @@
         </div>
     </div>
 
+    <!-- Study Streak Dotted Calendar Modal -->
+    <div id="streakCalendarModal" class="quiz-modal-container hidden" role="dialog" aria-modal="true" aria-labelledby="streakCalendarModalTitle">
+        <div id="streakCalendarModalBackdrop" class="quiz-modal-backdrop" aria-hidden="true"></div>
+        <div class="quiz-modal-dialog streak-calendar-dialog">
+            <div class="quiz-modal-card streak-calendar-card">
+                <div class="quiz-modal-header streak-calendar-header">
+                    <div class="quiz-modal-title-box">
+                        <div class="quiz-modal-icon-badge streak-fire-icon-badge">🔥</div>
+                        <div>
+                            <h3 id="streakCalendarModalTitle" class="quiz-modal-title">Study Streak & Activity</h3>
+                            <p class="quiz-modal-subtitle">Your daily learning journey and habit consistency</p>
+                        </div>
+                    </div>
+                    <button type="button" id="closeStreakCalendarModalBtn" class="quiz-modal-close" aria-label="Close Streak Calendar modal">&times;</button>
+                </div>
+
+                <div class="quiz-modal-body streak-calendar-body">
+                    <!-- Hero Streak Banner -->
+                    <div class="streak-hero-banner">
+                        <div class="streak-hero-left">
+                            <div class="streak-hero-flame-orb">
+                                <span class="hero-flame-icon">🔥</span>
+                            </div>
+                            <div class="streak-hero-info">
+                                <div class="streak-hero-count-row">
+                                    <span class="streak-hero-number" id="streakModalHeroCount">0</span>
+                                    <span class="streak-hero-label">Day Streak</span>
+                                </div>
+                                <p class="streak-hero-status" id="streakModalHeroStatus">Study today to keep your flame blazing!</p>
+                            </div>
+                        </div>
+                        <div class="streak-hero-pills">
+                            <div class="streak-metric-chip">
+                                <span class="chip-label">BEST STREAK</span>
+                                <span class="chip-value" id="streakModalBestCount">0 Days</span>
+                            </div>
+                            <div class="streak-metric-chip">
+                                <span class="chip-label">TOTAL WORKED</span>
+                                <span class="chip-value" id="streakModalTotalWorked">0 Days</span>
+                            </div>
+                            <div class="streak-metric-chip">
+                                <span class="chip-label">THIS MONTH</span>
+                                <span class="chip-value" id="streakModalMonthWorked">0 Days</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calendar Controls (Month / Year Navigation) -->
+                    <div class="streak-calendar-nav-bar">
+                        <div class="streak-cal-month-title-wrap">
+                            <span class="cal-calendar-icon">📅</span>
+                            <h4 class="streak-cal-month-title" id="streakCalMonthTitle">October 2026</h4>
+                        </div>
+                        <div class="streak-cal-nav-buttons">
+                            <button type="button" id="streakCalPrevMonthBtn" class="btn btn-streak-cal-nav" title="Previous Month">◀</button>
+                            <button type="button" id="streakCalTodayBtn" class="btn btn-streak-cal-today" title="Jump to current month">Today</button>
+                            <button type="button" id="streakCalNextMonthBtn" class="btn btn-streak-cal-nav" title="Next Month">▶</button>
+                        </div>
+                    </div>
+
+                    <!-- Dotted Calendar Grid -->
+                    <div class="streak-calendar-wrapper">
+                        <!-- Day of Week Headers -->
+                        <div class="streak-weekdays-row">
+                            <span>Sun</span>
+                            <span>Mon</span>
+                            <span>Tue</span>
+                            <span>Wed</span>
+                            <span>Thu</span>
+                            <span>Fri</span>
+                            <span>Sat</span>
+                        </div>
+
+                        <!-- 7-Column Days Grid with Dotted Indicators -->
+                        <div class="streak-days-grid" id="streakDaysGrid">
+                            <!-- Populated dynamically with .streak-day-cell -->
+                        </div>
+                    </div>
+
+                    <!-- Legend & Explanation -->
+                    <div class="streak-calendar-legend">
+                        <div class="legend-item">
+                            <span class="legend-dot active-dot"></span>
+                            <span>Worked Day (Summary / Quiz)</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot inactive-dot"></span>
+                            <span>Rest Day</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-dot today-dot"></span>
+                            <span>Today</span>
+                        </div>
+                    </div>
+
+                    <!-- Footer Action -->
+                    <div class="streak-calendar-footer">
+                        <button type="button" id="streakViewProgressBtn" class="btn btn-secondary btn-tactile-3d">
+                            <span class="btn-icon">📈</span>
+                            <span class="btn-text">View Full Progress & Trophies</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Flashcards Studio Modal (3D Interactive Flip Deck) -->
     <div id="flashcardsModal" class="quiz-modal-container hidden" role="dialog" aria-modal="true" aria-labelledby="flashcardsModalTitle">
         <div id="flashcardsModalBackdrop" class="quiz-modal-backdrop" aria-hidden="true"></div>
@@ -1169,6 +1276,6 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v6"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v7"></script>
 </body>
 </html>
