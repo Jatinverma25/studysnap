@@ -8,19 +8,31 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <!-- Marked.js for rendering markdown summaries -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Canvas Confetti for celebratory animations -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <!-- KaTeX for rendering mathematical formulas and LaTeX notation -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-    <!-- GSAP for smooth UI animations -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <!-- Chart.js for score trend analytics and progression tracking -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v12">
+    <!-- Marked.js for rendering markdown summaries (pinned + SRI) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
+    <!-- DOMPurify: sanitize HTML produced from AI text before it touches the DOM -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
+    <!-- Canvas Confetti for celebratory animations (pinned + SRI) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" integrity="sha384-sPwMflxqfAN+Q5mvlkLmHiX3PORGbZSXHiSGPTXT9VHCD/AB+b+r+vJWsqprv+7k" crossorigin="anonymous"></script>
+    <!-- KaTeX for rendering mathematical formulas and LaTeX notation (pinned + SRI) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" integrity="sha384-nB0miv6/jRmo5UMMR1wu3Gz6NLsoTkbqJghGIsx//Rlm+ZU03BU6SQNC66uf4l5+" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"></script>
+    <!-- Chart.js for score trend analytics and progression tracking (pinned + SRI) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v13">
+
+    <!-- PWA: web app manifest, theme colors, and installable app icons -->
+    <link rel="manifest" href="/static/manifest.webmanifest">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/icons/favicon-32.png">
+    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+    <meta name="description" content="StudySnap — transform any PDF document into quick study summaries, interactive quizzes, flashcards and track your study streak.">
+    <meta name="theme-color" content="#0c0817">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ede7fa">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="StudySnap">
 </head>
 <body>
     <!-- Animated Circular Flexible Small Black Circle Cursor -->
@@ -65,6 +77,11 @@
                     <button type="button" id="myProgressBtn" class="btn btn-progress-nav btn-tactile-3d" title="View your study statistics and quiz rank" aria-label="Open My Progress Dashboard">
                         <span class="btn-icon">📊</span>
                         <span class="btn-text">My Progress</span>
+                    </button>
+                    <!-- PWA: install app button (shown only when the browser offers an install prompt) -->
+                    <button type="button" id="installAppBtn" class="btn btn-progress-nav btn-tactile-3d" title="Install StudySnap as an app on this device" aria-label="Install StudySnap as an app" hidden>
+                        <span class="btn-icon">⬇️</span>
+                        <span class="btn-text">Install App</span>
                     </button>
                     <!-- From Uiverse.io by Galahhad - Day / Night Theme Switch -->
                     <div class="theme-switch-wrapper">
@@ -1268,6 +1285,8 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v12"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v13"></script>
+    <!-- PWA: service worker registration + native install prompt -->
+    <script src="{{ url_for('static', filename='pwa.js') }}?v=cosmic-purple-v13"></script>
 </body>
 </html>

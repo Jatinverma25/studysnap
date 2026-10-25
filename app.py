@@ -226,7 +226,6 @@ def health_check():
         "status": "ok",
         "platform": platform,
         "api_key_configured": has_key,
-        "key_prefix": (api_key[:4] + "..." + api_key[-4:]) if has_key else None,
         "database_path": DB_PATH,
         "database_ok": db_ok,
         "database_error": db_error,
@@ -247,6 +246,21 @@ def index():
 def serve_static(filename):
     from flask import send_from_directory
     return send_from_directory(app.static_folder, filename)
+
+
+@app.route('/sw.js', methods=['GET'])
+def serve_service_worker():
+    """Serves the PWA service worker from the app root so its scope can cover '/'.
+
+    A worker served at /static/sw.js would be limited to the /static/ scope; the
+    Service-Worker-Allowed header lets the registration request scope '/'.
+    Served uncached so new worker versions are picked up immediately.
+    """
+    from flask import send_from_directory
+    response = send_from_directory(app.static_folder, 'sw.js', mimetype='text/javascript')
+    response.headers['Service-Worker-Allowed'] = '/'
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
 
 
 @app.route('/summarize', methods=['POST'])
@@ -664,14 +678,47 @@ def generate_quiz():
 def save_quiz_result():
     """Saves a quiz score and metadata to SQLite database and JSON file."""
     try:
-        data = request.get_json() or {}
-        pdf_name = data.get("pdf_name", "document.pdf")
-        score = int(data.get("score", 0))
-        total = int(data.get("total", 10))
-        percentage = float(data.get("percentage", (score / total) * 100 if total > 0 else 0))
-        performance_message = data.get("performance_message", "")
+        # silent=True: a missing/wrong Content-Type must not raise a raw 415 HTML
+        # error page; we return a clean JSON 400 instead.
+        data = request.get_json(silent=True)
+        if not isinstance(data, dict):
+            return jsonify({"success": False, "error": "Request body must be a JSON object."}), 400
+
+        # pdf_name is rendered into other users' dashboards: sanitize it (defense
+        # in depth alongside client-side escaping). '<' and '>' never appear in
+        # legitimate filenames and are illegal on Windows.
+        raw_pdf_name = data.get("pdf_name", "document.pdf")
+        pdf_name = str(raw_pdf_name) if raw_pdf_name is not None else "document.pdf"
+        pdf_name = pdf_name.replace("\x00", "").replace("<", "").replace(">", "").strip()[:255] or "document.pdf"
+
+        try:
+            score = int(data.get("score", 0))
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "'score' must be an integer."}), 400
+        try:
+            total = int(data.get("total", 10))
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "error": "'total' must be an integer."}), 400
+        if score < 0 or total < 1:
+            return jsonify({"success": False, "error": "'score' must be >= 0 and 'total' must be >= 1."}), 400
+
+        # Percentage is always recomputed server-side so a client can never store
+        # a percentage inconsistent with the score it submitted.
+        percentage = round((score / total) * 100, 1) if total > 0 else 0.0
+
+        performance_message = str(data.get("performance_message") or "")[:500]
         difficulty = str(data.get("difficulty", "medium")).lower().strip()
-        created_at = data.get("created_at") or datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # created_at is only trusted if it parses as a real timestamp in the
+        # expected format; otherwise stamp it server-side.
+        created_at = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        raw_created_at = data.get("created_at")
+        if raw_created_at and isinstance(raw_created_at, str):
+            try:
+                datetime.datetime.strptime(raw_created_at[:19], "%Y-%m-%d %H:%M:%S")
+                created_at = raw_created_at[:19]
+            except (ValueError, TypeError):
+                pass
 
         # 1. Save to SQLite database (retries on 'database is locked')
         def _insert():

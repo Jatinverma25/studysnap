@@ -84,7 +84,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const backFromProgressBtn = document.getElementById('backFromProgressBtn');
     const progressQuickQuizBtn = document.getElementById('progressQuickQuizBtn');
     const gamerRankBanner = document.getElementById('gamerRankBanner');
-    const rankBadgeOrb = document.getElementById('rankBadgeOrb');
     const rankBadgeEmoji = document.getElementById('rankBadgeEmoji');
     const rankTierPill = document.getElementById('rankTierPill');
     const rankTitle = document.getElementById('rankTitle');
@@ -137,7 +136,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeWordHelpModalBtn = document.getElementById('closeWordHelpModalBtn');
     const cancelWordHelpModalBtn = document.getElementById('cancelWordHelpModalBtn');
     const wordHelpTargetFileName = document.getElementById('wordHelpTargetFileName');
-    const wordHelpForm = document.getElementById('wordHelpForm');
     const wordHelpInput = document.getElementById('wordHelpInput');
     const wordHelpClearBtn = document.getElementById('wordHelpClearBtn');
     const wordHelpSubmitBtn = document.getElementById('wordHelpSubmitBtn');
@@ -185,11 +183,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const flashcardsModalBackdrop = document.getElementById('flashcardsModalBackdrop');
     const closeFlashcardsModalBtn = document.getElementById('closeFlashcardsModalBtn');
     const flashcardDocSubtitle = document.getElementById('flashcardDocSubtitle') || document.querySelector('.flashcards-modal-header .quiz-modal-subtitle');
-    const flashcardProgress = document.getElementById('flashcardsProgressPill') || document.getElementById('flashcardProgress');
+    const flashcardProgress = document.getElementById('flashcardsProgressPill');
     const flashcardsMeterFill = document.getElementById('flashcardsMeterFill');
-    const flashcardMasteredCount = document.getElementById('flashcardsMasteredPill') || document.getElementById('flashcardMasteredCount');
-    const flashcardCard = document.getElementById('flashcardElement') || document.getElementById('flashcardCard');
-    const cardQuestionText = document.getElementById('cardPromptText') || document.getElementById('cardQuestionText');
+    const flashcardMasteredCount = document.getElementById('flashcardsMasteredPill');
+    const flashcardCard = document.getElementById('flashcardElement');
+    const cardQuestionText = document.getElementById('cardPromptText');
     const cardAnswerText = document.getElementById('cardAnswerText');
     const cardCategoryBadge = document.getElementById('cardCategoryBadge');
     const flashcardPrevBtn = document.getElementById('flashcardPrevBtn');
@@ -204,7 +202,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeCheatSheetModalBtn = document.getElementById('closeCheatSheetModalBtn');
     const cheatSheetDocSubtitle = document.getElementById('cheatSheetDocSubtitle');
     const printCheatSheetBtn = document.getElementById('printCheatSheetBtn');
-    const cheatSheetPrintArea = document.getElementById('cheatSheetPrintArea');
     const cheatSheetDate = document.getElementById('cheatSheetDate');
     const cheatSheetDocTitle = document.getElementById('cheatSheetDocTitle');
     const cheatSheetBigIdeas = document.getElementById('cheatSheetBigIdeas');
@@ -473,6 +470,63 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Helper: escape a string so it can be safely embedded in HTML markup.
+    function escapeHtml(str) {
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // Helper: create an element with optional class and text content.
+    function makeEl(tag, className, text) {
+        const el = document.createElement(tag);
+        if (className) el.className = className;
+        if (text !== undefined && text !== null) el.textContent = text;
+        return el;
+    }
+
+    // Helper: render HTML built from untrusted (AI/model/PDF-derived) text.
+    // DOMPurify sanitizes when loaded; if it failed to load we degrade to plain
+    // text rather than ever injecting unsanitized HTML.
+    function safeSetInnerHtml(target, html) {
+        if (!target) return;
+        if (typeof DOMPurify !== 'undefined' && typeof DOMPurify.sanitize === 'function') {
+            target.innerHTML = DOMPurify.sanitize(html, { ADD_ATTR: ['target'] });
+        } else {
+            target.textContent = String(html ?? '');
+        }
+    }
+
+    // Helper: normalize an answer/option string for scoring comparison. Trims,
+    // lowercases, collapses internal whitespace and strips wrapping punctuation
+    // (including $ math delimiters) so model punctuation drift still matches.
+    function normalizeAnswerText(text) {
+        return String(text ?? '')
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/^[\p{P}\p{S}]+|[\p{P}\p{S}]+$/gu, '');
+    }
+
+    // Helper: build the post-answer explanation with DOM APIs so the model's
+    // correct_answer / explanation text can never inject HTML. KaTeX still
+    // renders $...$ from the inserted text nodes afterwards.
+    function setExplanationContent(prefixText, correctAnswer, explanation) {
+        if (!quizExplanationText) return;
+        quizExplanationText.replaceChildren();
+        if (prefixText) {
+            quizExplanationText.append(document.createTextNode(prefixText), document.createElement('br'));
+        }
+        const label = document.createElement('strong');
+        label.textContent = 'Correct answer: ';
+        quizExplanationText.append(label, document.createTextNode(String(correctAnswer ?? '')));
+        quizExplanationText.append(document.createElement('br'), document.createElement('br'));
+        quizExplanationText.append(document.createTextNode(String(explanation ?? '')));
+    }
+
     // Helper: Render LaTeX math in element using KaTeX auto-render
     function renderMath(element) {
         if (!element) return;
@@ -535,7 +589,12 @@ document.addEventListener('DOMContentLoaded', () => {
         summaryContent.classList.add('switching');
         setTimeout(() => {
             const markdownText = summariesData[mode] || 'No summary available for this mode.';
-            summaryContent.innerHTML = marked.parse(markdownText);
+            // Sanitize rendered markdown before it touches the DOM (AI text is
+            // untrusted; markdown must never carry raw HTML/scripts).
+            const renderedHtml = (typeof marked !== 'undefined' && typeof marked.parse === 'function')
+                ? marked.parse(markdownText)
+                : `<p>${escapeHtml(markdownText).replace(/\n/g, '<br>')}</p>`;
+            safeSetInnerHtml(summaryContent, renderedHtml);
             // Run KaTeX auto-render script so all LaTeX notation converts into formatted math
             renderMath(summaryContent);
             summaryContent.classList.remove('switching');
@@ -830,6 +889,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // 30-Second Timer Implementation
     function startTimer(seconds = 30) {
         clearInterval(timerInterval);
+        // New question: any pending overlay pause is obsolete now.
+        quizTimerPausedForOverlay = false;
         timerSeconds = seconds;
         updateTimerDisplay(timerSeconds);
 
@@ -864,6 +925,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
+        }
+    }
+
+    // Pause the per-question quiz timer while an overlay view (progress
+    // dashboard, streak calendar) is open, so the current question cannot
+    // silently time out while the quiz is hidden from the user.
+    let quizTimerPausedForOverlay = false;
+
+    function pauseQuizTimerForOverlay() {
+        if (!quizTimerPausedForOverlay && !isQuestionAnswered && timerInterval && !quizSection.classList.contains('hidden')) {
+            stopTimer();
+            quizTimerPausedForOverlay = true;
+        }
+    }
+
+    function resumeQuizTimerAfterOverlay() {
+        // Only resume (and clear the flag) once the quiz view is actually
+        // visible again — closing a nested overlay (e.g. the streak calendar on
+        // top of the dashboard) must not drop the pending resume.
+        if (quizTimerPausedForOverlay && !isQuestionAnswered && !quizSection.classList.contains('hidden')) {
+            // timerSeconds holds the remaining seconds from before the pause.
+            startTimer(Math.max(1, timerSeconds));
+            quizTimerPausedForOverlay = false;
         }
     }
 
@@ -902,11 +986,23 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.className = 'quiz-option-btn';
             btn.dataset.option = optText;
 
-            btn.innerHTML = `
-                <span class="quiz-option-letter">${letter}</span>
-                <span class="quiz-option-text">${optText}</span>
-                <span class="quiz-option-icon"></span>
-            `;
+            // Build with DOM APIs (never innerHTML): AI-generated option text
+            // must never be able to inject HTML into the page. Math ($...$) in
+            // the text node is still rendered by KaTeX afterwards.
+            const letterSpan = document.createElement('span');
+            letterSpan.className = 'quiz-option-letter';
+            letterSpan.textContent = letter;
+
+            const textSpan = document.createElement('span');
+            textSpan.className = 'quiz-option-text';
+            textSpan.textContent = String(optText ?? '');
+
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'quiz-option-icon';
+
+            btn.appendChild(letterSpan);
+            btn.appendChild(textSpan);
+            btn.appendChild(iconSpan);
 
             btn.addEventListener('click', () => {
                 handleOptionClick(btn, optText, q);
@@ -931,12 +1027,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Mark the chosen button as selected for highlighting glow
         selectedBtn.classList.add('selected');
 
-        // Disable all option buttons
+        // Disable all option buttons (attribute keeps them non-interactive,
+        // class handles the visuals; both for robustness + a11y)
         const allOptionBtns = quizOptionsContainer.querySelectorAll('.quiz-option-btn');
-        allOptionBtns.forEach(btn => btn.classList.add('disabled'));
+        allOptionBtns.forEach(btn => {
+            btn.classList.add('disabled');
+            btn.disabled = true;
+        });
 
-        const cleanSelected = String(selectedText).trim().toLowerCase();
-        const cleanCorrect = String(q.correct_answer).trim().toLowerCase();
+        const cleanSelected = normalizeAnswerText(selectedText);
+        const cleanCorrect = normalizeAnswerText(q.correct_answer);
         const isCorrect = cleanSelected === cleanCorrect;
 
         if (isCorrect) {
@@ -968,7 +1068,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Highlight the correct answer option
             allOptionBtns.forEach(btn => {
-                if (String(btn.dataset.option).trim().toLowerCase() === cleanCorrect) {
+                if (normalizeAnswerText(btn.dataset.option) === cleanCorrect) {
                     btn.classList.add('correct-revealed');
                     const cIcon = btn.querySelector('.quiz-option-icon');
                     if (cIcon) cIcon.textContent = '✓';
@@ -978,7 +1078,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Explanation box (failure)
             explanationIcon.textContent = '💡';
             explanationTitle.textContent = 'Incorrect';
-            quizExplanationText.innerHTML = `<strong>Correct answer:</strong> ${q.correct_answer}<br><br>${q.explanation || ''}`;
+            setExplanationContent(null, q.correct_answer, q.explanation || '');
             quizExplanationBox.className = 'quiz-explanation-box wrong';
             quizExplanationBox.classList.remove('hidden');
             renderMath(quizExplanationBox);
@@ -997,14 +1097,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const q = quizQuestions[currentQuestionIndex];
         const allOptionBtns = quizOptionsContainer.querySelectorAll('.quiz-option-btn');
-        allOptionBtns.forEach(btn => btn.classList.add('disabled'));
+        allOptionBtns.forEach(btn => {
+            btn.classList.add('disabled');
+            btn.disabled = true;
+        });
 
         triggerShake();
 
         // Highlight correct answer
-        const cleanCorrect = String(q.correct_answer).trim().toLowerCase();
+        const cleanCorrect = normalizeAnswerText(q.correct_answer);
         allOptionBtns.forEach(btn => {
-            if (String(btn.dataset.option).trim().toLowerCase() === cleanCorrect) {
+            if (normalizeAnswerText(btn.dataset.option) === cleanCorrect) {
                 btn.classList.add('correct-revealed');
                 const cIcon = btn.querySelector('.quiz-option-icon');
                 if (cIcon) cIcon.textContent = '✓';
@@ -1013,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         explanationIcon.textContent = '⏰';
         explanationTitle.textContent = "Time's Up!";
-        quizExplanationText.innerHTML = `You ran out of time for this question.<br><strong>Correct answer:</strong> ${q.correct_answer}<br><br>${q.explanation || ''}`;
+        setExplanationContent('You ran out of time for this question.', q.correct_answer, q.explanation || '');
         quizExplanationBox.className = 'quiz-explanation-box wrong';
         quizExplanationBox.classList.remove('hidden');
         renderMath(quizExplanationBox);
@@ -1097,6 +1200,13 @@ document.addEventListener('DOMContentLoaded', () => {
             await safeParseJsonResponse(res, 'saving quiz result');
         } catch (err) {
             console.warn('Failed to save quiz result to database:', err);
+            // Tell the user the truth instead of leaving the "saved" badge up
+            // (e.g. the documented 503 "Database is busy" would otherwise be lost).
+            const saveStatusIndicator = document.getElementById('saveStatusIndicator');
+            if (saveStatusIndicator) {
+                saveStatusIndicator.classList.add('save-failed');
+                saveStatusIndicator.innerHTML = '<span class="save-icon">⚠️</span> Could not save this result — please check your connection and retake the quiz to record it.';
+            }
         }
     }
 
@@ -1429,8 +1539,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // ========================================================
     const themeSwitchCheckbox = document.getElementById('themeSwitchCheckbox');
     const themeSwitchLabel = document.getElementById('themeSwitchLabel');
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const themeToggleLabel = document.getElementById('themeToggleLabel');
 
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
@@ -1445,15 +1553,6 @@ document.addEventListener('DOMContentLoaded', () => {
             themeSwitchLabel.setAttribute('title', `Switch to ${nextMode} mode`);
             themeSwitchLabel.setAttribute('aria-label', `Switch to ${nextMode} mode`);
         }
-
-        if (themeToggleLabel) {
-            themeToggleLabel.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
-        }
-        if (themeToggleBtn) {
-            const nextMode = theme === 'dark' ? 'light' : 'dark';
-            themeToggleBtn.setAttribute('aria-label', `Switch to ${nextMode} mode`);
-            themeToggleBtn.setAttribute('title', `Switch to ${nextMode} mode`);
-        }
         if (particleInstance) {
             particleInstance.setTheme(theme);
         }
@@ -1467,17 +1566,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (themeSwitchCheckbox) {
         themeSwitchCheckbox.addEventListener('change', () => {
             const newTheme = themeSwitchCheckbox.checked ? 'dark' : 'light';
-            applyTheme(newTheme);
-            if (progressSection && !progressSection.classList.contains('hidden') && cachedQuizHistory.length > 0) {
-                renderScoreTrendChart(cachedQuizHistory, currentChartType);
-            }
-        });
-    }
-
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             applyTheme(newTheme);
             if (progressSection && !progressSection.classList.contains('hidden') && cachedQuizHistory.length > 0) {
                 renderScoreTrendChart(cachedQuizHistory, currentChartType);
@@ -1593,27 +1681,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const scoreClass = getScoreBadgeClass(scorePct);
             const formattedDate = formatQuizDate(item.created_at);
 
-            tr.innerHTML = `
-                <td class="td-date history-date">${formattedDate}</td>
-                <td class="td-doc">
-                    <div class="history-doc-wrap" title="${item.pdf_name || 'document.pdf'}">
-                        <span class="history-doc-icon">📄</span>
-                        <span class="history-doc-text">${item.pdf_name || 'document.pdf'}</span>
-                    </div>
-                </td>
-                <td class="td-questions">
-                    <span class="history-pill-questions">${item.total || 10} Qs</span>
-                </td>
-                <td class="td-difficulty">
-                    <span class="badge-diff ${diff}">${diffIcon} ${diffLabel}</span>
-                </td>
-                <td class="td-score">
-                    <span class="badge-score ${scoreClass}">
-                        <span class="score-fraction">${item.score}/${item.total}</span>
-                        <small class="score-pct-small">(${scorePct}%)</small>
-                    </span>
-                </td>
-            `;
+            // Build the row with DOM APIs (never innerHTML): pdf_name and
+            // created_at come straight from the shared database, so they must
+            // never be able to inject HTML into another visitor's dashboard.
+            const docName = item.pdf_name || 'document.pdf';
+            const numTotal = Number(item.total) || 10;
+            const numScore = Number(item.score) || 0;
+
+            tr.appendChild(makeEl('td', 'td-date history-date', formattedDate));
+
+            const tdDoc = makeEl('td', 'td-doc');
+            const docWrap = makeEl('div', 'history-doc-wrap');
+            docWrap.setAttribute('title', docName);
+            docWrap.appendChild(makeEl('span', 'history-doc-icon', '📄'));
+            docWrap.appendChild(makeEl('span', 'history-doc-text', docName));
+            tdDoc.appendChild(docWrap);
+            tr.appendChild(tdDoc);
+
+            const tdQuestions = makeEl('td', 'td-questions');
+            tdQuestions.appendChild(makeEl('span', 'history-pill-questions', `${numTotal} Qs`));
+            tr.appendChild(tdQuestions);
+
+            const tdDifficulty = makeEl('td', 'td-difficulty');
+            tdDifficulty.appendChild(makeEl('span', `badge-diff ${diff}`, `${diffIcon} ${diffLabel}`));
+            tr.appendChild(tdDifficulty);
+
+            const tdScore = makeEl('td', 'td-score');
+            const badgeScore = makeEl('span', `badge-score ${scoreClass}`);
+            badgeScore.appendChild(makeEl('span', 'score-fraction', `${numScore}/${numTotal}`));
+            badgeScore.appendChild(makeEl('small', 'score-pct-small', `(${scorePct}%)`));
+            tdScore.appendChild(badgeScore);
+            tr.appendChild(tdScore);
             quizHistoryTableBody.appendChild(tr);
         });
     }
@@ -2028,6 +2126,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Open Progress Dashboard View
     function openProgressDashboard() {
+        // Pause the quiz timer before hiding the quiz view so the active
+        // question cannot time out while the dashboard is open.
+        pauseQuizTimerForOverlay();
+
         if (!quizSection.classList.contains('hidden')) {
             previousViewBeforeProgress = 'quiz';
         } else if (!resultsSection.classList.contains('hidden')) {
@@ -2062,6 +2164,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             uploadSection.classList.remove('hidden');
         }
+        // Resume the quiz timer with its remaining time if it was paused on the way in.
+        resumeQuizTimerAfterOverlay();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -2249,19 +2353,16 @@ document.addEventListener('DOMContentLoaded', () => {
             wordHelpResult.classList.remove('not-found');
         }
 
-        // Format markdown if marked is loaded, otherwise sanitize and format
+        // Render markdown if marked is loaded, then sanitize before injecting
         let formattedHtml = '';
         if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
             formattedHtml = marked.parse(explanation);
         } else {
-            const escaped = explanation
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
+            const escaped = escapeHtml(explanation);
             formattedHtml = `<p>${escaped.replace(/\n/g, '<br>')}</p>`;
         }
 
-        wordHelpAnswerBody.innerHTML = formattedHtml;
+        safeSetInnerHtml(wordHelpAnswerBody, formattedHtml);
 
         // Run KaTeX auto-render on the answer card
         renderMath(wordHelpAnswerBody);
@@ -2349,9 +2450,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    if (wordHelpForm) {
-        wordHelpForm.addEventListener('submit', handleWordHelp);
-    }
+    // No form 'submit' listener: the submit button and the Enter key handler
+    // both call preventDefault(), so the submit event is never dispatched.
 
     if (wordHelpSubmitBtn) {
         wordHelpSubmitBtn.addEventListener('click', handleWordHelp);
@@ -2639,6 +2739,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openStreakCalendarModal() {
+        // Pause the quiz timer while the calendar is open (same reason as the
+        // progress dashboard: no hidden timeouts on an unseen question).
+        pauseQuizTimerForOverlay();
+
         if (cachedQuizHistory && cachedQuizHistory.length > 0) {
             syncQuizHistoryDates(cachedQuizHistory);
         }
@@ -2654,6 +2758,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (streakCalendarModal) {
             streakCalendarModal.classList.add('hidden');
         }
+        resumeQuizTimerAfterOverlay();
     }
 
     // ========================================================
@@ -2885,7 +2990,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (cardAnswerText) {
             if (typeof marked !== 'undefined' && typeof marked.parse === 'function' && (card.answer.includes('*') || card.answer.includes('\n'))) {
-                cardAnswerText.innerHTML = marked.parse(card.answer);
+                safeSetInnerHtml(cardAnswerText, marked.parse(card.answer));
             } else {
                 cardAnswerText.textContent = card.answer;
             }
@@ -3001,7 +3106,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (cheatSheetBigIdeas) {
             if (takeaways.length > 0) {
-                cheatSheetBigIdeas.innerHTML = '<ol class="cheat-list">' + takeaways.map(t => `<li>${t}</li>`).join('') + '</ol>';
+                cheatSheetBigIdeas.innerHTML = '<ol class="cheat-list">' + takeaways.map(t => `<li>${escapeHtml(t)}</li>`).join('') + '</ol>';
             } else {
                 cheatSheetBigIdeas.innerHTML = '<p class="cheat-empty">Review primary summary for core takeaways.</p>';
             }
@@ -3020,7 +3125,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (cheatSheetFormulas) {
             if (formulas.length > 0) {
-                cheatSheetFormulas.innerHTML = '<div class="cheat-formula-list">' + formulas.map(f => `<div class="cheat-formula-box">$$${f}$$</div>`).join('') + '</div>';
+                cheatSheetFormulas.innerHTML = '<div class="cheat-formula-list">' + formulas.map(f => `<div class="cheat-formula-box">$$${escapeHtml(f)}$$</div>`).join('') + '</div>';
             } else {
                 cheatSheetFormulas.innerHTML = '<p class="cheat-empty">No explicit mathematical formulas detected in this document.</p>';
             }
@@ -3042,7 +3147,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (cheatSheetTerms) {
             if (terms.length > 0) {
-                cheatSheetTerms.innerHTML = '<ul class="cheat-list">' + terms.map(t => `<li><strong>${t.term}</strong>: ${t.def}</li>`).join('') + '</ul>';
+                cheatSheetTerms.innerHTML = '<ul class="cheat-list">' + terms.map(t => `<li><strong>${escapeHtml(t.term)}</strong>: ${escapeHtml(t.def)}</li>`).join('') + '</ul>';
             } else {
                 cheatSheetTerms.innerHTML = '<p class="cheat-empty">Key terminology will populate from structured summaries.</p>';
             }
@@ -3063,7 +3168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (cheatSheetTraps) {
             if (traps.length > 0) {
-                cheatSheetTraps.innerHTML = '<ul class="cheat-list">' + traps.map(tr => `<li>⚠️ ${tr}</li>`).join('') + '</ul>';
+                cheatSheetTraps.innerHTML = '<ul class="cheat-list">' + traps.map(tr => `<li>⚠️ ${escapeHtml(tr)}</li>`).join('') + '</ul>';
             } else {
                 cheatSheetTraps.innerHTML = '<ul class="cheat-list"><li>Pay close attention to boundary conditions and exceptions.</li><li>Avoid confusing related terminology and check assumptions.</li></ul>';
             }
@@ -3383,8 +3488,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.api_key_configured === false) {
+                    const platformName = data.platform === 'vercel' ? 'Vercel' : data.platform === 'render' ? 'Render' : 'hosting environment';
                     showError(
-                        `⚠️ Notice: GEMINI_API_KEY is not detected. Please add GEMINI_API_KEY in your ${data.platform === 'vercel' ? 'Vercel' : 'Render'} dashboard under Environment variables and rebuild.`
+                        `⚠️ Notice: GEMINI_API_KEY is not detected. Please add GEMINI_API_KEY in your ${platformName} dashboard under Environment variables and rebuild.`
                     );
                 }
             }

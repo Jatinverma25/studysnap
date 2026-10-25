@@ -822,6 +822,11 @@ button:focus,
     box-shadow: none !important;
 }
 
+/* PWA install button: the [hidden] attribute must win over .btn's display rule */
+#installAppBtn[hidden] {
+    display: none !important;
+}
+
 .btn-arrow {
     transition: transform 0.25s ease;
 }
@@ -2141,6 +2146,10 @@ button:focus,
     opacity: 0.85;
 }
 
+.quiz-option-btn[disabled] {
+    pointer-events: none;
+}
+
 /* Explanation Box */
 .quiz-explanation-box {
     background: rgba(18, 22, 38, 0.68);
@@ -2294,6 +2303,12 @@ button:focus,
     display: inline-flex;
     align-items: center;
     gap: 8px;
+}
+
+.save-status-badge.save-failed {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.45);
 }
 
 .quiz-completed-actions {
@@ -3445,6 +3460,12 @@ button:focus,
     background: #e8def8;
     border-color: rgba(124, 58, 237, 0.25);
     color: var(--text-secondary);
+}
+
+[data-theme="light"] .save-status-badge.save-failed {
+    background: #fde8d3;
+    border-color: rgba(217, 119, 6, 0.4);
+    color: #92600a;
 }
 
 /* Light Mode Quiz Modal - Solid Clean White Panel with High Contrast */

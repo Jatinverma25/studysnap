@@ -1,0 +1,36 @@
+{
+  "name": "StudySnap — AI PDF Study Companion",
+  "short_name": "StudySnap",
+  "description": "Transform any PDF document into quick study summaries, interactive quizzes, flashcards and streak tracking.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "fullscreen"],
+  "orientation": "any",
+  "background_color": "#0c0817",
+  "theme_color": "#0c0817",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "books"],
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
