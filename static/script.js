@@ -320,6 +320,167 @@ document.addEventListener('DOMContentLoaded', () => {
         throw lastErr;
     }
 
+    // ========================================================
+    // AUTH: LOGIN / SIGN-UP / LOGOUT
+    // (Instagram-style screen. The server renders it hidden when the visitor
+    //  is already signed in, so nothing here runs for them.)
+    // ========================================================
+    const loginSection = document.getElementById('loginSection');
+    const authForm = document.getElementById('authForm');
+    const authNameField = document.getElementById('authNameField');
+    const authNameInput = document.getElementById('authName');
+    const authEmailInput = document.getElementById('authEmail');
+    const authPasswordInput = document.getElementById('authPassword');
+    const authEyeBtn = document.getElementById('authEyeBtn');
+    const authError = document.getElementById('authError');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const authSubmitLabel = authSubmitBtn ? authSubmitBtn.querySelector('.login-submit-label') : null;
+    const guestContinueBtn = document.getElementById('guestContinueBtn');
+    const switchAuthModeBtn = document.getElementById('switchAuthModeBtn');
+    let authMode = 'login';
+
+    function setAuthError(message) {
+        if (!authError) return;
+        if (message) {
+            authError.textContent = message;
+            authError.classList.add('show');
+            // Shake the card the same way the quiz modal flags a wrong answer.
+            const card = authForm ? authForm.closest('.login-card') : null;
+            if (card) {
+                card.classList.remove('login-shake');
+                void card.offsetWidth; // restart the animation
+                card.classList.add('login-shake');
+            }
+        } else {
+            authError.textContent = '';
+            authError.classList.remove('show');
+        }
+    }
+
+    function setAuthMode(mode) {
+        authMode = mode;
+        const isSignup = (mode === 'signup');
+        if (authNameField) authNameField.hidden = !isSignup;
+        if (authSubmitLabel) authSubmitLabel.textContent = isSignup ? 'Create Account' : 'Sign In';
+        if (authPasswordInput) authPasswordInput.autocomplete = isSignup ? 'new-password' : 'current-password';
+        if (switchAuthModeBtn) switchAuthModeBtn.textContent = isSignup ? 'Sign in instead' : 'Create an account';
+        setAuthError('');
+        if (isSignup && authNameInput) {
+            authNameInput.focus();
+        } else if (authEmailInput) {
+            authEmailInput.focus();
+        }
+    }
+
+    if (switchAuthModeBtn) {
+        switchAuthModeBtn.addEventListener('click', () => setAuthMode(authMode === 'signup' ? 'login' : 'signup'));
+    }
+
+    if (authEyeBtn && authPasswordInput) {
+        authEyeBtn.addEventListener('click', () => {
+            const showing = authPasswordInput.type === 'text';
+            authPasswordInput.type = showing ? 'password' : 'text';
+            authEyeBtn.textContent = showing ? '👁️' : '🙈';
+            authEyeBtn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
+            authEyeBtn.title = showing ? 'Show password' : 'Hide password';
+        });
+    }
+
+    if (guestContinueBtn) {
+        guestContinueBtn.addEventListener('click', () => {
+            // Guests use the full app; their saves land in the anonymous bucket
+            // (user_id IS NULL) on the server.
+            if (loginSection) loginSection.classList.add('hidden');
+            setAuthError('');
+        });
+    }
+
+    if (authForm) {
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setAuthError('');
+            const email = authEmailInput ? authEmailInput.value.trim() : '';
+            const password = authPasswordInput ? authPasswordInput.value : '';
+            const name = authNameInput ? authNameInput.value.trim() : '';
+
+            if (!email || !password) {
+                setAuthError('Please enter your email and password.');
+                return;
+            }
+            if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+                setAuthError('Please enter a valid email address.');
+                return;
+            }
+            if (authMode === 'signup' && password.length < 6) {
+                setAuthError('Password must be at least 6 characters.');
+                return;
+            }
+
+            const payload = { email, password };
+            if (authMode === 'signup' && name) payload.display_name = name;
+
+            if (authSubmitBtn) authSubmitBtn.disabled = true;
+            if (authSubmitLabel) authSubmitLabel.textContent = authMode === 'signup' ? 'Creating…' : 'Signing in…';
+            try {
+                const res = await fetch(authMode === 'signup' ? '/signup' : '/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                    credentials: 'same-origin',
+                });
+                const data = await safeParseJsonResponse(res, 'signing in');
+                if (res.ok) {
+                    // Reload: the server then renders the signed-in state (header
+                    // chip + user-scoped history) with no stale client state.
+                    window.location.reload();
+                    return;
+                }
+                setAuthError((data && data.error) || 'Something went wrong. Please try again.');
+            } catch (err) {
+                setAuthError((err && err.message) || 'Network problem — please check your connection and try again.');
+            } finally {
+                if (authSubmitBtn) authSubmitBtn.disabled = false;
+                if (authSubmitLabel) authSubmitLabel.textContent = authMode === 'signup' ? 'Create Account' : 'Sign In';
+            }
+        });
+    }
+
+    // Header: account chip dropdown + logout
+    const userChip = document.getElementById('userChip');
+    const userDropdown = document.getElementById('userDropdown');
+    const userMenuWrapper = document.getElementById('userMenuWrapper');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    function closeUserDropdown() {
+        if (userDropdown) userDropdown.classList.remove('show');
+        if (userChip) userChip.setAttribute('aria-expanded', 'false');
+    }
+    if (userChip && userDropdown) {
+        userChip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const open = userDropdown.classList.toggle('show');
+            userChip.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+        document.addEventListener('click', (e) => {
+            if (userMenuWrapper && !userMenuWrapper.contains(e.target)) closeUserDropdown();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeUserDropdown();
+        });
+    }
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            logoutBtn.disabled = true;
+            try {
+                await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+            } catch (err) {
+                // Proceed to reload anyway — the local cookie state gets cleared
+                // server-side on the next request either way.
+            }
+            window.location.reload();
+        });
+    }
+
     // File selection handler
     function handleFile(file) {
         if (!file) return;

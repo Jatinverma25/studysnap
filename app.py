@@ -1,10 +1,13 @@
 import os
 import json
+import re
+import secrets
 import sqlite3
 import datetime
 import tempfile
 import time
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session
+from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -32,6 +35,19 @@ app = Flask(
 )
 # Limit maximum upload size to 30 MB
 app.config['MAX_CONTENT_LENGTH'] = 30 * 1024 * 1024
+
+# 3b. Login sessions: Flask stores a signed cookie in the browser, so no
+# server-side session storage is needed (works on serverless too). A stable
+# STUDY_SNAP_SECRET_KEY keeps users logged in across redeploys; a random
+# fallback simply signs everyone out on restart.
+app.secret_key = os.environ.get('STUDYSNAP_SECRET_KEY') or secrets.token_hex(32)
+app.permanent_session_lifetime = datetime.timedelta(days=30)
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+    # Only transmit the session cookie over HTTPS when deployed behind https.
+    SESSION_COOKIE_SECURE=bool(os.environ.get('RENDER') or os.environ.get('VERCEL')),
+)
 
 # 3. Determine data directory: on Vercel / Serverless, project files are read-only, so use /tmp
 # NOTE on persistence: /tmp is ephemeral (wiped on cold start/redeploy) and each
@@ -105,7 +121,7 @@ def atomic_write_json(path, data):
 
 
 def init_db():
-    """Initializes the SQLite database for quiz results tracking."""
+    """Initializes the SQLite database for quiz results tracking and accounts."""
     try:
         os.makedirs(DATA_DIR, exist_ok=True)
         conn = get_db_connection()
@@ -122,10 +138,25 @@ def init_db():
                 created_at TEXT NOT NULL
             )
         ''')
+        # Accounts for the login screen. Passwords are only ever stored
+        # hashed (werkzeug), never in readable form.
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT UNIQUE NOT NULL,
+                display_name TEXT,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            )
+        ''')
         cursor.execute("PRAGMA table_info(quiz_results)")
         columns = [row[1] for row in cursor.fetchall()]
         if "difficulty" not in columns:
             cursor.execute("ALTER TABLE quiz_results ADD COLUMN difficulty TEXT DEFAULT 'medium'")
+        # Existing rows (created before accounts existed) keep user_id NULL,
+        # which is exactly the "guest" bucket, so old local data still shows.
+        if "user_id" not in columns:
+            cursor.execute("ALTER TABLE quiz_results ADD COLUMN user_id INTEGER")
         conn.commit()
         conn.close()
     except Exception as e:
@@ -134,6 +165,47 @@ def init_db():
 
 # Initialize DB table on startup
 init_db()
+
+
+# --- Auth helpers ---------------------------------------------------------
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def normalize_email(raw):
+    """Lowercases and trims an email; returns None when it is not valid."""
+    if not isinstance(raw, str):
+        return None
+    email = raw.strip().lower()
+    if len(email) > 254 or not EMAIL_REGEX.match(email):
+        return None
+    return email
+
+
+def get_current_user():
+    """Returns the logged-in user (dict) or None for guests. Reads the signed
+    session cookie set by /login or /signup."""
+    user_id = session.get('user_id')
+    if not user_id:
+        return None
+
+    def _fetch():
+        conn = get_db_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id, email, display_name, created_at FROM users WHERE id = ?",
+                (user_id,)
+            )
+            row = cursor.fetchone()
+            return dict(row) if row else None
+        finally:
+            conn.close()
+
+    try:
+        return execute_db_with_retry(_fetch)
+    except Exception as e:
+        app.logger.warning(f"Could not fetch current user: {e}")
+        return None
 
 
 def find_gemini_api_key():
@@ -239,7 +311,18 @@ def health_check():
 @app.route('/api/index', methods=['GET'])
 @app.route('/api/index.py', methods=['GET'])
 def index():
-    return render_template('index.html')
+    # The login screen and the header account chip are rendered server-side so
+    # signed-in users never see the login form flash on page load.
+    user_info = None
+    current_user = get_current_user()
+    if current_user:
+        name = (current_user.get('display_name') or current_user['email'].split('@')[0]).strip()
+        user_info = {
+            "email": current_user['email'],
+            "name": name,
+            "initial": (name[0].upper() if name else "U"),
+        }
+    return render_template('index.html', current_user=user_info)
 
 
 @app.route('/static/<path:filename>', methods=['GET'])
@@ -261,6 +344,122 @@ def serve_service_worker():
     response.headers['Service-Worker-Allowed'] = '/'
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
+
+
+@app.route('/signup', methods=['POST'])
+@app.route('/api/signup', methods=['POST'])
+def signup():
+    """Creates a new account and logs the user in immediately."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "error": "Request body must be a JSON object."}), 400
+
+    email = normalize_email(data.get('email'))
+    if not email:
+        return jsonify({"success": False, "error": "Please enter a valid email address."}), 400
+
+    password = data.get('password')
+    if not isinstance(password, str) or len(password) < 6 or len(password) > 128:
+        return jsonify({"success": False, "error": "Password must be at least 6 characters."}), 400
+
+    raw_name = data.get('display_name')
+    display_name = (str(raw_name).strip()[:40] if raw_name else None) or None
+
+    try:
+        def _insert():
+            conn = get_db_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+                if cursor.fetchone() is not None:
+                    return None
+                cursor.execute(
+                    "INSERT INTO users (email, display_name, password_hash, created_at) VALUES (?, ?, ?, ?)",
+                    (email, display_name, generate_password_hash(password),
+                     datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                )
+                conn.commit()
+                return cursor.lastrowid
+            finally:
+                conn.close()
+
+        new_id = execute_db_with_retry(_insert)
+        if new_id is None:
+            return jsonify({"success": False, "error": "An account with this email already exists."}), 409
+
+        session['user_id'] = new_id
+        session.permanent = True
+        return jsonify({"success": True, "user": {
+            "id": new_id, "email": email, "display_name": display_name
+        }})
+    except Exception as e:
+        if _is_locked_error(e):
+            return jsonify({"success": False, "error": "Database is busy, please try again."}), 503
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
+def login():
+    """Logs an existing user in by verifying the hashed password."""
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"success": False, "error": "Request body must be a JSON object."}), 400
+
+    email = normalize_email(data.get('email'))
+    password = data.get('password')
+    if not email or not isinstance(password, str) or not password:
+        # One generic message for both "unknown email" and "wrong password" so
+        # nobody can probe which emails are registered.
+        return jsonify({"success": False, "error": "Incorrect email or password."}), 401
+
+    try:
+        def _fetch():
+            conn = get_db_connection()
+            try:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT id, email, display_name, password_hash FROM users WHERE email = ?",
+                    (email,)
+                )
+                row = cursor.fetchone()
+                return dict(row) if row else None
+            finally:
+                conn.close()
+
+        user = execute_db_with_retry(_fetch)
+        if not user or not check_password_hash(user['password_hash'], password):
+            return jsonify({"success": False, "error": "Incorrect email or password."}), 401
+
+        session['user_id'] = user['id']
+        session.permanent = True
+        return jsonify({"success": True, "user": {
+            "id": user['id'], "email": user['email'], "display_name": user.get('display_name')
+        }})
+    except Exception as e:
+        if _is_locked_error(e):
+            return jsonify({"success": False, "error": "Database is busy, please try again."}), 503
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/logout', methods=['POST'])
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    """Clears the session cookie."""
+    session.clear()
+    return jsonify({"success": True})
+
+
+@app.route('/me', methods=['GET'])
+@app.route('/api/me', methods=['GET'])
+def me():
+    """Tells the page who is signed in (drives the login screen + header chip)."""
+    user = get_current_user()
+    if not user:
+        return jsonify({"success": True, "authenticated": False})
+    return jsonify({"success": True, "authenticated": True, "user": {
+        "id": user['id'], "email": user['email'], "display_name": user.get('display_name')
+    }})
 
 
 @app.route('/summarize', methods=['POST'])
@@ -721,16 +920,19 @@ def save_quiz_result():
                 pass
 
         # 1. Save to SQLite database (retries on 'database is locked')
+        current_user = get_current_user()
+        user_id = current_user['id'] if current_user else None
+
         def _insert():
             conn = get_db_connection()
             try:
                 cursor = conn.cursor()
                 cursor.execute(
                     """
-                    INSERT INTO quiz_results (pdf_name, score, total, percentage, performance_message, difficulty, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO quiz_results (pdf_name, score, total, percentage, performance_message, difficulty, created_at, user_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (pdf_name, score, total, percentage, performance_message, difficulty, created_at)
+                    (pdf_name, score, total, percentage, performance_message, difficulty, created_at, user_id)
                 )
                 record_id = cursor.lastrowid
                 conn.commit()
@@ -749,7 +951,8 @@ def save_quiz_result():
             "percentage": percentage,
             "performance_message": performance_message,
             "difficulty": difficulty,
-            "created_at": created_at
+            "created_at": created_at,
+            "user_id": user_id
         }
         history = []
         if os.path.exists(JSON_PATH):
@@ -771,13 +974,27 @@ def save_quiz_result():
 @app.route('/quiz/history', methods=['GET'])
 @app.route('/api/quiz/history', methods=['GET'])
 def get_quiz_history():
-    """Retrieves all past quiz attempts from SQLite database."""
+    """Retrieves past quiz attempts from SQLite, scoped to the signed-in user.
+
+    A logged-in user only ever sees their own attempts; a guest sees rows with
+    no owner (user_id IS NULL), which is what existed before accounts.
+    """
     try:
+        current_user = get_current_user()
+
         def _fetch():
             conn = get_db_connection()
             try:
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM quiz_results ORDER BY id DESC")
+                if current_user:
+                    cursor.execute(
+                        "SELECT * FROM quiz_results WHERE user_id = ? ORDER BY id DESC",
+                        (current_user['id'],)
+                    )
+                else:
+                    cursor.execute(
+                        "SELECT * FROM quiz_results WHERE user_id IS NULL ORDER BY id DESC"
+                    )
                 return [dict(row) for row in cursor.fetchall()]
             finally:
                 conn.close()
@@ -793,18 +1010,31 @@ def get_quiz_history():
 @app.route('/quiz/reset', methods=['POST'])
 @app.route('/api/quiz/reset', methods=['POST'])
 def reset_quiz_data():
-    """Resets all quiz history and progress data so the user can start and record progress from scratch."""
+    """Resets the current user's quiz history so they can start fresh.
+
+    Guests reset the anonymous (user_id IS NULL) bucket; logging in never
+    deletes another user's data.
+    """
     try:
-        # 1. Clear SQLite table
+        current_user = get_current_user()
+
+        # 1. Clear SQLite table (scoped to the current user / guest bucket)
         def _clear():
             conn = get_db_connection()
             try:
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM quiz_results")
-                try:
-                    cursor.execute("DELETE FROM sqlite_sequence WHERE name='quiz_results'")
-                except Exception:
-                    pass
+                if current_user:
+                    cursor.execute(
+                        "DELETE FROM quiz_results WHERE user_id = ?",
+                        (current_user['id'],)
+                    )
+                    # Only the anonymous bucket may reset the shared id counter.
+                else:
+                    cursor.execute("DELETE FROM quiz_results WHERE user_id IS NULL")
+                    try:
+                        cursor.execute("DELETE FROM sqlite_sequence WHERE name='quiz_results'")
+                    except Exception:
+                        pass
                 conn.commit()
             finally:
                 conn.close()
@@ -829,13 +1059,24 @@ def reset_quiz_data():
 @app.route('/quiz/progress', methods=['GET'])
 @app.route('/api/quiz/progress', methods=['GET'])
 def get_quiz_stats():
-    """Computes aggregated quiz stats, average score, accuracy, and returns full history in one atomic query."""
+    """Computes aggregated quiz stats + full history, scoped to the signed-in
+    user (guest bucket = rows without an owner)."""
     try:
+        current_user = get_current_user()
+
         def _fetch():
             conn = get_db_connection()
             try:
                 cursor = conn.cursor()
-                cursor.execute("SELECT * FROM quiz_results ORDER BY id DESC")
+                if current_user:
+                    cursor.execute(
+                        "SELECT * FROM quiz_results WHERE user_id = ? ORDER BY id DESC",
+                        (current_user['id'],)
+                    )
+                else:
+                    cursor.execute(
+                        "SELECT * FROM quiz_results WHERE user_id IS NULL ORDER BY id DESC"
+                    )
                 return [dict(row) for row in cursor.fetchall()]
             finally:
                 conn.close()

@@ -20,7 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"></script>
     <!-- Chart.js for score trend analytics and progression tracking (pinned + SRI) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v13">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v14">
 
     <!-- PWA: web app manifest, theme colors, and installable app icons -->
     <link rel="manifest" href="/static/manifest.webmanifest">
@@ -54,6 +54,69 @@
         <div class="particle-drift-noise"></div>
     </div>
 
+    <!-- ================================================================ -->
+    <!-- LOGIN / SIGN-IN SCREEN — shown first, hidden once signed in      -->
+    <!-- ================================================================ -->
+    <section id="loginSection" class="login-section{{ ' hidden' if current_user else '' }}" aria-label="Sign in to StudySnap">
+        <div class="login-aurora" aria-hidden="true">
+            <div class="login-orb login-orb-1"></div>
+            <div class="login-orb login-orb-2"></div>
+            <div class="login-orb login-orb-3"></div>
+        </div>
+
+        <div class="login-shell">
+            <div class="login-brand">
+                <div class="login-logo" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="url(#loginLogoGradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <defs>
+                            <linearGradient id="loginLogoGradient" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#a78bfa"></stop>
+                                <stop offset="100%" stop-color="#f472b6"></stop>
+                            </linearGradient>
+                        </defs>
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"></path>
+                        <path d="M6 6h10"></path>
+                        <path d="M6 10h10"></path>
+                        <path d="m9 16 2 2 4-4"></path>
+                    </svg>
+                </div>
+                <h1 class="login-wordmark">Study<span class="gradient-text">Snap</span></h1>
+            </div>
+            <p class="login-tagline">Sign in to keep your streak alive ✨</p>
+
+            <div class="login-card">
+                <form id="authForm" class="login-form" novalidate>
+                    <div class="login-field" id="authNameField" hidden>
+                        <span class="login-field-icon" aria-hidden="true">👤</span>
+                        <input id="authName" name="name" type="text" placeholder="Display name (optional)" maxlength="40" autocomplete="name">
+                    </div>
+                    <div class="login-field">
+                        <span class="login-field-icon" aria-hidden="true">✉️</span>
+                        <input id="authEmail" name="email" type="email" inputmode="email" placeholder="Email address" maxlength="254" autocomplete="email" required>
+                    </div>
+                    <div class="login-field">
+                        <span class="login-field-icon" aria-hidden="true">🔒</span>
+                        <input id="authPassword" name="password" type="password" placeholder="Password" maxlength="128" autocomplete="current-password" required>
+                        <button type="button" id="authEyeBtn" class="login-eye-btn" aria-label="Show password" title="Show password">👁️</button>
+                    </div>
+                    <div id="authError" class="login-error" role="alert" aria-live="assertive"></div>
+                    <button type="submit" id="authSubmitBtn" class="login-submit-btn">
+                        <span class="login-submit-label">Sign In</span>
+                    </button>
+                </form>
+
+                <div class="login-divider" aria-hidden="true"><span>or</span></div>
+
+                <button type="button" id="guestContinueBtn" class="login-guest-btn">Continue as Guest</button>
+            </div>
+
+            <p class="login-switch-line">
+                <span id="loginSwitchText">New here?</span>
+                <button type="button" id="switchAuthModeBtn" class="login-switch-btn">Create an account</button>
+            </p>
+        </div>
+    </section>
+
     <div class="app-container">
         <!-- Header -->
         <header class="header">
@@ -83,6 +146,18 @@
                         <span class="btn-icon">⬇️</span>
                         <span class="btn-text">Install App</span>
                     </button>
+                    <!-- Account: signed-in users get an avatar chip with a logout menu; guests see nothing -->
+                    <div class="user-menu-wrapper{{ '' if current_user else ' hidden' }}" id="userMenuWrapper">
+                        <button type="button" id="userChip" class="user-chip" aria-haspopup="menu" aria-expanded="false" title="Account">
+                            <span class="user-avatar" id="userAvatar">{{ current_user['initial'] if current_user else '?' }}</span>
+                            <span class="user-name" id="userName">{{ current_user['name'] if current_user else 'Account' }}</span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown" role="menu">
+                            <div class="user-dropdown-label">Signed in as</div>
+                            <div class="user-dropdown-email" id="userEmail">{{ current_user['email'] if current_user else '' }}</div>
+                            <button type="button" id="logoutBtn" class="user-dropdown-logout" role="menuitem">⎋ Log Out</button>
+                        </div>
+                    </div>
                     <!-- From Uiverse.io by Galahhad - Day / Night Theme Switch -->
                     <div class="theme-switch-wrapper">
                         <label class="theme-switch" id="themeSwitchLabel" title="Toggle Light or Dark theme" aria-label="Toggle Light or Dark theme">
@@ -1285,8 +1360,8 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v13"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v14"></script>
     <!-- PWA: service worker registration + native install prompt -->
-    <script src="{{ url_for('static', filename='pwa.js') }}?v=cosmic-purple-v13"></script>
+    <script src="{{ url_for('static', filename='pwa.js') }}?v=cosmic-purple-v14"></script>
 </body>
 </html>
