@@ -1100,7 +1100,7 @@ def get_quiz_stats():
                     "overall_accuracy": 0.0,
                     "level": "Beginner",
                     "level_title": "Beginner",
-                    "level_emoji": "🌱",
+                    "level_emoji": "sprout",
                     "tier_label": "Tier 1: Novice Explorer",
                     "level_desc": "Starting your knowledge journey and building foundation",
                     "next_level": "Learner",
@@ -1123,7 +1123,7 @@ def get_quiz_stats():
         # Beginner (<40%), Learner (40-60%), Scholar (60-80%), Master (80%+)
         if avg_pct < 40.0:
             level = "Beginner"
-            level_emoji = "🌱"
+            level_emoji = "sprout"
             tier_label = "Tier 1: Novice Explorer"
             level_desc = "Starting your knowledge journey and building foundation"
             next_level = "Learner"
@@ -1131,7 +1131,7 @@ def get_quiz_stats():
             points_needed = round(max(0.0, 40.0 - avg_pct), 1)
         elif avg_pct < 60.0:
             level = "Learner"
-            level_emoji = "⚡"
+            level_emoji = "zap"
             tier_label = "Tier 2: Knowledge Builder"
             level_desc = "Building core foundations and solid understanding"
             next_level = "Scholar"
@@ -1139,7 +1139,7 @@ def get_quiz_stats():
             points_needed = round(max(0.0, 60.0 - avg_pct), 1)
         elif avg_pct < 80.0:
             level = "Scholar"
-            level_emoji = "🔮"
+            level_emoji = "gem"
             tier_label = "Tier 3: Academic Adept"
             level_desc = "Mastering complex concepts and deep technical comprehension"
             next_level = "Master"
@@ -1147,7 +1147,7 @@ def get_quiz_stats():
             points_needed = round(max(0.0, 80.0 - avg_pct), 1)
         elif avg_pct < 100.0:
             level = "Master"
-            level_emoji = "👑"
+            level_emoji = "crown"
             tier_label = "Tier 4: Apex Grandmaster"
             level_desc = "Exceptional retention and complete document mastery"
             next_level = "Impossible"
@@ -1155,7 +1155,7 @@ def get_quiz_stats():
             points_needed = round(max(0.0, 100.0 - avg_pct), 1)
         else:
             level = "Impossible"
-            level_emoji = "♾️"
+            level_emoji = "infinity"
             tier_label = "Tier 5: Transcendent Godlike"
             level_desc = "Transcendental Perfection! Flawless 100% accuracy — truly impossible mastery achieved!"
             next_level = "Max Level"

@@ -380,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
         authEyeBtn.addEventListener('click', () => {
             const showing = authPasswordInput.type === 'text';
             authPasswordInput.type = showing ? 'password' : 'text';
-            authEyeBtn.textContent = showing ? '👁️' : '🙈';
+            Icon.set(authEyeBtn, showing ? 'eye' : 'eye-off', 17);
             authEyeBtn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
             authEyeBtn.title = showing ? 'Show password' : 'Hide password';
         });
@@ -740,11 +740,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         activeModeBadge.className = `mode-badge ${mode}`;
         if (mode === 'easy') {
-            activeModeBadge.textContent = '🌱 Easy Mode (Beginner)';
+            Icon.setWithText(activeModeBadge, 'sprout', 'Easy Mode (Beginner)', 15);
         } else if (mode === 'deep') {
-            activeModeBadge.textContent = '🔬 Deep Mode (Technical)';
+            Icon.setWithText(activeModeBadge, 'microscope', 'Deep Mode (Technical)', 15);
         } else if (mode === 'fun') {
-            activeModeBadge.textContent = '🚀 Fun Mode (Analogies & Emojis)';
+            Icon.setWithText(activeModeBadge, 'rocket', 'Fun Mode (Analogies)', 15);
         }
 
         summaryContent.classList.add('switching');
@@ -904,11 +904,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 500);
     }
 
+    // Helper: Lucide icon name for a difficulty level
+    function diffIconName(diff) {
+        if (diff === 'easy') return 'sprout';
+        if (diff === 'hard') return 'flame';
+        return 'zap';
+    }
+
     // Helper: Format Difficulty Badge Display
     function formatDiffBadge(diff) {
-        if (diff === 'easy') return '🌱 Easy';
-        if (diff === 'hard') return '🔥 Hard';
-        return '⚡ Medium';
+        if (diff === 'easy') return 'Easy';
+        if (diff === 'hard') return 'Hard';
+        return 'Medium';
     }
 
     // Helper: Update Dynamic Button Label in Customization Modal
@@ -1037,7 +1044,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         quizDocName.textContent = selectedFile ? selectedFile.name : 'document.pdf';
         if (quizDifficultyBadge) {
-            quizDifficultyBadge.textContent = formatDiffBadge(activeQuizDifficulty);
+            Icon.setWithText(quizDifficultyBadge, diffIconName(activeQuizDifficulty), formatDiffBadge(activeQuizDifficulty), 13);
             quizDifficultyBadge.className = `quiz-badge difficulty ${activeQuizDifficulty}`;
         }
         quizCompletedCard.classList.add('hidden');
@@ -1205,13 +1212,13 @@ document.addEventListener('DOMContentLoaded', () => {
             quizScoreCounter.textContent = `Score: ${quizScore} / ${quizQuestions.length}`;
             selectedBtn.classList.add('correct');
             const icon = selectedBtn.querySelector('.quiz-option-icon');
-            if (icon) icon.textContent = '✓';
+            if (icon) Icon.set(icon, 'check', 16);
 
             // Confetti animation
             triggerConfetti(false);
 
             // Explanation box (success)
-            explanationIcon.textContent = '🎉';
+            Icon.set(explanationIcon, 'party-popper', 20);
             explanationTitle.textContent = 'Correct Answer!';
             quizExplanationText.textContent = q.explanation || 'Great job! You identified the correct concept directly from the document.';
             quizExplanationBox.className = 'quiz-explanation-box correct';
@@ -1222,7 +1229,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Wrong answer
             selectedBtn.classList.add('wrong');
             const icon = selectedBtn.querySelector('.quiz-option-icon');
-            if (icon) icon.textContent = '✗';
+            if (icon) Icon.set(icon, 'x', 16);
 
             // Subtle shake animation
             triggerShake();
@@ -1232,12 +1239,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (normalizeAnswerText(btn.dataset.option) === cleanCorrect) {
                     btn.classList.add('correct-revealed');
                     const cIcon = btn.querySelector('.quiz-option-icon');
-                    if (cIcon) cIcon.textContent = '✓';
+                    if (cIcon) Icon.set(cIcon, 'check', 16);
                 }
             });
 
             // Explanation box (failure)
-            explanationIcon.textContent = '💡';
+            Icon.set(explanationIcon, 'lightbulb', 20);
             explanationTitle.textContent = 'Incorrect';
             setExplanationContent(null, q.correct_answer, q.explanation || '');
             quizExplanationBox.className = 'quiz-explanation-box wrong';
@@ -1247,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Show Next Button
         const isLastQuestion = currentQuestionIndex === quizQuestions.length - 1;
-        nextBtnText.textContent = isLastQuestion ? 'Finish & See Final Score 🏆' : 'Next Question';
+        nextBtnText.textContent = isLastQuestion ? 'Finish & See Final Score' : 'Next Question';
         nextQuestionBtn.classList.remove('hidden');
     }
 
@@ -1271,11 +1278,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (normalizeAnswerText(btn.dataset.option) === cleanCorrect) {
                 btn.classList.add('correct-revealed');
                 const cIcon = btn.querySelector('.quiz-option-icon');
-                if (cIcon) cIcon.textContent = '✓';
+                if (cIcon) Icon.set(cIcon, 'check', 16);
             }
         });
 
-        explanationIcon.textContent = '⏰';
+        Icon.set(explanationIcon, 'clock', 20);
         explanationTitle.textContent = "Time's Up!";
         setExplanationContent('You ran out of time for this question.', q.correct_answer, q.explanation || '');
         quizExplanationBox.className = 'quiz-explanation-box wrong';
@@ -1283,7 +1290,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderMath(quizExplanationBox);
 
         const isLastQuestion = currentQuestionIndex === quizQuestions.length - 1;
-        nextBtnText.textContent = isLastQuestion ? 'Finish & See Final Score 🏆' : 'Next Question';
+        nextBtnText.textContent = isLastQuestion ? 'Finish & See Final Score' : 'Next Question';
         nextQuestionBtn.classList.remove('hidden');
     }
 
@@ -1303,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         finalScoreVal.textContent = quizScore;
         if (finalTotalVal) finalTotalVal.textContent = totalQ;
         if (statTotalQuestions) statTotalQuestions.textContent = `${totalQ}`;
-        if (statDifficulty) statDifficulty.textContent = activeQuizDifficulty.toUpperCase();
+        if (statDifficulty) Icon.setWithText(statDifficulty, diffIconName(activeQuizDifficulty), activeQuizDifficulty.toUpperCase(), 13);
 
         const accuracyPct = Math.round((quizScore / totalQ) * 100);
         statAccuracy.textContent = `${accuracyPct}%`;
@@ -1315,21 +1322,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const capDiff = activeQuizDifficulty.charAt(0).toUpperCase() + activeQuizDifficulty.slice(1);
 
         if (accuracyPct === 100) {
-            title = '🏆 Absolute Perfection!';
+            title = 'Absolute Perfection!';
             message = `Flawless score! You achieved ${quizScore}/${totalQ} on ${capDiff} mode! You have total mastery of this document's content down to every detail!`;
             triggerConfetti(true);
         } else if (accuracyPct >= 80) {
-            title = '🌟 Outstanding Scholar!';
+            title = 'Outstanding Scholar!';
             message = `Phenomenal work! You scored ${quizScore}/${totalQ} on ${capDiff} mode. You grasp the core concepts, arguments, and takeaways with ease!`;
             triggerConfetti(true);
         } else if (accuracyPct >= 60) {
-            title = '👏 Solid Understanding!';
+            title = 'Solid Understanding!';
             message = `Great effort! You scored ${quizScore}/${totalQ} on ${capDiff} mode. You've got the primary foundations down, with just a couple of nuanced areas to polish.`;
         } else if (accuracyPct >= 40) {
-            title = '📚 Fair Effort!';
+            title = 'Fair Effort!';
             message = `A decent try! You scored ${quizScore}/${totalQ} on ${capDiff} mode. A quick re-read of the Deep Mode summary will help lock in the trickier questions.`;
         } else {
-            title = '🌱 Keep Going!';
+            title = 'Keep Going!';
             message = `Every quiz is a step forward! You scored ${quizScore}/${totalQ}. Review the summary and give it another shot — you've got this!`;
         }
 
@@ -1366,7 +1373,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const saveStatusIndicator = document.getElementById('saveStatusIndicator');
             if (saveStatusIndicator) {
                 saveStatusIndicator.classList.add('save-failed');
-                saveStatusIndicator.innerHTML = '<span class="save-icon">⚠️</span> Could not save this result — please check your connection and retake the quiz to record it.';
+                saveStatusIndicator.innerHTML = Icon.svg('alert-triangle', 15) + ' Could not save this result — please check your connection and retake the quiz to record it.';
+            saveStatusIndicator.classList.add('save-failed');
             }
         }
     }
@@ -1778,8 +1786,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cache originals as text (never replace innerHTML: the history empty
         // state contains the Start Quiz button with a live event listener).
         if (iconEl) {
-            if (panel.dataset.origIcon === undefined) panel.dataset.origIcon = iconEl.textContent;
-            if (iconText) iconEl.textContent = iconText;
+            if (panel.dataset.origIcon === undefined) panel.dataset.origIcon = iconEl.getAttribute('data-icon') || 'folder-open';
+            if (iconText) Icon.set(iconEl, iconText);
         }
         if (headEl) {
             if (panel.dataset.origHead === undefined) panel.dataset.origHead = headEl.textContent;
@@ -1796,7 +1804,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const iconEl = panel.querySelector('.history-empty-icon, .empty-icon');
         const headEl = panel.querySelector('h4');
         const bodyEl = panel.querySelector('p');
-        if (iconEl && panel.dataset.origIcon !== undefined) iconEl.textContent = panel.dataset.origIcon;
+        if (iconEl && panel.dataset.origIcon !== undefined) Icon.set(iconEl, panel.dataset.origIcon);
         if (headEl && panel.dataset.origHead !== undefined) headEl.textContent = panel.dataset.origHead;
         if (bodyEl && panel.dataset.origBody !== undefined) bodyEl.textContent = panel.dataset.origBody;
         delete panel.dataset.origIcon;
@@ -1814,7 +1822,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (historyEmptyState) {
                 setPanelMessage(
                     historyEmptyState,
-                    loadError ? '⚠️' : null,
+                    loadError ? 'alert-triangle' : null,
                     loadError ? "Couldn't Load History" : null,
                     loadError ? `History failed to load (${loadError}). Reopen My Progress to retry — your saved quizzes are not lost.` : null
                 );
@@ -1836,7 +1844,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!item) return;
             const tr = document.createElement('tr');
             const diff = String(item.difficulty || 'medium').toLowerCase();
-            const diffIcon = diff === 'easy' ? '🌱' : diff === 'hard' ? '🔥' : '⚡';
+            const diffIcon = diffIconName(diff);
             const diffLabel = diff.charAt(0).toUpperCase() + diff.slice(1);
             const scorePct = Math.round(parseFloat(item.percentage) || 0);
             const scoreClass = getScoreBadgeClass(scorePct);
@@ -1854,7 +1862,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const tdDoc = makeEl('td', 'td-doc');
             const docWrap = makeEl('div', 'history-doc-wrap');
             docWrap.setAttribute('title', docName);
-            docWrap.appendChild(makeEl('span', 'history-doc-icon', '📄'));
+            const docIcon = makeEl('span', 'history-doc-icon');
+            Icon.set(docIcon, 'file-text', 14);
+            docWrap.appendChild(docIcon);
             docWrap.appendChild(makeEl('span', 'history-doc-text', docName));
             tdDoc.appendChild(docWrap);
             tr.appendChild(tdDoc);
@@ -1864,7 +1874,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tr.appendChild(tdQuestions);
 
             const tdDifficulty = makeEl('td', 'td-difficulty');
-            tdDifficulty.appendChild(makeEl('span', `badge-diff ${diff}`, `${diffIcon} ${diffLabel}`));
+            const diffBadge = makeEl('span', `badge-diff ${diff}`);
+            Icon.setWithText(diffBadge, diffIcon, diffLabel, 13);
+            tdDifficulty.appendChild(diffBadge);
             tr.appendChild(tdDifficulty);
 
             const tdScore = makeEl('td', 'td-score');
@@ -1889,44 +1901,44 @@ document.addEventListener('DOMContentLoaded', () => {
         // Level badge system:
         // Beginner (<40%), Learner (40-60%), Scholar (60-80%), Master (80%+)
         let levelTitle = 'Beginner';
-        let levelEmoji = '🌱';
+        let levelIcon = 'sprout';
         let tierPillText = 'TIER 1';
         let tierDesc = 'Starting your knowledge journey and building core foundational concepts.';
         let nextRankMsg = '';
 
         if (avg < 40) {
             levelTitle = 'Beginner';
-            levelEmoji = '🌱';
+            levelIcon = 'sprout';
             tierPillText = 'TIER 1';
             tierDesc = 'Starting your knowledge journey and building core foundational concepts.';
-            nextRankMsg = `${(40 - avg).toFixed(1)}% to unlock Learner ⚡`;
+            nextRankMsg = `${(40 - avg).toFixed(1)}% to unlock Learner`;
         } else if (avg < 60) {
             levelTitle = 'Learner';
-            levelEmoji = '⚡';
+            levelIcon = 'zap';
             tierPillText = 'TIER 2';
             tierDesc = 'Building strong conceptual understanding and practical comprehension.';
-            nextRankMsg = `${(60 - avg).toFixed(1)}% to unlock Scholar 🔮`;
+            nextRankMsg = `${(60 - avg).toFixed(1)}% to unlock Scholar`;
         } else if (avg < 80) {
             levelTitle = 'Scholar';
-            levelEmoji = '🔮';
+            levelIcon = 'gem';
             tierPillText = 'TIER 3';
             tierDesc = 'Mastering complex technical nuances and analytical reasoning.';
-            nextRankMsg = `${(80 - avg).toFixed(1)}% to unlock Master 👑`;
+            nextRankMsg = `${(80 - avg).toFixed(1)}% to unlock Master`;
         } else if (avg < 100) {
             levelTitle = 'Master';
-            levelEmoji = '👑';
+            levelIcon = 'crown';
             tierPillText = 'TIER 4';
             tierDesc = 'Apex Grandmaster! Exceptional retention and complete document mastery.';
-            nextRankMsg = `${(100 - avg).toFixed(1)}% to unlock Impossible ♾️`;
+            nextRankMsg = `${(100 - avg).toFixed(1)}% to unlock Impossible`;
         } else {
             levelTitle = 'Impossible';
-            levelEmoji = '♾️';
+            levelIcon = 'infinity';
             tierPillText = 'TIER 5';
             tierDesc = 'Transcendental Perfection! Flawless 100% accuracy — truly impossible mastery achieved!';
-            nextRankMsg = 'MAX RANK UNLOCKED · Flawless Impossible Godlike! ♾️';
+            nextRankMsg = 'MAX RANK UNLOCKED · Flawless Impossible Godlike!';
         }
 
-        if (rankBadgeEmoji) rankBadgeEmoji.textContent = levelEmoji;
+        if (rankBadgeEmoji) Icon.set(rankBadgeEmoji, levelIcon, 32);
         if (rankTitle) rankTitle.textContent = levelTitle;
         if (rankTierPill) rankTierPill.textContent = tierPillText;
         if (rankDesc) rankDesc.textContent = tierDesc;
@@ -1996,7 +2008,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (chartEmptyState) {
                 setPanelMessage(
                     chartEmptyState,
-                    '⚠️',
+                    'alert-triangle',
                     null,
                     'Chart library failed to load (check connection or ad-blocker). Your stats and history below are unaffected — reload to retry.'
                 );
@@ -2016,7 +2028,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (loadError) {
                     setPanelMessage(
                         chartEmptyState,
-                        '⚠️',
+                        'alert-triangle',
                         null,
                         `Trend data failed to load (${loadError}). Reopen My Progress to retry — your saved quizzes are not lost.`
                     );
@@ -2260,7 +2272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Failed to render score trend chart:', err);
             if (chartEmptyState) {
-                setPanelMessage(chartEmptyState, '⚠️', null, 'Chart failed to render. Reopen My Progress to retry.');
+                setPanelMessage(chartEmptyState, 'alert-triangle', null, 'Chart failed to render. Reopen My Progress to retry.');
                 chartEmptyState.classList.remove('hidden');
             }
             if (scoreTrendChartCanvas) scoreTrendChartCanvas.classList.add('hidden');
@@ -2421,7 +2433,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const origContent = confirmRestartBtn.innerHTML;
         try {
             confirmRestartBtn.disabled = true;
-            confirmRestartBtn.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">Restarting...</span>';
+            confirmRestartBtn.innerHTML = Icon.svg('hourglass', 16) + '<span class="btn-text">Restarting...</span>';
 
             const res = await fetch('/quiz/reset', {
                 method: 'POST',
@@ -2852,8 +2864,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isToday) cellClasses.push('is-today');
 
             const tooltip = isWorked
-                ? `🔥 Active Study Day (${dateKey})`
-                : (isToday ? `⭐ Today (${dateKey})` : `⚪ Rest Day (${dateKey})`);
+                ? `Active Study Day (${dateKey})`
+                : (isToday ? `Today (${dateKey})` : `Rest Day (${dateKey})`);
 
             html += `
                 <div class="${cellClasses.join(' ')}" title="${tooltip}" data-date="${dateKey}">
@@ -2892,9 +2904,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (streakModalHeroStatus) {
             if (studySet.has(todayStr)) {
-                streakModalHeroStatus.textContent = "🔥 You studied today! Streak is safely preserved.";
+                Icon.setWithText(streakModalHeroStatus, "flame", "You studied today! Streak is safely preserved.", 16);
             } else {
-                streakModalHeroStatus.textContent = "⚡ Study or take a quiz today to keep your streak glowing!";
+                Icon.setWithText(streakModalHeroStatus, "zap", "Study or take a quiz today to keep your streak glowing!", 16);
             }
         }
     }
@@ -2961,7 +2973,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 unlockedCount++;
                 item.el.classList.add('unlocked');
                 if (statusEl) {
-                    statusEl.textContent = 'Unlocked 🏆';
+                    statusEl.textContent = 'Unlocked';
                     statusEl.className = 'medal-status unlocked';
                 }
             } else {
@@ -2990,17 +3002,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!summariesData) {
             return [
                 {
-                    category: "ACTIVE RECALL 🧠",
+                    category: "ACTIVE RECALL",
+                    icon: "brain",
                     question: "What is Active Recall and why is it effective?",
                     answer: "Active recall is the practice of stimulating memory retrieval during learning. Testing yourself boosts long-term retention by up to 200% compared to passive rereading."
                 },
                 {
-                    category: "STUDYSNAP AI ⚡",
+                    category: "STUDYSNAP AI",
+                    icon: "zap",
                     question: "How does StudySnap synthesize documents?",
                     answer: "StudySnap analyzes complex PDFs using advanced AI to generate Easy, Deep, and Fun explanations, customizable quizzes, and automated exam cram cheat sheets."
                 },
                 {
-                    category: "SPACED REPETITION 🔥",
+                    category: "SPACED REPETITION",
+                    icon: "flame",
                     question: "How does the daily study streak help learning?",
                     answer: "Reviewing documents and completing quizzes on consecutive days locks in memory curves, keeps your streak alive, and levels up your gamer achievement trophies!"
                 }
@@ -3034,7 +3049,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const explanation = termMatch[2].replace(/[*_]/g, '').trim();
                 if (term.length >= 2 && explanation.length >= 10) {
                     cards.push({
-                        category: "DEFINITION 🔑",
+                        category: "DEFINITION",
+                icon: "key",
                         question: `What is ${term}?`,
                         answer: explanation
                     });
@@ -3048,7 +3064,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const ans = currentHeadingBody.join(' ').replace(/[*_]/g, '').trim();
                     if (ans.length >= 20 && ans.length <= 400) {
                         cards.push({
-                            category: "KEY CONCEPT 💡",
+                            category: "KEY CONCEPT",
+                icon: "lightbulb",
                             question: `Explain: ${currentHeading}`,
                             answer: ans
                         });
@@ -3070,7 +3087,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const ans = currentHeadingBody.join(' ').replace(/[*_]/g, '').trim();
             if (ans.length >= 20 && ans.length <= 400) {
                 cards.push({
-                    category: "KEY CONCEPT 💡",
+                    category: "KEY CONCEPT",
+                    icon: "lightbulb",
                     question: `Explain: ${currentHeading}`,
                     answer: ans
                 });
@@ -3084,7 +3102,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const formula = (match[1] || match[2] || '').trim();
             if (formula.length >= 3 && formula.length <= 80 && !cards.some(c => c.answer.includes(formula))) {
                 cards.push({
-                    category: "FORMULA ⚡",
+                    category: "FORMULA",
+                icon: "zap",
                     question: "Identify and formulate this equation:",
                     answer: `$$\n${formula}\n$$`
                 });
@@ -3116,7 +3135,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         const aPart = clean.slice(firstPeriod + 2);
                         if (aPart.length > 20) {
                             uniqueCards.push({
-                                category: "TAKEAWAY 🎯",
+                                category: "TAKEAWAY",
+                icon: "target",
                                 question: `Core Takeaway: ${qPart}`,
                                 answer: aPart
                             });
@@ -3129,7 +3149,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return uniqueCards.length > 0 ? uniqueCards : [
             {
-                category: "KEY CONCEPT 💡",
+                category: "KEY CONCEPT",
+                icon: "lightbulb",
                 question: "Core Document Overview",
                 answer: summariesData.easy ? summariesData.easy.slice(0, 240) + '...' : "Review the main summary sections for key ideas."
             }
@@ -3157,7 +3178,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         if (cardCategoryBadge) {
-            cardCategoryBadge.textContent = card.category || 'KEY CONCEPT';
+            Icon.setWithText(cardCategoryBadge, card.icon || 'lightbulb', card.category || 'KEY CONCEPT', 12);
         }
 
         if (flashcardProgress) {
@@ -3329,7 +3350,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (cheatSheetTraps) {
             if (traps.length > 0) {
-                cheatSheetTraps.innerHTML = '<ul class="cheat-list">' + traps.map(tr => `<li>⚠️ ${escapeHtml(tr)}</li>`).join('') + '</ul>';
+                cheatSheetTraps.innerHTML = '<ul class="cheat-list">' + traps.map(tr => `<li class="cheat-trap-item"><span class="cheat-trap-bullet">${Icon.svg('alert-triangle', 13)}</span><span>${escapeHtml(tr)}</span></li>`).join('') + '</ul>';
             } else {
                 cheatSheetTraps.innerHTML = '<ul class="cheat-list"><li>Pay close attention to boundary conditions and exceptions.</li><li>Avoid confusing related terminology and check assumptions.</li></ul>';
             }
@@ -3651,7 +3672,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data && data.api_key_configured === false) {
                     const platformName = data.platform === 'vercel' ? 'Vercel' : data.platform === 'render' ? 'Render' : 'hosting environment';
                     showError(
-                        `⚠️ Notice: GEMINI_API_KEY is not detected. Please add GEMINI_API_KEY in your ${platformName} dashboard under Environment variables and rebuild.`
+                        `Notice: GEMINI_API_KEY is not detected. Please add GEMINI_API_KEY in your ${platformName} dashboard under Environment variables and rebuild.`
                     );
                 }
             }

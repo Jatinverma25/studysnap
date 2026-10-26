@@ -198,7 +198,7 @@ class TestQuizRoutes(unittest.TestCase):
         stats = data["stats"]
         self.assertEqual(stats["average_score"], 100.0)
         self.assertEqual(stats["level"], "Impossible")
-        self.assertEqual(stats["level_emoji"], "♾️")
+        self.assertEqual(stats["level_emoji"], "infinity")
         self.assertEqual(stats["tier_label"], "Tier 5: Transcendent Godlike")
         self.assertEqual(stats["next_level"], "Max Level")
         self.assertEqual(stats["progress_to_next"], 100.0)

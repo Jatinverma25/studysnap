@@ -8292,6 +8292,165 @@ body.progress-page-active .progress-section {
 [data-theme="light"] .login-guest-btn { background: rgba(255, 255, 255, 0.7); }
 [data-theme="light"] .user-dropdown { background: rgba(255, 255, 255, 0.97); }
 
+/* ================================================================
+   ICON SYSTEM — Lucide outline icons (injected by static/icons.js)
+   Icons inherit font-size from their container (1em) and text color
+   via currentColor, so they work in dark + light themes untouched.
+   ================================================================ */
+[data-icon] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    line-height: 0;
+}
+
+.icon-svg {
+    display: block;
+    width: 1em;
+    height: 1em;
+}
+
+/* Icons inside running text sit nicely on the baseline */
+p .icon-svg,
+.login-tagline .icon-svg,
+.mobile-touch-hint .icon-svg,
+.desktop-hotkeys .icon-svg {
+    display: inline-block;
+    vertical-align: -0.16em;
+}
+
+/* Flame tint keeps the streak badge warm (matches flamePulse glow) */
+.streak-flame-icon .icon-svg,
+.streak-fire-icon-badge .icon-svg,
+.hero-flame-icon .icon-svg {
+    color: #fb923c;
+}
+
+/* ================================================================
+   MOBILE FIRST IMPRESSIONS — phone tune-up (<=640px)                 */
+/* Fixes the dashboard being squeezed to 242px, sub-44px touch        */
+/* targets in the header, and single-column grids that turn the       */
+/* progress page into a 3757px scroll.                               */
+/* ================================================================ */
+@media (max-width: 640px) {
+    /* --- Full-width app shell: kill the oversized side padding -------- */
+    .app-container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    /* The progress-page rule (body.progress-page-active .main-card) has higher
+       specificity than the generic mobile rule above, so it always won on
+       phones and squeezed the whole dashboard to a 242px column. Same
+       specificity here, later in the file => this wins. */
+    body.progress-page-active .app-container {
+        width: 100%;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+    body.progress-page-active .main-card {
+        padding: 18px 12px;
+    }
+
+    /* --- Header: real touch targets (Apple/Google minimum is 44px) ---- */
+    .header {
+        gap: 10px;
+    }
+    .header-top {
+        gap: 10px;
+    }
+    .header-right-actions {
+        gap: 8px;
+    }
+    .btn-progress-nav {
+        min-height: 44px;
+        padding: 9px 14px;
+    }
+    .streak-badge-pill {
+        min-height: 44px;
+    }
+    .theme-switch-wrapper {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    /* Scale the Uiverse toggle up slightly so it matches the 44px row */
+    .theme-switch {
+        --toggle-size: 13.5px;
+    }
+
+    /* --- Home drop zone: less empty air on small screens -------------- */
+    .drop-zone {
+        padding: 36px 16px;
+    }
+
+    /* --- Progress page: compact rank banner --------------------------- */
+    .gamer-rank-banner {
+        padding: 16px;
+        gap: 14px;
+    }
+    .rank-badge-glow-wrap {
+        gap: 12px;
+    }
+    .rank-title {
+        font-size: 1.25rem;
+    }
+    .rank-progression-box {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    /* --- Progress topbar: let the back button + title wrap cleanly ---- */
+    .progress-topbar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    /* --- Stat cards: 2 columns instead of one long stack -------------- */
+    /* minmax(0,1fr): plain 1fr tracks cannot shrink below each card's
+       min-content, which forces the whole page (and the mobile viewport)
+       wider than the screen. */
+    .stats-overview-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .stat-overview-card {
+        padding: 14px 12px;
+        gap: 10px;
+    }
+
+    /* --- Achievements: 2 columns so the card is half as tall ---------- */
+    .achievements-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    .achievement-medal-item {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    /* --- Quiz history table: less horizontal scrolling (570 vs 780) --- */
+    .history-table {
+        min-width: 570px;
+    }
+}
+
+/* Extra-small phones (<=400px): go even tighter so nothing edge-touches */
+@media (max-width: 400px) {
+    body.progress-page-active .main-card {
+        padding: 14px 8px;
+    }
+    .header-right-actions {
+        gap: 6px;
+    }
+    .btn-progress-nav {
+        padding: 9px 11px;
+    }
+    .streak-text-val {
+        display: none; /* keep the flame only; the header is crowded */
+    }
+}
+
 
 
 

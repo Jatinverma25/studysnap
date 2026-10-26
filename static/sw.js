@@ -22,6 +22,7 @@ const SHELL_URLS = [
   '/',
   '/static/style.css',
   '/static/script.js',
+  '/static/icons.js',
   '/static/manifest.webmanifest',
   '/static/icons/icon-192.png',
 ];

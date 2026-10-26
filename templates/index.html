@@ -20,7 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"></script>
     <!-- Chart.js for score trend analytics and progression tracking (pinned + SRI) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v14">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v15">
 
     <!-- PWA: web app manifest, theme colors, and installable app icons -->
     <link rel="manifest" href="/static/manifest.webmanifest">
@@ -82,22 +82,22 @@
                 </div>
                 <h1 class="login-wordmark">Study<span class="gradient-text">Snap</span></h1>
             </div>
-            <p class="login-tagline">Sign in to keep your streak alive ✨</p>
+            <p class="login-tagline">Sign in to keep your streak alive</p>
 
             <div class="login-card">
                 <form id="authForm" class="login-form" novalidate>
                     <div class="login-field" id="authNameField" hidden>
-                        <span class="login-field-icon" aria-hidden="true">👤</span>
+                        <span class="login-field-icon" aria-hidden="true" data-icon="user"></span>
                         <input id="authName" name="name" type="text" placeholder="Display name (optional)" maxlength="40" autocomplete="name">
                     </div>
                     <div class="login-field">
-                        <span class="login-field-icon" aria-hidden="true">✉️</span>
+                        <span class="login-field-icon" aria-hidden="true" data-icon="mail"></span>
                         <input id="authEmail" name="email" type="email" inputmode="email" placeholder="Email address" maxlength="254" autocomplete="email" required>
                     </div>
                     <div class="login-field">
-                        <span class="login-field-icon" aria-hidden="true">🔒</span>
+                        <span class="login-field-icon" aria-hidden="true" data-icon="lock"></span>
                         <input id="authPassword" name="password" type="password" placeholder="Password" maxlength="128" autocomplete="current-password" required>
-                        <button type="button" id="authEyeBtn" class="login-eye-btn" aria-label="Show password" title="Show password">👁️</button>
+                        <button type="button" id="authEyeBtn" class="login-eye-btn" aria-label="Show password" title="Show password" data-icon="eye"></button>
                     </div>
                     <div id="authError" class="login-error" role="alert" aria-live="assertive"></div>
                     <button type="submit" id="authSubmitBtn" class="login-submit-btn">
@@ -134,16 +134,16 @@
                 </div>
                 <div class="header-right-actions">
                     <div class="streak-badge-pill" id="studyStreakBadge" title="Click to view your Study Streak Activity Calendar" role="button" tabindex="0">
-                        <span class="streak-flame-icon">🔥</span>
+                        <span class="streak-flame-icon" data-icon="flame"></span>
                         <span class="streak-text-val" id="streakCountVal">1 Day</span>
                     </div>
                     <button type="button" id="myProgressBtn" class="btn btn-progress-nav btn-tactile-3d" title="View your study statistics and quiz rank" aria-label="Open My Progress Dashboard">
-                        <span class="btn-icon">📊</span>
+                        <span class="btn-icon" data-icon="bar-chart-3"></span>
                         <span class="btn-text">My Progress</span>
                     </button>
                     <!-- PWA: install app button (shown only when the browser offers an install prompt) -->
                     <button type="button" id="installAppBtn" class="btn btn-progress-nav btn-tactile-3d" title="Install StudySnap as an app on this device" aria-label="Install StudySnap as an app" hidden>
-                        <span class="btn-icon">⬇️</span>
+                        <span class="btn-icon" data-icon="download"></span>
                         <span class="btn-text">Install App</span>
                     </button>
                     <!-- Account: signed-in users get an avatar chip with a logout menu; guests see nothing -->
@@ -155,7 +155,7 @@
                         <div class="user-dropdown" id="userDropdown" role="menu">
                             <div class="user-dropdown-label">Signed in as</div>
                             <div class="user-dropdown-email" id="userEmail">{{ current_user['email'] if current_user else '' }}</div>
-                            <button type="button" id="logoutBtn" class="user-dropdown-logout" role="menuitem">⎋ Log Out</button>
+                            <button type="button" id="logoutBtn" class="user-dropdown-logout" role="menuitem"><span data-icon="log-out" data-size="14"></span> Log Out</button>
                         </div>
                     </div>
                     <!-- From Uiverse.io by Galahhad - Day / Night Theme Switch -->
@@ -234,11 +234,11 @@
                         </svg>
                     </button>
                     <button type="button" id="uploadQuizBtn" class="btn btn-quiz btn-tactile-3d" title="Configure and take an interactive quiz directly">
-                        <span class="btn-icon">🎯</span>
+                        <span class="btn-icon" data-icon="target"></span>
                         <span class="btn-text">Quiz Mode</span>
                     </button>
                     <button type="button" id="wordHelpTriggerBtn" class="btn btn-word-help-nav btn-tactile-3d" title="Confused by a term? Get a quick explanation from your PDF">
-                        <span class="btn-icon">💡</span>
+                        <span class="btn-icon" data-icon="lightbulb"></span>
                         <span class="btn-text">Word Help</span>
                     </button>
                 </div>
@@ -287,19 +287,19 @@
 
                     <div class="results-header-actions">
                         <button type="button" id="resultsWordHelpBtn" class="btn btn-word-help-nav btn-tactile-3d" title="Confused by a term? Get a quick explanation from this PDF">
-                            <span class="btn-icon">💡</span>
+                            <span class="btn-icon" data-icon="lightbulb"></span>
                             <span class="btn-text">Word Help</span>
                         </button>
                         <button type="button" id="resultsFlashcardsBtn" class="btn btn-flashcards-nav btn-tactile-3d" title="Study with interactive 3D Flip Flashcards">
-                            <span class="btn-icon">🎴</span>
+                            <span class="btn-icon" data-icon="layers"></span>
                             <span class="btn-text">Flashcards</span>
                         </button>
                         <button type="button" id="resultsCheatSheetBtn" class="btn btn-cheatsheet-nav btn-tactile-3d" title="Generate printable 1-page Exam Cram Sheet">
-                            <span class="btn-icon">📋</span>
+                            <span class="btn-icon" data-icon="clipboard-list"></span>
                             <span class="btn-text">Cheat Sheet</span>
                         </button>
                         <button type="button" id="resultsQuizBtn" class="btn btn-quiz btn-tactile-3d">
-                            <span class="btn-icon">🎯</span>
+                            <span class="btn-icon" data-icon="target"></span>
                             <span class="btn-text">Quiz Mode</span>
                         </button>
                         <button type="button" id="newUploadBtn" class="btn btn-secondary">
@@ -317,17 +317,17 @@
                 <div class="mode-tabs-wrapper">
                     <div class="mode-tabs" role="tablist">
                         <button type="button" class="mode-btn active" data-mode="easy" role="tab" aria-selected="true">
-                            <span class="mode-icon">🌱</span>
+                            <span class="mode-icon" data-icon="sprout"></span>
                             <span class="mode-label">Easy Mode</span>
                             <span class="mode-desc">Beginner-friendly</span>
                         </button>
                         <button type="button" class="mode-btn" data-mode="deep" role="tab" aria-selected="false">
-                            <span class="mode-icon">🔬</span>
+                            <span class="mode-icon" data-icon="microscope"></span>
                             <span class="mode-label">Deep Mode</span>
                             <span class="mode-desc">Detailed & technical</span>
                         </button>
                         <button type="button" class="mode-btn" data-mode="fun" role="tab" aria-selected="false">
-                            <span class="mode-icon">🚀</span>
+                            <span class="mode-icon" data-icon="rocket"></span>
                             <span class="mode-label">Fun Mode</span>
                             <span class="mode-desc">Analogies & emojis</span>
                         </button>
@@ -360,14 +360,14 @@
                 <!-- Quiz CTA Banner below summary -->
                 <div class="quiz-cta-banner">
                     <div class="quiz-cta-content">
-                        <div class="quiz-cta-icon-box">🎯</div>
+                        <div class="quiz-cta-icon-box" data-icon="target"></div>
                         <div class="quiz-cta-text">
                             <h4>Ready to test what you learned?</h4>
                             <p>Challenge yourself with custom questions crafted strictly from this document with a 30s timer per question!</p>
                         </div>
                     </div>
                     <button type="button" id="summaryQuizCtaBtn" class="btn btn-quiz btn-tactile-3d">
-                        <span class="btn-icon">🎯</span>
+                        <span class="btn-icon" data-icon="target"></span>
                         <span class="btn-text">Launch Quiz Mode</span>
                         <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -391,7 +391,7 @@
                         </div>
                         <span id="quizQuestionCounter" class="quiz-badge counter">Question 1 / 10</span>
                         <span id="quizScoreCounter" class="quiz-badge score">Score: 0 / 10</span>
-                        <span id="quizDifficultyBadge" class="quiz-badge difficulty">⚡ Medium</span>
+                        <span id="quizDifficultyBadge" class="quiz-badge difficulty"><span data-icon="zap" data-size="13"></span>Medium</span>
                     </div>
 
                     <div class="quiz-meta-right">
@@ -435,7 +435,7 @@
                     <!-- Instant Explanation Feedback Box -->
                     <div id="quizExplanationBox" class="quiz-explanation-box hidden">
                         <div class="explanation-title-row">
-                            <span id="explanationIcon" class="explanation-icon">💡</span>
+                            <span id="explanationIcon" class="explanation-icon" data-icon="lightbulb"></span>
                             <span id="explanationTitle" class="explanation-title">Explanation</span>
                         </div>
                         <p id="quizExplanationText" class="explanation-text"></p>
@@ -456,7 +456,7 @@
                 <!-- Quiz Completion & Results Screen -->
                 <div id="quizCompletedCard" class="quiz-completed-card hidden">
                     <div class="results-celebration">
-                        <div id="resultsTrophyIcon" class="trophy-icon">🏆</div>
+                        <div id="resultsTrophyIcon" class="trophy-icon" data-icon="trophy"></div>
                         <div class="score-display-ring">
                             <span id="finalScoreVal" class="score-number">10</span>
                             <span class="score-divider">/</span>
@@ -481,29 +481,29 @@
                         </div>
                         <div class="stat-box">
                             <span class="stat-label">Difficulty</span>
-                            <span id="statDifficulty" class="stat-value">⚡ Medium</span>
+                            <span id="statDifficulty" class="stat-value"><span data-icon="zap" data-size="13"></span>Medium</span>
                         </div>
                     </div>
 
                     <div id="saveStatusIndicator" class="save-status-badge">
-                        <span class="save-icon">💾</span> Result automatically saved to SQLite history
+                        <span class="save-icon" data-icon="save"></span> Result automatically saved to SQLite history
                     </div>
 
                     <div class="quiz-completed-actions">
                         <button type="button" id="retakeQuizBtn" class="btn btn-primary">
-                            <span class="btn-icon">🔄</span> Retake Quiz
+                            <span class="btn-icon" data-icon="refresh-cw"></span> Retake Quiz
                         </button>
                         <button type="button" id="changeQuizSettingsBtn" class="btn btn-secondary">
-                            <span class="btn-icon">⚙️</span> Change Settings
+                            <span class="btn-icon" data-icon="settings"></span> Change Settings
                         </button>
                         <button type="button" id="quizViewProgressBtn" class="btn btn-progress-cta btn-tactile-3d" title="View updated stats & level progression">
-                            <span class="btn-icon">📊</span> View Progress
+                            <span class="btn-icon" data-icon="bar-chart-3"></span> View Progress
                         </button>
                         <button type="button" id="backToSummariesBtn" class="btn btn-outline">
-                            <span class="btn-icon">📖</span> Back to Summaries
+                            <span class="btn-icon" data-icon="book-open"></span> Back to Summaries
                         </button>
                         <button type="button" id="quizNewUploadBtn" class="btn btn-outline">
-                            <span class="btn-icon">📄</span> Upload New PDF
+                            <span class="btn-icon" data-icon="file-text"></span> Upload New PDF
                         </button>
                     </div>
                 </div>
@@ -530,11 +530,11 @@
                     </div>
                     <div class="progress-header-right">
                         <button type="button" id="restartProgressBtn" class="btn btn-restart-progress" title="Restart Progress" aria-label="Restart data and record progress from starting">
-                            <span class="btn-icon">🔄</span>
+                            <span class="btn-icon" data-icon="refresh-cw"></span>
                             <span class="btn-tooltip" role="tooltip">Restart Progress</span>
                         </button>
                         <button type="button" id="progressQuickQuizBtn" class="btn btn-quiz btn-tactile-3d" title="Start a quiz session now">
-                            <span class="btn-icon">🎯</span>
+                            <span class="btn-icon" data-icon="target"></span>
                             <span class="btn-text">Take a Quiz</span>
                         </button>
                     </div>
@@ -543,7 +543,7 @@
                 <!-- Restart Success Notification Banner -->
                 <div id="progressResetAlert" class="progress-reset-alert hidden" role="alert" aria-live="polite">
                     <div class="alert-content">
-                        <span class="alert-icon">✨</span>
+                        <span class="alert-icon" data-icon="sparkles"></span>
                         <span class="alert-msg">Your progress and history have been reset. Take your next quiz to begin recording fresh stats!</span>
                     </div>
                     <button type="button" id="dismissResetAlertBtn" class="alert-dismiss" aria-label="Dismiss alert">&times;</button>
@@ -553,7 +553,7 @@
                 <div class="gamer-rank-banner" id="gamerRankBanner">
                     <div class="rank-badge-glow-wrap">
                         <div class="rank-badge-orb" id="rankBadgeOrb">
-                            <span class="rank-badge-emoji" id="rankBadgeEmoji">🔮</span>
+                            <span class="rank-badge-emoji" id="rankBadgeEmoji" data-icon="gem"></span>
                         </div>
                         <div class="rank-info-box">
                             <div class="rank-title-row">
@@ -599,7 +599,7 @@
                             <div class="tier-zone-badge" id="tierStepBeginner" data-tier="beginner">
                                 <div class="zone-color-bar beginner"></div>
                                 <div class="zone-info">
-                                    <span class="zone-icon">🌱</span>
+                                    <span class="zone-icon" data-icon="sprout"></span>
                                     <span class="zone-name">Beginner</span>
                                     <span class="zone-range">&lt;40%</span>
                                 </div>
@@ -607,7 +607,7 @@
                             <div class="tier-zone-badge" id="tierStepLearner" data-tier="learner">
                                 <div class="zone-color-bar learner"></div>
                                 <div class="zone-info">
-                                    <span class="zone-icon">⚡</span>
+                                    <span class="zone-icon" data-icon="zap"></span>
                                     <span class="zone-name">Learner</span>
                                     <span class="zone-range">40–60%</span>
                                 </div>
@@ -615,7 +615,7 @@
                             <div class="tier-zone-badge" id="tierStepScholar" data-tier="scholar">
                                 <div class="zone-color-bar scholar"></div>
                                 <div class="zone-info">
-                                    <span class="zone-icon">🔮</span>
+                                    <span class="zone-icon" data-icon="gem"></span>
                                     <span class="zone-name">Scholar</span>
                                     <span class="zone-range">60–80%</span>
                                 </div>
@@ -623,7 +623,7 @@
                             <div class="tier-zone-badge" id="tierStepMaster" data-tier="master">
                                 <div class="zone-color-bar master"></div>
                                 <div class="zone-info">
-                                    <span class="zone-icon">👑</span>
+                                    <span class="zone-icon" data-icon="crown"></span>
                                     <span class="zone-name">Master</span>
                                     <span class="zone-range">80–99%</span>
                                 </div>
@@ -631,7 +631,7 @@
                             <div class="tier-zone-badge" id="tierStepImpossible" data-tier="impossible">
                                 <div class="zone-color-bar impossible"></div>
                                 <div class="zone-info">
-                                    <span class="zone-icon">♾️</span>
+                                    <span class="zone-icon" data-icon="infinity"></span>
                                     <span class="zone-name">Impossible</span>
                                     <span class="zone-range">100%</span>
                                 </div>
@@ -645,7 +645,7 @@
                     <!-- 1. Total Quizzes Taken -->
                     <div class="stat-overview-card" data-stat="quizzes">
                         <div class="stat-card-icon-wrap purple">
-                            <span class="stat-card-emoji">📝</span>
+                            <span class="stat-card-emoji" data-icon="pencil"></span>
                         </div>
                         <div class="stat-card-body">
                             <span class="stat-card-label">Total Quizzes</span>
@@ -657,7 +657,7 @@
                     <!-- 2. Average Score -->
                     <div class="stat-overview-card" data-stat="average">
                         <div class="stat-card-icon-wrap cyan">
-                            <span class="stat-card-emoji">🎯</span>
+                            <span class="stat-card-emoji" data-icon="target"></span>
                         </div>
                         <div class="stat-card-body">
                             <span class="stat-card-label">Average Score</span>
@@ -669,7 +669,7 @@
                     <!-- 3. Best Score -->
                     <div class="stat-overview-card" data-stat="best">
                         <div class="stat-card-icon-wrap gold">
-                            <span class="stat-card-emoji">🏆</span>
+                            <span class="stat-card-emoji" data-icon="trophy"></span>
                         </div>
                         <div class="stat-card-body">
                             <span class="stat-card-label">Best Score</span>
@@ -681,7 +681,7 @@
                     <!-- 4. Total Questions Answered -->
                     <div class="stat-overview-card" data-stat="questions">
                         <div class="stat-card-icon-wrap violet">
-                            <span class="stat-card-emoji">⚡</span>
+                            <span class="stat-card-emoji" data-icon="zap"></span>
                         </div>
                         <div class="stat-card-body">
                             <span class="stat-card-label">Questions Answered</span>
@@ -693,7 +693,7 @@
                     <!-- 5. Overall Accuracy Percentage -->
                     <div class="stat-overview-card" data-stat="accuracy">
                         <div class="stat-card-icon-wrap emerald">
-                            <span class="stat-card-emoji">💎</span>
+                            <span class="stat-card-emoji" data-icon="gem"></span>
                         </div>
                         <div class="stat-card-body">
                             <span class="stat-card-label">Overall Accuracy</span>
@@ -707,7 +707,7 @@
                 <div class="progress-chart-card">
                     <div class="chart-header-row">
                         <div class="chart-title-group">
-                            <div class="chart-icon-box">📈</div>
+                            <div class="chart-icon-box" data-icon="trending-up"></div>
                             <div>
                                 <h3 class="chart-title">Score Trend Over Time</h3>
                                 <p class="chart-subtitle">Visualizing your quiz scores and accuracy over time</p>
@@ -721,7 +721,7 @@
                     <div class="chart-canvas-container" id="chartCanvasContainer">
                         <canvas id="scoreTrendChartCanvas" aria-label="Quiz score trend chart" role="img"></canvas>
                         <div id="chartEmptyState" class="chart-empty-state hidden">
-                            <span class="empty-icon">📊</span>
+                            <span class="empty-icon" data-icon="bar-chart-3"></span>
                             <p>No quiz score data yet. Take a quiz to begin tracking your score trend over time!</p>
                         </div>
                     </div>
@@ -731,7 +731,7 @@
                 <div class="achievements-card" id="achievementsCard">
                     <div class="achievements-card-header">
                         <div class="achievements-title-group">
-                            <div class="achievements-icon-box">🏆</div>
+                            <div class="achievements-icon-box" data-icon="trophy"></div>
                             <div>
                                 <h3 class="achievements-title">Achievements & Mastery Trophies</h3>
                                 <p class="achievements-subtitle">Unlock collectible badges by studying documents and mastering quizzes</p>
@@ -743,7 +743,7 @@
                     <div class="achievements-grid" id="achievementsGrid">
                         <!-- 1. First Quiz -->
                         <div class="achievement-medal-item" id="achFirstQuiz" data-ach="first-quiz">
-                            <div class="medal-icon-ring">🎯</div>
+                            <div class="medal-icon-ring" data-icon="target"></div>
                             <div class="medal-info">
                                 <h4 class="medal-title">First Discovery</h4>
                                 <p class="medal-desc">Complete your very first quiz attempt</p>
@@ -752,7 +752,7 @@
                         </div>
                         <!-- 2. Sharp Scholar -->
                         <div class="achievement-medal-item" id="achSharpScholar" data-ach="sharp-scholar">
-                            <div class="medal-icon-ring">⚡</div>
+                            <div class="medal-icon-ring" data-icon="zap"></div>
                             <div class="medal-info">
                                 <h4 class="medal-title">Sharp Scholar</h4>
                                 <p class="medal-desc">Score 80% or higher on any quiz</p>
@@ -761,7 +761,7 @@
                         </div>
                         <!-- 3. Tier Ascendant -->
                         <div class="achievement-medal-item" id="achTierAscendant" data-ach="tier-ascendant">
-                            <div class="medal-icon-ring">🔮</div>
+                            <div class="medal-icon-ring" data-icon="gem"></div>
                             <div class="medal-info">
                                 <h4 class="medal-title">Tier Ascendant</h4>
                                 <p class="medal-desc">Level up to Tier 2 (Learner) or higher</p>
@@ -770,7 +770,7 @@
                         </div>
                         <!-- 4. Dedicated Mind -->
                         <div class="achievement-medal-item" id="achDedicatedMind" data-ach="dedicated-mind">
-                            <div class="medal-icon-ring">📚</div>
+                            <div class="medal-icon-ring" data-icon="library"></div>
                             <div class="medal-info">
                                 <h4 class="medal-title">Dedicated Mind</h4>
                                 <p class="medal-desc">Answer 20 or more total quiz questions</p>
@@ -779,7 +779,7 @@
                         </div>
                         <!-- 5. Perfectionist -->
                         <div class="achievement-medal-item" id="achPerfectionist" data-ach="perfectionist">
-                            <div class="medal-icon-ring">👑</div>
+                            <div class="medal-icon-ring" data-icon="crown"></div>
                             <div class="medal-info">
                                 <h4 class="medal-title">Flawless 100%</h4>
                                 <p class="medal-desc">Achieve 100% accuracy on a quiz</p>
@@ -788,7 +788,7 @@
                         </div>
                         <!-- 6. Study Streak -->
                         <div class="achievement-medal-item" id="achStreakMaster" data-ach="streak-master">
-                            <div class="medal-icon-ring">🔥</div>
+                            <div class="medal-icon-ring" data-icon="flame"></div>
                             <div class="medal-info">
                                 <h4 class="medal-title">Study Streak</h4>
                                 <p class="medal-desc">Maintain an active daily study streak</p>
@@ -802,7 +802,7 @@
                 <div class="quiz-history-card">
                     <div class="history-card-header">
                         <div class="history-title-group">
-                            <div class="history-icon-box">📜</div>
+                            <div class="history-icon-box" data-icon="scroll"></div>
                             <div>
                                 <h3 class="history-title">Quiz History</h3>
                                 <p class="history-subtitle">All past quiz sessions, newest first</p>
@@ -828,11 +828,11 @@
                         </table>
                         <!-- Empty State for History Table -->
                         <div id="historyEmptyState" class="history-empty-state hidden">
-                            <div class="history-empty-icon">📂</div>
+                            <div class="history-empty-icon" data-icon="folder-open"></div>
                             <h4>No Quizzes Taken Yet</h4>
                             <p>Upload a PDF document and take your first quiz to earn level badges, level up your rank, and see your performance history here!</p>
                             <button type="button" id="historyStartQuizBtn" class="btn btn-primary btn-tactile-3d">
-                                <span class="btn-icon">🚀</span>
+                                <span class="btn-icon" data-icon="rocket"></span>
                                 <span class="btn-text">Start First Quiz</span>
                             </button>
                         </div>
@@ -856,7 +856,7 @@
             <div class="quiz-modal-card word-help-modal-card">
                 <div class="quiz-modal-header word-help-modal-header">
                     <div class="quiz-modal-title-box">
-                        <div class="quiz-modal-icon-badge word-help-icon-badge">💡</div>
+                        <div class="quiz-modal-icon-badge word-help-icon-badge" data-icon="lightbulb"></div>
                         <div>
                             <h3 id="wordHelpModalTitle" class="quiz-modal-title">Confused by a term?</h3>
                             <p class="quiz-modal-subtitle">Type any word or concept from your PDF for a quick, tailored explanation</p>
@@ -875,19 +875,19 @@
                     <!-- Search Form -->
                     <form id="wordHelpForm" class="word-help-form" onsubmit="return false;">
                         <div class="word-help-input-wrap">
-                            <span class="word-help-input-icon">🔍</span>
+                            <span class="word-help-input-icon" data-icon="search"></span>
                             <input type="text" id="wordHelpInput" class="word-help-input" placeholder="Type a term from the PDF (e.g. Backpropagation, Torque, Mitochondria)..." autocomplete="off" aria-label="Confused by a term?">
                             <button type="button" id="wordHelpClearBtn" class="word-help-clear-btn hidden" title="Clear input" aria-label="Clear input">&times;</button>
                         </div>
                         <button type="submit" id="wordHelpSubmitBtn" class="btn btn-word-help btn-tactile-3d" title="Explain this term in document context">
-                            <span class="btn-icon">✨</span>
+                            <span class="btn-icon" data-icon="sparkles"></span>
                             <span class="btn-text">Explain</span>
                         </button>
                     </form>
 
                     <!-- Alert message (e.g. Please upload a PDF first) -->
                     <div id="wordHelpAlert" class="word-help-alert hidden" role="alert">
-                        <span class="alert-icon">⚠️</span>
+                        <span class="alert-icon" data-icon="alert-triangle"></span>
                         <span id="wordHelpAlertMsg" class="alert-text">Please upload a PDF first</span>
                     </div>
 
@@ -913,7 +913,7 @@
                     <div id="wordHelpResult" class="word-help-result hidden" aria-live="polite">
                         <div class="word-help-result-header">
                             <div class="result-term-tag">
-                                <span class="tag-icon">📖</span>
+                                <span class="tag-icon" data-icon="book-open"></span>
                                 <span class="tag-label">Term:</span>
                                 <strong id="wordHelpResultTerm" class="tag-term-name"></strong>
                             </div>
@@ -942,7 +942,7 @@
             <div class="quiz-modal-card">
                 <div class="quiz-modal-header">
                     <div class="quiz-modal-title-box">
-                        <div class="quiz-modal-icon-badge">🎯</div>
+                        <div class="quiz-modal-icon-badge" data-icon="target"></div>
                         <div>
                             <h3 id="quizModalTitle" class="quiz-modal-title">Customize Your Quiz</h3>
                             <p class="quiz-modal-subtitle">Choose question quantity and challenge level</p>
@@ -996,21 +996,21 @@
                         </label>
                         <div class="difficulty-options-grid" role="radiogroup" aria-label="Quiz difficulty">
                             <button type="button" class="diff-card-btn" data-difficulty="easy" role="radio" aria-checked="false">
-                                <span class="diff-icon">🌱</span>
+                                <span class="diff-icon" data-icon="sprout"></span>
                                 <div class="diff-info">
                                     <span class="diff-name">Easy</span>
                                     <span class="diff-desc">Foundational definitions & direct facts</span>
                                 </div>
                             </button>
                             <button type="button" class="diff-card-btn" data-difficulty="medium" role="radio" aria-checked="false">
-                                <span class="diff-icon">⚡</span>
+                                <span class="diff-icon" data-icon="zap"></span>
                                 <div class="diff-info">
                                     <span class="diff-name">Medium</span>
                                     <span class="diff-desc">Conceptual understanding & application</span>
                                 </div>
                             </button>
                             <button type="button" class="diff-card-btn" data-difficulty="hard" role="radio" aria-checked="false">
-                                <span class="diff-icon">🔥</span>
+                                <span class="diff-icon" data-icon="flame"></span>
                                 <div class="diff-info">
                                     <span class="diff-name">Hard</span>
                                     <span class="diff-desc">Technical nuances & in-depth analysis</span>
@@ -1023,7 +1023,7 @@
                 <div class="quiz-modal-footer">
                     <button type="button" id="cancelQuizModalBtn" class="btn btn-outline">Cancel</button>
                     <button type="button" id="startCustomQuizBtn" class="btn btn-quiz btn-start-quiz btn-tactile-3d">
-                        <span class="btn-icon">🚀</span>
+                        <span class="btn-icon" data-icon="rocket"></span>
                         <span id="startQuizBtnText">Start Quiz (10 Questions · Medium)</span>
                     </button>
                 </div>
@@ -1041,7 +1041,7 @@
             <div class="quiz-modal-card restart-modal-card">
                 <div class="quiz-modal-header restart-modal-header">
                     <div class="quiz-modal-title-box">
-                        <div class="quiz-modal-icon-badge restart-modal-icon-badge">🔄</div>
+                        <div class="quiz-modal-icon-badge restart-modal-icon-badge" data-icon="refresh-cw"></div>
                         <div>
                             <h3 id="restartModalTitle" class="quiz-modal-title">Restart Your Progress?</h3>
                             <p class="quiz-modal-subtitle">Clear recorded data and track progress from starting</p>
@@ -1053,16 +1053,16 @@
                 <div class="quiz-modal-body restart-modal-body">
                     <div class="restart-warning-card">
                         <div class="restart-warning-header">
-                            <span class="restart-warning-pill badge-warning-theme">⚠️ Warning: Irreversible Action</span>
+                            <span class="restart-warning-pill badge-warning-theme"><span data-icon="alert-triangle" data-size="14"></span> Warning: Irreversible Action</span>
                         </div>
                         <p class="restart-warning-intro">This will reset all your stored study statistics and quiz attempts so you can record your progress fresh from scratch:</p>
                         <ul class="restart-warning-list">
-                            <li><span class="list-bullet">✕</span> All past quiz scores and history table entries will be wiped</li>
-                            <li><span class="list-bullet">✕</span> Gamer rank badge will reset back to <strong class="restart-target-rank">Beginner (Tier 1)</strong></li>
-                            <li><span class="list-bullet">✕</span> Accuracy metrics and score progression chart will start over</li>
+                            <li><span class="list-bullet" data-icon="x"></span> All past quiz scores and history table entries will be wiped</li>
+                            <li><span class="list-bullet" data-icon="x"></span> Gamer rank badge will reset back to <strong class="restart-target-rank">Beginner (Tier 1)</strong></li>
+                            <li><span class="list-bullet" data-icon="x"></span> Accuracy metrics and score progression chart will start over</li>
                         </ul>
                         <div class="restart-tip-box">
-                            <span class="tip-icon">💡</span>
+                            <span class="tip-icon" data-icon="lightbulb"></span>
                             <span class="tip-text">Your generated summaries and uploaded documents will remain intact.</span>
                         </div>
                     </div>
@@ -1071,7 +1071,7 @@
                 <div class="quiz-modal-footer restart-modal-footer">
                     <button type="button" id="cancelRestartModalBtn" class="btn btn-outline">Cancel</button>
                     <button type="button" id="confirmRestartBtn" class="btn btn-danger-restart btn-tactile-3d">
-                        <span class="btn-icon">🔄</span>
+                        <span class="btn-icon" data-icon="refresh-cw"></span>
                         <span class="btn-text">Yes, Restart Progress</span>
                     </button>
                 </div>
@@ -1086,7 +1086,7 @@
             <div class="quiz-modal-card streak-calendar-card">
                 <div class="quiz-modal-header streak-calendar-header">
                     <div class="quiz-modal-title-box">
-                        <div class="quiz-modal-icon-badge streak-fire-icon-badge">🔥</div>
+                        <div class="quiz-modal-icon-badge streak-fire-icon-badge" data-icon="flame"></div>
                         <div>
                             <h3 id="streakCalendarModalTitle" class="quiz-modal-title">Study Streak & Activity</h3>
                             <p class="quiz-modal-subtitle">Your daily learning journey and habit consistency</p>
@@ -1100,7 +1100,7 @@
                     <div class="streak-hero-banner">
                         <div class="streak-hero-left">
                             <div class="streak-hero-flame-orb">
-                                <span class="hero-flame-icon">🔥</span>
+                                <span class="hero-flame-icon" data-icon="flame"></span>
                             </div>
                             <div class="streak-hero-info">
                                 <div class="streak-hero-count-row">
@@ -1129,7 +1129,7 @@
                     <!-- Calendar Controls (Month / Year Navigation) -->
                     <div class="streak-calendar-nav-bar">
                         <div class="streak-cal-month-title-wrap">
-                            <span class="cal-calendar-icon">📅</span>
+                            <span class="cal-calendar-icon" data-icon="calendar"></span>
                             <h4 class="streak-cal-month-title" id="streakCalMonthTitle">October 2026</h4>
                         </div>
                         <div class="streak-cal-nav-buttons">
@@ -1185,7 +1185,7 @@
             <div class="quiz-modal-card flashcards-modal-card">
                 <div class="quiz-modal-header flashcards-modal-header">
                     <div class="quiz-modal-title-box">
-                        <div class="quiz-modal-icon-badge flashcards-icon-badge">🎴</div>
+                        <div class="quiz-modal-icon-badge flashcards-icon-badge" data-icon="layers"></div>
                         <div>
                             <h3 id="flashcardsModalTitle" class="quiz-modal-title">Concept Flashcards</h3>
                             <p class="quiz-modal-subtitle" id="flashcardDocSubtitle">Interactive 3D active recall deck tailored to your document</p>
@@ -1211,13 +1211,13 @@
                             <div class="flashcard-face flashcard-front">
                                 <div class="flashcard-badge-row">
                                     <span class="flashcard-cat-badge" id="cardCategoryBadge">KEY CONCEPT</span>
-                                    <span class="flashcard-flip-prompt">Click or press Space to Flip 🔄</span>
+                                    <span class="flashcard-flip-prompt">Click or press Space to Flip</span>
                                 </div>
                                 <div class="flashcard-content">
                                     <h4 class="flashcard-prompt-text" id="cardPromptText">Flashcard Concept</h4>
                                 </div>
                                 <div class="flashcard-footer-hint">
-                                    <span class="hint-icon">💡</span>
+                                    <span class="hint-icon" data-icon="lightbulb"></span>
                                     <span class="hint-text">Test your memory before flipping!</span>
                                 </div>
                             </div>
@@ -1226,13 +1226,13 @@
                             <div class="flashcard-face flashcard-back">
                                 <div class="flashcard-badge-row">
                                     <span class="flashcard-cat-badge answer">EXPLANATION</span>
-                                    <span class="flashcard-flip-prompt">Click to Flip Back 🔄</span>
+                                    <span class="flashcard-flip-prompt">Click to Flip Back</span>
                                 </div>
                                 <div class="flashcard-content">
                                     <div class="flashcard-answer-text" id="cardAnswerText">Explanation details...</div>
                                 </div>
                                 <div class="flashcard-footer-hint">
-                                    <span class="hint-icon">🧠</span>
+                                    <span class="hint-icon" data-icon="brain"></span>
                                     <span class="hint-text">Did you recall this correctly?</span>
                                 </div>
                             </div>
@@ -1242,35 +1242,35 @@
                     <!-- Flashcard Navigation & Rating Controls -->
                     <div class="flashcard-controls-row">
                         <button type="button" id="flashcardPrevBtn" class="btn btn-flashcard-nav" title="Previous Card (Left Arrow)">
-                            <span>◀</span>
+                            <span data-icon="arrow-left" data-size="16"></span>
                             <span>Prev</span>
                         </button>
                         
                         <div class="flashcard-review-actions">
                             <button type="button" id="cardReviewAgainBtn" class="btn btn-rating review-btn" title="Mark for review">
-                                <span>🔴</span>
+                                <span data-icon="x-circle"></span>
                                 <span>Still Learning</span>
                             </button>
                             <button type="button" id="flashcardFlipBtn" class="btn btn-rating flip-btn" title="Flip Card (Space)">
-                                <span>🔄</span>
+                                <span data-icon="refresh-cw"></span>
                                 <span>Flip</span>
                             </button>
                             <button type="button" id="cardMasteredBtn" class="btn btn-rating master-btn" title="Mark as mastered">
-                                <span>🟢</span>
+                                <span data-icon="check-circle"></span>
                                 <span>Mastered</span>
                             </button>
                         </div>
 
                         <button type="button" id="flashcardNextBtn" class="btn btn-flashcard-nav" title="Next Card (Right Arrow)">
                             <span>Next</span>
-                            <span>▶</span>
+                            <span data-icon="arrow-right" data-size="16"></span>
                         </button>
                     </div>
 
                     <!-- Keyboard & Touch navigation guide -->
                     <div class="flashcard-hotkeys-hint">
-                        <span class="desktop-hotkeys">Shortcuts: <strong>Space</strong> to Flip · <strong>← / →</strong> for Next / Prev · <strong>1</strong> Learning · <strong>2</strong> Mastered</span>
-                        <span class="mobile-touch-hint">💡 Tap to Flip · Swipe Left / Right to Browse</span>
+                        <span class="desktop-hotkeys">Shortcuts: <strong>Space</strong> to Flip · <strong><span data-icon="arrow-left" data-size="11"></span> / <span data-icon="arrow-right" data-size="11"></span></strong> for Next / Prev · <strong>1</strong> Learning · <strong>2</strong> Mastered</span>
+                        <span class="mobile-touch-hint"><span data-icon="lightbulb" data-size="13"></span> Tap to Flip · Swipe Left / Right to Browse</span>
                     </div>
                 </div>
             </div>
@@ -1284,7 +1284,7 @@
             <div class="quiz-modal-card cheat-sheet-modal-card">
                 <div class="quiz-modal-header cheat-sheet-modal-header no-print">
                     <div class="quiz-modal-title-box">
-                        <div class="quiz-modal-icon-badge cheat-sheet-icon-badge">📋</div>
+                        <div class="quiz-modal-icon-badge cheat-sheet-icon-badge" data-icon="clipboard-list"></div>
                         <div>
                             <h3 id="cheatSheetModalTitle" class="quiz-modal-title">Exam Cram Sheet (1-Page Guide)</h3>
                             <p class="quiz-modal-subtitle" id="cheatSheetDocSubtitle">Target Document</p>
@@ -1292,7 +1292,7 @@
                     </div>
                     <div class="cheat-sheet-header-actions">
                         <button type="button" id="printCheatSheetBtn" class="btn btn-primary btn-tactile-3d" title="Print or save as PDF">
-                            <span class="btn-icon">🖨️</span>
+                            <span class="btn-icon" data-icon="printer"></span>
                             <span class="btn-text">Print / Save PDF</span>
                         </button>
                         <button type="button" id="closeCheatSheetModalBtn" class="quiz-modal-close" aria-label="Close Cheat Sheet modal">&times;</button>
@@ -1314,7 +1314,7 @@
                         <!-- Column 1: Core Big Ideas & Highlights -->
                         <div class="cheat-section-card big-ideas-card">
                             <div class="cheat-section-header">
-                                <span class="cheat-icon">💡</span>
+                                <span class="cheat-icon" data-icon="lightbulb"></span>
                                 <h4>Top 5 Exam Must-Knows</h4>
                             </div>
                             <div class="cheat-section-content" id="cheatSheetBigIdeas">
@@ -1325,7 +1325,7 @@
                         <!-- Column 2: Formulas & Mathematical Formulations -->
                         <div class="cheat-section-card formulas-card">
                             <div class="cheat-section-header">
-                                <span class="cheat-icon">⚡</span>
+                                <span class="cheat-icon" data-icon="zap"></span>
                                 <h4>Key Formulas & Equations</h4>
                             </div>
                             <div class="cheat-section-content" id="cheatSheetFormulas">
@@ -1336,7 +1336,7 @@
                         <!-- Column 3: Must-Know Terminology -->
                         <div class="cheat-section-card terms-card">
                             <div class="cheat-section-header">
-                                <span class="cheat-icon">🔑</span>
+                                <span class="cheat-icon" data-icon="key"></span>
                                 <h4>Essential Definitions</h4>
                             </div>
                             <div class="cheat-section-content" id="cheatSheetTerms">
@@ -1347,7 +1347,7 @@
                         <!-- Column 4: Exam Pitfalls & Traps -->
                         <div class="cheat-section-card traps-card">
                             <div class="cheat-section-header">
-                                <span class="cheat-icon">⚠️</span>
+                                <span class="cheat-icon" data-icon="alert-triangle"></span>
                                 <h4>Common Traps & Mistakes</h4>
                             </div>
                             <div class="cheat-section-content" id="cheatSheetTraps">
@@ -1360,8 +1360,10 @@
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v14"></script>
+    <!-- Icon system (Lucide outline icons, auto-inits [data-icon] placeholders) -->
+    <script src="{{ url_for('static', filename='icons.js') }}?v=cosmic-purple-v15"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v15"></script>
     <!-- PWA: service worker registration + native install prompt -->
-    <script src="{{ url_for('static', filename='pwa.js') }}?v=cosmic-purple-v14"></script>
+    <script src="{{ url_for('static', filename='pwa.js') }}?v=cosmic-purple-v15"></script>
 </body>
 </html>
