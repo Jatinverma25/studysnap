@@ -20,7 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRwr4yROQP43s0Xk" crossorigin="anonymous"></script>
     <!-- Chart.js for score trend analytics and progression tracking (pinned + SRI) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js" integrity="sha384-NrKB+u6Ts6AtkIhwPixiKTzgSKNblyhlk0Sohlgar9UHUBzai/sgnNNWWd291xqt" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v15">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=cosmic-purple-v16">
 
     <!-- PWA: web app manifest, theme colors, and installable app icons -->
     <link rel="manifest" href="/static/manifest.webmanifest">
@@ -727,77 +727,6 @@
                     </div>
                 </div>
 
-                <!-- ACHIEVEMENTS & TROPHIES SHOWCASE -->
-                <div class="achievements-card" id="achievementsCard">
-                    <div class="achievements-card-header">
-                        <div class="achievements-title-group">
-                            <div class="achievements-icon-box" data-icon="trophy"></div>
-                            <div>
-                                <h3 class="achievements-title">Achievements & Mastery Trophies</h3>
-                                <p class="achievements-subtitle">Unlock collectible badges by studying documents and mastering quizzes</p>
-                            </div>
-                        </div>
-                        <span class="achievements-unlocked-badge" id="achievementsUnlockedBadge">0 / 6 Unlocked</span>
-                    </div>
-
-                    <div class="achievements-grid" id="achievementsGrid">
-                        <!-- 1. First Quiz -->
-                        <div class="achievement-medal-item" id="achFirstQuiz" data-ach="first-quiz">
-                            <div class="medal-icon-ring" data-icon="target"></div>
-                            <div class="medal-info">
-                                <h4 class="medal-title">First Discovery</h4>
-                                <p class="medal-desc">Complete your very first quiz attempt</p>
-                                <span class="medal-status locked">Locked</span>
-                            </div>
-                        </div>
-                        <!-- 2. Sharp Scholar -->
-                        <div class="achievement-medal-item" id="achSharpScholar" data-ach="sharp-scholar">
-                            <div class="medal-icon-ring" data-icon="zap"></div>
-                            <div class="medal-info">
-                                <h4 class="medal-title">Sharp Scholar</h4>
-                                <p class="medal-desc">Score 80% or higher on any quiz</p>
-                                <span class="medal-status locked">Locked</span>
-                            </div>
-                        </div>
-                        <!-- 3. Tier Ascendant -->
-                        <div class="achievement-medal-item" id="achTierAscendant" data-ach="tier-ascendant">
-                            <div class="medal-icon-ring" data-icon="gem"></div>
-                            <div class="medal-info">
-                                <h4 class="medal-title">Tier Ascendant</h4>
-                                <p class="medal-desc">Level up to Tier 2 (Learner) or higher</p>
-                                <span class="medal-status locked">Locked</span>
-                            </div>
-                        </div>
-                        <!-- 4. Dedicated Mind -->
-                        <div class="achievement-medal-item" id="achDedicatedMind" data-ach="dedicated-mind">
-                            <div class="medal-icon-ring" data-icon="library"></div>
-                            <div class="medal-info">
-                                <h4 class="medal-title">Dedicated Mind</h4>
-                                <p class="medal-desc">Answer 20 or more total quiz questions</p>
-                                <span class="medal-status locked">Locked</span>
-                            </div>
-                        </div>
-                        <!-- 5. Perfectionist -->
-                        <div class="achievement-medal-item" id="achPerfectionist" data-ach="perfectionist">
-                            <div class="medal-icon-ring" data-icon="crown"></div>
-                            <div class="medal-info">
-                                <h4 class="medal-title">Flawless 100%</h4>
-                                <p class="medal-desc">Achieve 100% accuracy on a quiz</p>
-                                <span class="medal-status locked">Locked</span>
-                            </div>
-                        </div>
-                        <!-- 6. Study Streak -->
-                        <div class="achievement-medal-item" id="achStreakMaster" data-ach="streak-master">
-                            <div class="medal-icon-ring" data-icon="flame"></div>
-                            <div class="medal-info">
-                                <h4 class="medal-title">Study Streak</h4>
-                                <p class="medal-desc">Maintain an active daily study streak</p>
-                                <span class="medal-status locked">Locked</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- QUIZ HISTORY TABLE -->
                 <div class="quiz-history-card">
                     <div class="history-card-header">
@@ -1361,9 +1290,9 @@
     </div>
 
     <!-- Icon system (Lucide outline icons, auto-inits [data-icon] placeholders) -->
-    <script src="{{ url_for('static', filename='icons.js') }}?v=cosmic-purple-v15"></script>
-    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v15"></script>
+    <script src="{{ url_for('static', filename='icons.js') }}?v=cosmic-purple-v16"></script>
+    <script src="{{ url_for('static', filename='script.js') }}?v=cosmic-purple-v16"></script>
     <!-- PWA: service worker registration + native install prompt -->
-    <script src="{{ url_for('static', filename='pwa.js') }}?v=cosmic-purple-v15"></script>
+    <script src="{{ url_for('static', filename='pwa.js') }}?v=cosmic-purple-v16"></script>
 </body>
 </html>

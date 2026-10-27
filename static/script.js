@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const wordHelpAnswerBody = document.getElementById('wordHelpAnswerBody');
     const closeWordHelpResultBtn = document.getElementById('closeWordHelpResultBtn');
 
-    // DOM Elements - Feature Addons (Flashcards, Cheat Sheet, Streak, Achievements)
+    // DOM Elements - Feature Addons (Flashcards, Cheat Sheet, Streak)
     const studyStreakBadge = document.getElementById('studyStreakBadge');
     const streakCountVal = document.getElementById('streakCountVal');
     const resultsFlashcardsBtn = document.getElementById('resultsFlashcardsBtn');
@@ -168,15 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const streakCalNextMonthBtn = document.getElementById('streakCalNextMonthBtn');
     const streakDaysGrid = document.getElementById('streakDaysGrid');
 
-    // Achievements Showcase Elements
-    const achievementsCard = document.getElementById('achievementsCard');
-    const achievementsUnlockedBadge = document.getElementById('achievementsUnlockedBadge');
-    const achFirstQuiz = document.getElementById('achFirstQuiz');
-    const achSharpScholar = document.getElementById('achSharpScholar');
-    const achTierAscendant = document.getElementById('achTierAscendant');
-    const achDedicatedMind = document.getElementById('achDedicatedMind');
-    const achPerfectionist = document.getElementById('achPerfectionist');
-    const achStreakMaster = document.getElementById('achStreakMaster');
+    // (Achievements/mastery trophies feature removed per request.)
 
     // Flashcards Modal Elements
     const flashcardsModal = document.getElementById('flashcardsModal');
@@ -2284,9 +2276,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         try {
             syncQuizHistoryDates(historyItems);
-            updateAchievements(stats, historyItems);
         } catch (err) {
-            console.error('Failed to update achievements or sync streak dates:', err);
+            console.error('Failed to sync streak dates:', err);
         }
 
         // Render any LaTeX math notation present in the history or stats
@@ -2935,62 +2926,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ========================================================
-    // FEATURE ADDON 2: GAMIFIED ACHIEVEMENT MEDALS ENGINE
-    // ========================================================
-    function updateAchievements(stats, historyItems) {
-        if (!achievementsCard) return;
-
-        const totalQuizzes = stats ? (parseInt(stats.total_quizzes, 10) || 0) : 0;
-        const totalQuestions = stats ? (parseInt(stats.total_questions, 10) || 0) : 0;
-        const avgScore = stats ? (parseFloat(stats.average_score) || 0) : 0;
-        const streak = getStreakData().currentStreak || 0;
-
-        let hasHighQuiz = false;
-        let hasFlawlessQuiz = false;
-
-        if (Array.isArray(historyItems)) {
-            for (const h of historyItems) {
-                const pct = parseFloat(h.percentage) || 0;
-                if (pct >= 80) hasHighQuiz = true;
-                if (pct >= 100) hasFlawlessQuiz = true;
-            }
-        }
-
-        const achievementsList = [
-            { el: achFirstQuiz, unlocked: totalQuizzes >= 1 },
-            { el: achSharpScholar, unlocked: hasHighQuiz },
-            { el: achTierAscendant, unlocked: avgScore >= 40 },
-            { el: achDedicatedMind, unlocked: totalQuestions >= 20 },
-            { el: achPerfectionist, unlocked: hasFlawlessQuiz },
-            { el: achStreakMaster, unlocked: streak >= 2 }
-        ];
-
-        let unlockedCount = 0;
-        achievementsList.forEach(item => {
-            if (!item.el) return;
-            const statusEl = item.el.querySelector('.medal-status');
-            if (item.unlocked) {
-                unlockedCount++;
-                item.el.classList.add('unlocked');
-                if (statusEl) {
-                    statusEl.textContent = 'Unlocked';
-                    statusEl.className = 'medal-status unlocked';
-                }
-            } else {
-                item.el.classList.remove('unlocked');
-                if (statusEl) {
-                    statusEl.textContent = 'Locked';
-                    statusEl.className = 'medal-status locked';
-                }
-            }
-        });
-
-        if (achievementsUnlockedBadge) {
-            achievementsUnlockedBadge.textContent = `${unlockedCount} / 6 Unlocked`;
-        }
-    }
-
-    // ========================================================
     // FEATURE ADDON 3: 3D FLIP CONCEPT FLASHCARDS STUDIO
     // ========================================================
     let flashcardDeck = [];
@@ -3017,7 +2952,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     category: "SPACED REPETITION",
                     icon: "flame",
                     question: "How does the daily study streak help learning?",
-                    answer: "Reviewing documents and completing quizzes on consecutive days locks in memory curves, keeps your streak alive, and levels up your gamer achievement trophies!"
+                    answer: "Reviewing documents and completing quizzes on consecutive days locks in memory curves and keeps your streak alive!"
                 }
             ];
         }
